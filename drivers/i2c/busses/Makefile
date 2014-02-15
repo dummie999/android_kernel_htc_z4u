@@ -46,6 +46,9 @@ obj-$(CONFIG_I2C_INTEL_MID)	+= i2c-intel-mid.o
 obj-$(CONFIG_I2C_IOP3XX)	+= i2c-iop3xx.o
 obj-$(CONFIG_I2C_IXP2000)	+= i2c-ixp2000.o
 obj-$(CONFIG_I2C_MPC)		+= i2c-mpc.o
+obj-$(CONFIG_I2C_MSM)		+= i2c-msm.o
+obj-$(CONFIG_I2C_QUP)           += i2c-qup.o
+obj-$(CONFIG_I2C_SSBI)          += i2c-ssbi.o
 obj-$(CONFIG_I2C_MV64XXX)	+= i2c-mv64xxx.o
 obj-$(CONFIG_I2C_MXS)		+= i2c-mxs.o
 obj-$(CONFIG_I2C_NOMADIK)	+= i2c-nomadik.o
@@ -87,5 +90,7 @@ obj-$(CONFIG_I2C_SIBYTE)	+= i2c-sibyte.o
 obj-$(CONFIG_I2C_STUB)		+= i2c-stub.o
 obj-$(CONFIG_SCx200_ACB)	+= scx200_acb.o
 obj-$(CONFIG_SCx200_I2C)	+= scx200_i2c.o
+
+obj-$(CONFIG_I2C_CPLD)		+= i2c-cpld.o
 
 ccflags-$(CONFIG_I2C_DEBUG_BUS) := -DDEBUG

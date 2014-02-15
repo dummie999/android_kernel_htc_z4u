@@ -1,6 +1,6 @@
 /* arch/arm/mach-msm/proc_comm.h
  *
- * Copyright (c) 2007 QUALCOMM Incorporated
+ * Copyright (c) 2007-2009,2011 Code Aurora Forum. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -13,10 +13,8 @@
  *
  */
 
-#ifndef _ARCH_ARM_MACH_MSM_PROC_COMM_H_
-#define _ARCH_ARM_MACH_MSM_PROC_COMM_H_
-
-#include <linux/init.h>
+#ifndef _ARCH_ARM_MACH_MSM_MSM_PROC_COMM_H_
+#define _ARCH_ARM_MACH_MSM_MSM_PROC_COMM_H_
 
 enum {
 	PCOM_CMD_IDLE = 0x0,
@@ -137,7 +135,19 @@ enum {
 	PCOM_CLKCTL_RPC_RAIL_DISABLE,
 	PCOM_CLKCTL_RPC_RAIL_CONTROL,
 	PCOM_CLKCTL_RPC_MIN_MSMC1,
-	PCOM_NUM_CMDS,
+	PCOM_CLKCTL_RPC_SRC_REQUEST,
+	PCOM_NPA_INIT,
+	PCOM_NPA_ISSUE_REQUIRED_REQUEST,
+	PCOM_CLKCTL_RPC_SET_EXT_CONFIG,
+};
+
+enum {
+	PCOM_OEM_FIRST_CMD = 0x10000000,
+	PCOM_OEM_TEST_CMD = PCOM_OEM_FIRST_CMD,
+
+	
+
+	PCOM_OEM_LAST = PCOM_OEM_TEST_CMD,
 };
 
 enum {
@@ -157,20 +167,18 @@ enum {
 	PCOM_CMD_FAIL_SMSM_NOT_INIT,
 	PCOM_CMD_FAIL_PROC_COMM_BUSY,
 	PCOM_CMD_FAIL_PROC_COMM_NOT_INIT,
-
 };
 
-/* List of VREGs that support the Pull Down Resistor setting. */
 enum vreg_pdown_id {
 	PM_VREG_PDOWN_MSMA_ID,
 	PM_VREG_PDOWN_MSMP_ID,
-	PM_VREG_PDOWN_MSME1_ID,	/* Not supported in Panoramix */
-	PM_VREG_PDOWN_MSMC1_ID,	/* Not supported in PM6620 */
-	PM_VREG_PDOWN_MSMC2_ID,	/* Supported in PM7500 only */
-	PM_VREG_PDOWN_GP3_ID,	/* Supported in PM7500 only */
-	PM_VREG_PDOWN_MSME2_ID,	/* Supported in PM7500 and Panoramix only */
-	PM_VREG_PDOWN_GP4_ID,	/* Supported in PM7500 only */
-	PM_VREG_PDOWN_GP1_ID,	/* Supported in PM7500 only */
+	PM_VREG_PDOWN_MSME1_ID,	
+	PM_VREG_PDOWN_MSMC1_ID,	
+	PM_VREG_PDOWN_MSMC2_ID,	
+	PM_VREG_PDOWN_GP3_ID,	
+	PM_VREG_PDOWN_MSME2_ID,	
+	PM_VREG_PDOWN_GP4_ID,	
+	PM_VREG_PDOWN_GP1_ID,	
 	PM_VREG_PDOWN_TCXO_ID,
 	PM_VREG_PDOWN_PA_ID,
 	PM_VREG_PDOWN_RFTX_ID,
@@ -181,10 +189,10 @@ enum vreg_pdown_id {
 	PM_VREG_PDOWN_USB_ID,
 	PM_VREG_PDOWN_MMC_ID,
 	PM_VREG_PDOWN_RUIM_ID,
-	PM_VREG_PDOWN_MSMC0_ID,	/* Supported in PM6610 only */
-	PM_VREG_PDOWN_GP2_ID,	/* Supported in PM7500 only */
-	PM_VREG_PDOWN_GP5_ID,	/* Supported in PM7500 only */
-	PM_VREG_PDOWN_GP6_ID,	/* Supported in PM7500 only */
+	PM_VREG_PDOWN_MSMC0_ID,	
+	PM_VREG_PDOWN_GP2_ID,	
+	PM_VREG_PDOWN_GP5_ID,	
+	PM_VREG_PDOWN_GP6_ID,	
 	PM_VREG_PDOWN_RF_ID,
 	PM_VREG_PDOWN_RF_VCO_ID,
 	PM_VREG_PDOWN_MPLL_ID,
@@ -192,7 +200,7 @@ enum vreg_pdown_id {
 	PM_VREG_PDOWN_S3_ID,
 	PM_VREG_PDOWN_RFUBM_ID,
 
-	/* new for HAN */
+	
 	PM_VREG_PDOWN_RF1_ID,
 	PM_VREG_PDOWN_RF2_ID,
 	PM_VREG_PDOWN_RFA_ID,
@@ -203,7 +211,7 @@ enum vreg_pdown_id {
 	PM_VREG_PDOWN_USB3P3_ID,
 	PM_VREG_PDOWN_INVALID_ID,
 
-	/* backward compatible enums only */
+	
 	PM_VREG_PDOWN_CAM_ID = PM_VREG_PDOWN_GP1_ID,
 	PM_VREG_PDOWN_MDDI_ID = PM_VREG_PDOWN_GP2_ID,
 	PM_VREG_PDOWN_RUIM2_ID = PM_VREG_PDOWN_GP3_ID,
@@ -219,11 +227,10 @@ enum vreg_pdown_id {
 };
 
 enum {
-	PCOM_CLKRGM_APPS_RESET_USB_PHY	= 34,
-	PCOM_CLKRGM_APPS_RESET_USBH	= 37,
+	PCOM_CLKRGM_APPS_RESET_USB_PHY  = 34,
+	PCOM_CLKRGM_APPS_RESET_USBH     = 37,
 };
 
-/* gpio info for PCOM_RPC_GPIO_TLMM_CONFIG_EX */
 
 #define GPIO_ENABLE	0
 #define GPIO_DISABLE	1
@@ -252,7 +259,13 @@ enum {
 		(((pull) & 0x3) << 15)		| \
 		(((drvstr) & 0xF) << 17))
 
+#ifdef CONFIG_MSM_PROC_COMM
+void msm_proc_comm_reset_modem_now(void);
 int msm_proc_comm(unsigned cmd, unsigned *data1, unsigned *data2);
-void __init proc_comm_boot_wait(void);
+#else
+static inline void msm_proc_comm_reset_modem_now(void) { }
+static inline int msm_proc_comm(unsigned cmd, unsigned *data1, unsigned *data2)
+{ return 0; }
+#endif
 
 #endif

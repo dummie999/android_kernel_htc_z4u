@@ -36,6 +36,9 @@ tmio_mmc_core-y			:= tmio_mmc_pio.o
 tmio_mmc_core-$(subst m,y,$(CONFIG_MMC_SDHI))	+= tmio_mmc_dma.o
 obj-$(CONFIG_MMC_SDHI)		+= sh_mobile_sdhi.o
 obj-$(CONFIG_MMC_CB710)		+= cb710-mmc.o
+obj-$(CONFIG_MMC_MSM)		+= msm_sdcc.o
+obj-$(CONFIG_MMC_MSM_SPS_SUPPORT) += msm_sdcc_dml.o
+obj-$(CONFIG_MMC_CB710)	+= cb710-mmc.o
 obj-$(CONFIG_MMC_VIA_SDMMC)	+= via-sdmmc.o
 obj-$(CONFIG_SDH_BFIN)		+= bfin_sdh.o
 obj-$(CONFIG_MMC_DW)		+= dw_mmc.o
@@ -56,4 +59,7 @@ obj-$(CONFIG_MMC_SDHCI_OF_HLWD)		+= sdhci-of-hlwd.o
 
 ifeq ($(CONFIG_CB710_DEBUG),y)
 	CFLAGS-cb710-mmc	+= -DDEBUG
+endif
+ifeq ($(CONFIG_SDIO_TTY_SP6502COM), y)
+obj-$(CONFIG_SDIO_TTY_SP6502COM)+= sdio_sp6502com.o
 endif

@@ -10,21 +10,80 @@
 */
 
 #include <linux/rtc.h>
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/init.h>
 
-/* IMPORTANT: the RTC only stores whole seconds. It is arbitrary
- * whether it stores the most close value or the value with partial
- * seconds truncated. However, it is important that we use it to store
- * the truncated value. This is because otherwise it is necessary,
- * in an rtc sync function, to read both xtime.tv_sec and
- * xtime.tv_nsec. On some processors (i.e. ARM), an atomic read
- * of >32bits is not possible. So storing the most close value would
- * slow down the sync API. So here we have the truncated value and
- * the best guess is to add 0.5s.
- */
+
+#define HTC_RTC_SYNC_ENABLE 1
+
+#if HTC_RTC_SYNC_ENABLE
+static void htc_rtc_sync_work(struct work_struct *work);
+static struct delayed_work sync_work;
+
+static void htc_rtc_sync_work(struct work_struct *work)
+{
+        int err = -ENODEV;
+        struct rtc_time tm;
+        struct timespec tv = {
+                .tv_nsec = NSEC_PER_SEC >> 1,
+        };
+	struct timeval utc_tv;
+
+        struct rtc_device *rtc = rtc_class_open(CONFIG_RTC_HCTOSYS_DEVICE);
+        if (rtc == NULL) {
+                pr_err("%s: unable to open rtc device (%s)\n",
+                        __FILE__, CONFIG_RTC_HCTOSYS_DEVICE);
+                goto err_open;
+        }
+        err = rtc_read_time(rtc, &tm);
+        if (err) {
+                dev_err(rtc->dev.parent,
+                        "hctosys: unable to read the hardware clock\n");
+                goto err_read;
+
+        }
+
+        err = rtc_valid_tm(&tm);
+        if (err) {
+                dev_err(rtc->dev.parent,
+                        "hctosys: invalid date/time\n");
+                goto err_invalid;
+        }
+
+        rtc_tm_to_time(&tm, &tv.tv_sec);
+
+	do_gettimeofday(&utc_tv);
+	
+	printk(KERN_INFO "[TIME] %s: UTC.tv_sec:%ld, RTC.tv_sec:%ld\n", __func__, utc_tv.tv_sec, tv.tv_sec);
+	if(((utc_tv.tv_sec - tv.tv_sec) > 60) || ((tv.tv_sec - utc_tv.tv_sec) > 60)){
+		printk(KERN_INFO "[TIME] %s: go to sync time.\n", __func__);
+		
+        	do_settimeofday(&tv);
+	
+        	dev_info(rtc->dev.parent,
+                	"HTC_RTC_SYNC: setting system clock to "
+                	"%d-%02d-%02d %02d:%02d:%02d UTC (%u)\n",
+                	tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+                	tm.tm_hour, tm.tm_min, tm.tm_sec,
+                	(unsigned int) tv.tv_sec);
+	}
+
+err_invalid:
+err_read:
+        rtc_class_close(rtc);
+
+err_open:
+
+        
+        schedule_delayed_work(&sync_work, 120 * HZ); 
+
+}
+#endif
 
 int rtc_hctosys_ret = -ENODEV;
 
-static int __init rtc_hctosys(void)
+int rtc_hctosys(void)
 {
 	int err = -ENODEV;
 	struct rtc_time tm;
@@ -32,6 +91,11 @@ static int __init rtc_hctosys(void)
 		.tv_nsec = NSEC_PER_SEC >> 1,
 	};
 	struct rtc_device *rtc = rtc_class_open(CONFIG_RTC_HCTOSYS_DEVICE);
+#if HTC_RTC_SYNC_ENABLE
+	static int rtc_sync_enable = 0; 
+#endif
+
+	printk(KERN_INFO "[TIME] %s ++\n", __func__);
 
 	if (rtc == NULL) {
 		pr_err("%s: unable to open rtc device (%s)\n",
@@ -71,6 +135,21 @@ err_read:
 
 err_open:
 	rtc_hctosys_ret = err;
+
+        
+#if HTC_RTC_SYNC_ENABLE
+	if(!rtc_sync_enable){
+        	INIT_DELAYED_WORK_DEFERRABLE(&sync_work, htc_rtc_sync_work);
+
+        	
+        	schedule_delayed_work(&sync_work, 60 * HZ);
+
+		rtc_sync_enable = 1;
+	}
+#endif
+        
+
+	printk(KERN_INFO "[TIME] %s --\n", __func__);
 
 	return err;
 }

@@ -468,6 +468,12 @@ config DEBUG_KMEMLEAK_DEFAULT_OFF
 	  Say Y here to disable kmemleak by default. It can then be enabled
 	  on the command line via kmemleak=on.
 
+config DEBUG_HTC_OOM
+	bool "Trigger leakage scan in OOM"
+	depends on DEBUG_KMEMLEAK
+	help
+	  Trigger memory leakage scan when OOM.
+
 config DEBUG_PREEMPT
 	bool "Debug preemptible kernel"
 	depends on DEBUG_KERNEL && PREEMPT && TRACE_IRQFLAGS_SUPPORT
@@ -676,8 +682,9 @@ config DEBUG_LOCKING_API_SELFTESTS
 	  mutexes and rwsems.
 
 config STACKTRACE
-	bool
+	bool "Stacktrace"
 	depends on STACKTRACE_SUPPORT
+	default y
 
 config DEBUG_STACK_USAGE
 	bool "Stack utilization instrumentation"

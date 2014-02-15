@@ -1,0 +1,81 @@
+#
+# Miscellaneous I2C chip drivers configuration
+#
+# *** DEPRECATED! Do not add new entries! See Makefile ***
+#
+
+menu "Miscellaneous I2C Chip support"
+
+
+config SENSORS_ONLY_BMA250
+	tristate "BMA250 acceleration sensor support"
+	depends on I2C=y
+	help
+	  BMA250 ONLY G-sensor Driver implemented by HTC.
+
+config CPLD
+        tristate "CPLD"
+        depends on I2C=y
+        help
+          CPLD.
+
+config INPUT_CAPELLA_CM3629
+        tristate "CM3629 proximity and light sensor"
+        help
+          Say Y here to enable the CM3629 Short Distance Proximity
+          Sensor with Ambient Light Sensor.
+
+config PSENSOR_KTHRESHOLD
+        tristate "CM3629 proximity and light sensor"
+        help
+          Say Y here to enable the CM3629 Proximity Sensor
+          set or get threshold value from emmc.
+
+
+config CODEC_AIC3254
+	tristate "Codec AIC3254 support"
+	depends on I2C=y
+	help
+	  AIC3254 Driver implemented by HTC.
+
+config WSENSOR_ENABLE
+        tristate "CM3629 proximity and light sensor"
+        help
+          Say Y here to enable the CM3629 Short Distance Proximity
+          Sensor with Ambient Light Sensor.
+
+
+config TPS65200
+        tristate "tps65200 Driver"
+        depends on I2C
+        help
+         TPS65200 Switch charger implemented by HTC.
+         This could enable battery driver to set
+         Charging current 100mA~500mA or 500mA~1000mA
+         by GPIO or Register
+
+config SENSORS_NFC_PN544
+	tristate "PN544 NFC sensor support"
+	depends on I2C=y
+	help
+	  PN544 NFC Driver implemented.
+
+config AMP_RT5501
+        tristate "TI RT5501 AMP Driver"
+        depends on I2C=y
+        help
+         TI RT5501 AMP Driver implemented by HTC.
+
+config AMP_TFA9887
+        tristate "NXP TFA9887 Speaker AMP Driver"
+        depends on I2C=y
+        help
+         NXP TFA9887 Speaker AMP Driver implemented by HTC.
+
+config AMP_TFA9887L
+        tristate "NXP TFA9887L Speaker AMP Driver"
+        depends on I2C=y
+        help
+         NXP TFA9887L Speaker AMP Driver implemented by HTC.
+
+endmenu
