@@ -400,6 +400,7 @@ static ssize_t func_en_store(
 	struct android_usb_function *f;
 	int ebl = 0;
 	int value;
+	int acm_off = 0;
 
 	sscanf(buf, "%d", &value);
 	list_for_each_entry(f, &_android_dev->enabled_functions, enabled_list) {
@@ -408,11 +409,22 @@ static ssize_t func_en_store(
 			break;
 		}
 	}
+
+	list_for_each_entry(f, &_android_dev->enabled_functions, enabled_list) {
+		if (!strcmp(func->name, "modem")||!strcmp(func->name, "diag")||!strcmp(func->name, "diag_mdm")
+			||!strcmp(func->name, "modem_mdm")||!strcmp(func->name, "serial")) {
+			acm_off = 1;
+			break;
+		}
+	}
+
 	if (!!value == ebl) {
 		pr_info("%s function is already %s\n", func->name
 			, ebl ? "enable" : "disable");
 		return size;
 	}
+	if (acm_off)
+		htc_usb_enable_function("acm", 0);
 
 	if (value)
 		htc_usb_enable_function(func->name, 1);
@@ -724,7 +736,8 @@ static struct android_usb_function diag_function = {
 	.attributes	= diag_function_attributes,
 };
 
-static char serial_transports[64];	
+#define MAX_TRANSPORT_STRING 128
+static char serial_transports[MAX_TRANSPORT_STRING];	
 static int serial_nports;
 
 #if 0
@@ -746,7 +759,7 @@ static int serial_driver_initial(struct android_usb_function *f,
 					struct usb_composite_dev *cdev)
 {
 	char *name, *str[2];
-	char buf[80], *b;
+	char buf[MAX_TRANSPORT_STRING], *b;
 	int err = -1;
 
 	if (_android_dev->pdata->fserial_init_string)
@@ -755,7 +768,7 @@ static int serial_driver_initial(struct android_usb_function *f,
 		strcpy(serial_transports, "smd:modem,tty,tty,tty:serial");
 
 	strncpy(buf, serial_transports, sizeof(buf));
-	buf[79] = 0;
+	buf[MAX_TRANSPORT_STRING - 1] = 0;
 	pr_info("%s: init string: %s\n", __func__, buf);
 
 	b = strim(buf);
@@ -865,9 +878,73 @@ static ssize_t acm_transports_store(
 	return size;
 }
 
+static ssize_t acm_baud_rate_store(
+		struct device *device, struct device_attribute *attr,
+		const char *buff, size_t size)
+{
+	unsigned u, port_num;
+	ssize_t ret;
+	struct tty_struct *port_tty;
+
+	ret = strict_strtoul(buff, 10, (unsigned long *)&u);
+	if (ret < 0) {
+		USB_ERR("%s: %d\n", __func__, ret);
+		return size;
+	}
+
+	if (_f_acm == NULL) {
+		USB_ERR("%s: acm didnt init\n", __func__);
+		return size;
+	}
+
+	port_num = gserial_ports[_f_acm->port_num].client_port_num;;
+
+	if (ports[port_num].port && ports[port_num].port->port_tty) {
+		port_tty = ports[port_num].port->port_tty;
+		USB_INFO("%s: %s%d set baudrate as %d\n", __func__, PREFIX, port_num, u);
+		tty_termios_encode_baud_rate(port_tty->termios, u, u);
+	} else {
+		USB_ERR("%s: tty bridge was not existed\n", __func__);
+	}
+
+	return size;
+}
+
+static ssize_t acm_baud_rate_show(struct device *dev, struct device_attribute *attr,
+		char *buf)
+{
+	speed_t o_baud, i_baud;
+	ssize_t size = 0;
+	unsigned port_num;
+	struct tty_struct *port_tty = NULL;
+
+	if (_f_acm == NULL) {
+		USB_ERR("%s: acm didnt init\n", __func__);
+		return size;
+	}
+
+	port_num = gserial_ports[_f_acm->port_num].client_port_num;;
+
+	if (ports[port_num].port && ports[port_num].port->port_tty) {
+		port_tty = ports[port_num].port->port_tty;
+		o_baud = tty_termios_baud_rate(port_tty->termios);
+		i_baud = tty_termios_input_baud_rate(port_tty->termios);
+
+		size += sprintf(buf + size, "%s%d: %u/%u\n",
+				PREFIX, port_num, o_baud, i_baud);
+	} else {
+		size += sprintf(buf + size, "%s%d: tty not found\n", PREFIX, port_num);
+	}
+
+	return size;
+}
+
 static DEVICE_ATTR(acm_transports, S_IWUSR, NULL, acm_transports_store);
+static DEVICE_ATTR(baud_rate, S_IRUGO | S_IWUSR | S_IWGRP, acm_baud_rate_show, acm_baud_rate_store);
 static struct device_attribute *acm_function_attributes[] = {
-		&dev_attr_acm_transports, NULL };
+		&dev_attr_acm_transports,
+		&dev_attr_baud_rate,
+		NULL };
 
 static void acm_function_cleanup(struct android_usb_function *f)
 {
@@ -877,45 +954,21 @@ static void acm_function_cleanup(struct android_usb_function *f)
 static int acm_function_bind_config(struct android_usb_function *f,
 					struct usb_configuration *c)
 {
-	char *name;
-	char buf[32], *b;
-	int err = -1, i;
-	static int acm_initialized, ports;
+	int err = -1;
+	int i, ports;
 
-	if (acm_initialized)
-		goto bind_config;
-
-	acm_initialized = 1;
-	strlcpy(buf, acm_transports, sizeof(buf));
-	b = strim(buf);
-
-	while (b) {
-		name = strsep(&b, ",");
-
-		if (name) {
-			err = acm_init_port(ports, name);
+	ports = serial_nports; 
+	if (ports < 0)
+		goto out;
+	for (i = 0; i < ports; i++) {
+		if (gserial_ports[i].func_type == USB_FSER_FUNC_ACM) {
+			err = acm_bind_config(c, i);
 			if (err) {
-				pr_err("acm: Cannot open port '%s'", name);
+				pr_err("acm: bind_config failed for port %d", i);
 				goto out;
 			}
-			ports++;
 		}
 	}
-	err = acm_port_setup(c);
-	if (err) {
-		pr_err("acm: Cannot setup transports");
-		goto out;
-	}
-
-bind_config:
-	for (i = 0; i < ports; i++) {
-		err = acm_bind_config(c, i);
-		if (err) {
-			pr_err("acm: bind_config failed for port %d", i);
-			goto out;
-		}
-	}
-
 out:
 	return err;
 }

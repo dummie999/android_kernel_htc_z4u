@@ -896,7 +896,7 @@ static struct android_usb_platform_data android_usb_pdata = {
 	.functions              = usb_functions_all,
 	.usb_id_pin_gpio	= ID_PIN_CPLD,
 	.usb_diag_interface	= "diag",
-	.fserial_init_string = "smd:modem,tty,tty:autobot,tty:serial,tty:autobot",
+	.fserial_init_string = "smd:modem,tty,tty:autobot,tty:serial,tty:autobot,tty:acm",
 	.nluns                  = 2,
 };
 

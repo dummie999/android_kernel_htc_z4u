@@ -284,10 +284,17 @@ void htc_kernel_top(void)
 	io_time = (unsigned long)(new_cpu_stat.cpustat[CPUTIME_IOWAIT] - old_cpu_stat.cpustat[CPUTIME_IOWAIT]);
 	irq_time = (unsigned long)((new_cpu_stat.cpustat[CPUTIME_IRQ] + new_cpu_stat.cpustat[CPUTIME_SOFTIRQ])
 			- (old_cpu_stat.cpustat[CPUTIME_IRQ] + old_cpu_stat.cpustat[CPUTIME_SOFTIRQ]));
-	idle_time = (unsigned long)
-	((new_cpu_stat.cpustat[CPUTIME_IDLE] + new_cpu_stat.cpustat[CPUTIME_STEAL] + new_cpu_stat.cpustat[CPUTIME_GUEST])
-	 - (old_cpu_stat.cpustat[CPUTIME_IDLE] + old_cpu_stat.cpustat[CPUTIME_STEAL] + old_cpu_stat.cpustat[CPUTIME_GUEST]));
+
+	
+
+	idle_time = (unsigned long)((new_cpu_stat.cpustat[CPUTIME_IDLE] > old_cpu_stat.cpustat[CPUTIME_IDLE])
+		? new_cpu_stat.cpustat[CPUTIME_IDLE] - old_cpu_stat.cpustat[CPUTIME_IDLE] : 0);
+	idle_time += (unsigned long)((new_cpu_stat.cpustat[CPUTIME_STEAL] + new_cpu_stat.cpustat[CPUTIME_GUEST])
+		- (old_cpu_stat.cpustat[CPUTIME_STEAL] + old_cpu_stat.cpustat[CPUTIME_GUEST]));
+	
+
 	delta_time = user_time + system_time + io_time + irq_time + idle_time;
+
 
 	if ((full_loading_counter >= 9) && (full_loading_counter % 3 == 0))
 		 dump_top_stack = 1;

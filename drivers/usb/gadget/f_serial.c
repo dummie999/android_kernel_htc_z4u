@@ -19,7 +19,7 @@
 #include "gadget_chips.h"
 
 
-#define GSERIAL_NO_PORTS 5
+#define GSERIAL_NO_PORTS 8
 
 
 struct f_gser {
