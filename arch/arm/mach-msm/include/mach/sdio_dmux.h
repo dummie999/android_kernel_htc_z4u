@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -80,4 +80,4 @@ static int __maybe_unused msm_sdio_dmux_is_ch_low(uint32_t id)
 
 #endif
 
-#endif 
+#endif /* _SDIO_DMUX_H */

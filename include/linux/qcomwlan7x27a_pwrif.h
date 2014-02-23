@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -17,4 +17,4 @@
 
 int chip_power_qrf6285(bool on);
 
-#endif 
+#endif /* __QCOM_WLAN_PWRIF_H__ */

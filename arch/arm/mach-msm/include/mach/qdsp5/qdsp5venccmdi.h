@@ -15,8 +15,21 @@ REFERENCES
 EXTERNALIZED FUNCTIONS
   None
 
-Copyright (c) 2008-2009, Code Aurora Forum. All rights reserved.
+Copyright (c) 2008-2009, The Linux Foundation. All rights reserved.
 *====*====*====*====*====*====*====*====*====*====*====*====*====*====*====*/
+/*===========================================================================
+
+			EDIT HISTORY FOR FILE
+
+This section contains comments describing changes made to this file.
+Notice that changes are listed in reverse chronological order.
+
+Revision History:
+
+when       who     what, where, why
+--------   ---     ----------------------------------------------------------
+09/25/08   umeshp      initial version
+===========================================================================*/
 
   #define VIDENC_CMD_CFG           0x0000
   #define VIDENC_CMD_ACTIVE        0x0001
@@ -36,6 +49,9 @@ Copyright (c) 2008-2009, Code Aurora Forum. All rights reserved.
 
 
 
+/*
+ * Command to pass the frame message information to VIDENC
+ */
 
 
 #define VIDENC_CMD_FRAME_START_LEN \
@@ -62,6 +78,9 @@ typedef struct {
     unsigned short  filt_recon_vop_buf_ptr_low;
 } __attribute__((packed)) videnc_cmd_frame_start;
 
+/*
+ * Command to pass the frame-level digital stabilization parameters to VIDENC
+ */
 
 
 #define VIDENC_CMD_DIS_LEN \
@@ -74,6 +93,9 @@ typedef struct {
     unsigned short  stabilization_info;
 } __attribute__((packed)) videnc_cmd_dis;
 
+/*
+ * Command to pass the codec related parameters to VIDENC
+ */
 
 
 #define VIDENC_CMD_CFG_LEN \
@@ -89,6 +111,9 @@ typedef struct {
 	unsigned short  venc_DM_partition;
 } __attribute__((packed)) videnc_cmd_cfg;
 
+/*
+ * Command to start the video encoding
+ */
 
 
 #define VIDENC_CMD_ACTIVE_LEN \
@@ -98,6 +123,9 @@ typedef struct {
     unsigned short  cmd_id;
 } __attribute__((packed)) videnc_cmd_active;
 
+/*
+ * Command to stop the video encoding
+ */
 
 
 #define VIDENC_CMD_IDLE_LEN \
@@ -107,6 +135,9 @@ typedef struct {
     unsigned short  cmd_id;
 } __attribute__((packed)) videnc_cmd_idle;
 
+/*
+ * Command to query staus of VIDENC
+ */
 
 
 #define VIDENC_CMD_STATUS_QUERY_LEN \
@@ -116,6 +147,9 @@ typedef struct {
     unsigned short  cmd_id;
 } __attribute__((packed)) videnc_cmd_status_query;
 
+/*
+ * Command to set rate control for a frame
+ */
 
 
 #define VIDENC_CMD_RC_CFG_LEN \
@@ -127,6 +161,9 @@ typedef struct {
 	unsigned short  max_min_frame_qp;
 } __attribute__((packed)) videnc_cmd_rc_cfg;
 
+/*
+ * Command to set intra-refreshing
+ */
 
 
 #define VIDENC_CMD_INTRA_REFRESH_LEN \
@@ -138,6 +175,9 @@ typedef struct {
 	unsigned short  mb_index[15];
 } __attribute__((packed)) videnc_cmd_intra_refresh;
 
+/*
+ * Command to pass digital zoom information to the VIDENC
+ */
 #define VIDENC_CMD_DIGITAL_ZOOM_LEN \
     sizeof(videnc_cmd_digital_zoom)
 
@@ -160,6 +200,9 @@ typedef struct {
     unsigned short  chroma_ph_incr_H_high;
 } __attribute__((packed)) videnc_cmd_digital_zoom;
 
+/*
+ * Command to configure digital stabilization parameters
+ */
 
 #define VIDENC_CMD_DIS_CFG_LEN \
     sizeof(videnc_cmd_dis_cfg)
@@ -172,6 +215,9 @@ typedef struct {
 } __attribute__((packed)) videnc_cmd_dis_cfg;
 
 
+/*
+ * Command to set VIDENC_CMD_VENC_CLOCK
+ */
 
 
 #define VIDENC_CMD_VENC_CLOCK_LEN \

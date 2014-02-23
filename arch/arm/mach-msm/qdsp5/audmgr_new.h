@@ -1,6 +1,6 @@
 /* arch/arm/mach-msm/qdsp5/audmgr.h
  *
- * Copyright 2008,2012 (c) Code Aurora Forum. All rights reserved.
+ * Copyright 2008,2012 (c) The Linux Foundation. All rights reserved.
  * Copyright (C) 2008 Google, Inc.
  *
  * This software is licensed under the terms of the GNU General Public
@@ -152,9 +152,13 @@ struct rpc_audmgr_enable_client_args {
 
 struct rpc_audmgr_cb_func_ptr {
 	uint32_t cb_id;
-	uint32_t status; 
-	uint32_t set_to_one;  
+	uint32_t status; /* Audmgr status */
+	uint32_t set_to_one;  /* Pointer status (1 = valid, 0  = invalid) */
 	uint32_t disc;
+	/* disc = AUDMGR_STATUS_READY => data=handle
+	   disc = AUDMGR_STATUS_CODEC_CONFIG => data = handle
+	   disc = AUDMGR_STATUS_DISABLED => data =status_disabled
+	   disc = AUDMGR_STATUS_VOLUME_CHANGE => data = volume-change */
 	union {
 		uint32_t handle;
 		uint32_t volume;

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2008 Google, Inc.
  * Copyright (C) 2008 HTC Corporation
- * Copyright (c) 2008-2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2008-2011, The Linux Foundation. All rights reserved.
  *
  * Derived from msm-pcm.c and msm7201.c.
  *
@@ -145,5 +145,6 @@ module_exit(msm_codec_dai_exit);
 module_init(msm_cpu_dai_init);
 module_exit(msm_cpu_dai_exit);
 
+/* Module information */
 MODULE_DESCRIPTION("MSM Codec/Cpu Dai driver");
 MODULE_LICENSE("GPL v2");

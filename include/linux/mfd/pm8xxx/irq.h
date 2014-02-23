@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -9,6 +9,10 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
+ */
+/*
+ * Qualcomm PMIC irq 8xxx driver header file
+ *
  */
 
 #ifndef __MFD_PM8XXX_IRQ_H
@@ -52,5 +56,5 @@ static inline int pm8xxx_irq_exit(struct pm_irq_chip *chip)
 {
 	return -ENXIO;
 }
-#endif 
-#endif 
+#endif /* CONFIG_MFD_PM8XXX_IRQ */
+#endif /* __MFD_PM8XXX_IRQ_H */
