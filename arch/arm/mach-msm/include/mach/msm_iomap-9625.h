@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -14,6 +14,14 @@
 #ifndef __ASM_ARCH_MSM_IOMAP_MSM9625_H
 #define __ASM_ARCH_MSM_IOMAP_MSM9625_H
 
+/* Physical base address and size of peripherals.
+ * Ordered by the virtual base addresses they will be mapped at.
+ *
+ * If you add or remove entries here, you'll want to edit the
+ * io desc array in arch/arm/mach-msm/io.c to reflect your
+ * changes.
+ *
+ */
 
 #define MSM9625_SHARED_RAM_PHYS	0x18D00000
 
