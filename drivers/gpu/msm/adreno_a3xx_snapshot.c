@@ -113,6 +113,12 @@ static int a3xx_snapshot_cp_pm4_ram(struct kgsl_device *device, void *snapshot,
 	header->type = SNAPSHOT_DEBUG_CP_PM4_RAM;
 	header->size = size;
 
+	/*
+	 * Read the firmware from the GPU rather than use our cache in order to
+	 * try to catch mis-programming or corruption in the hardware.  We do
+	 * use the cached version of the size, however, instead of trying to
+	 * maintain always changing hardcoded constants
+	 */
 
 	adreno_regwrite(device, REG_CP_ME_RAM_RADDR, 0x0);
 	for (i = 0; i < size; i++)
@@ -137,6 +143,12 @@ static int a3xx_snapshot_cp_pfp_ram(struct kgsl_device *device, void *snapshot,
 	header->type = SNAPSHOT_DEBUG_CP_PFP_RAM;
 	header->size = size;
 
+	/*
+	 * Read the firmware from the GPU rather than use our cache in order to
+	 * try to catch mis-programming or corruption in the hardware.  We do
+	 * use the cached version of the size, however, instead of trying to
+	 * maintain always changing hardcoded constants
+	 */
 	kgsl_regwrite(device, A3XX_CP_PFP_UCODE_ADDR, 0x0);
 	for (i = 0; i < size; i++)
 		adreno_regread(device, A3XX_CP_PFP_UCODE_DATA, &data[i]);
@@ -245,6 +257,9 @@ static void *a3xx_snapshot_debugbus(struct kgsl_device *device,
 	return snapshot;
 }
 
+/* A3XX GPU snapshot function - this is where all of the A3XX specific
+ * bits and pieces are grabbed into the snapshot memory
+ */
 
 void *a3xx_snapshot(struct adreno_device *adreno_dev, void *snapshot,
 	int *remain, int hang)
@@ -255,42 +270,42 @@ void *a3xx_snapshot(struct adreno_device *adreno_dev, void *snapshot,
 	regs.regs = (unsigned int *) a3xx_registers;
 	regs.count = a3xx_registers_count;
 
-	
+	/* Master set of (non debug) registers */
 	snapshot = kgsl_snapshot_add_section(device,
 		KGSL_SNAPSHOT_SECTION_REGS, snapshot, remain,
 		kgsl_snapshot_dump_regs, &regs);
 
-	
+	/* CP_STATE_DEBUG indexed registers */
 	snapshot = kgsl_snapshot_indexed_registers(device, snapshot,
 			remain, REG_CP_STATE_DEBUG_INDEX,
 			REG_CP_STATE_DEBUG_DATA, 0x0, 0x14);
 
-	
+	/* CP_ME indexed registers */
 	snapshot = kgsl_snapshot_indexed_registers(device, snapshot,
 			remain, REG_CP_ME_CNTL, REG_CP_ME_STATUS,
 			64, 44);
 
-	
+	/* Disable Clock gating temporarily for the debug bus to work */
 	adreno_regwrite(device, A3XX_RBBM_CLOCK_CTL, 0x00);
 
-	
+	/* VPC memory */
 	snapshot = kgsl_snapshot_add_section(device,
 			KGSL_SNAPSHOT_SECTION_DEBUG, snapshot, remain,
 			a3xx_snapshot_vpc_memory, NULL);
 
-	
+	/* CP MEQ */
 	snapshot = kgsl_snapshot_add_section(device,
 			KGSL_SNAPSHOT_SECTION_DEBUG, snapshot, remain,
 			a3xx_snapshot_cp_meq, NULL);
 
-	
+	/* Shader working/shadow memory */
 	snapshot = kgsl_snapshot_add_section(device,
 			KGSL_SNAPSHOT_SECTION_DEBUG, snapshot, remain,
 			a3xx_snapshot_shader_memory, NULL);
 
 
-	
-	
+	/* CP PFP and PM4 */
+	/* Reading these will hang the GPU if it isn't already hung */
 
 	if (hang) {
 		snapshot = kgsl_snapshot_add_section(device,
@@ -302,14 +317,14 @@ void *a3xx_snapshot(struct adreno_device *adreno_dev, void *snapshot,
 			a3xx_snapshot_cp_pm4_ram, NULL);
 	}
 
-	
+	/* CP ROQ */
 	snapshot = kgsl_snapshot_add_section(device,
 			KGSL_SNAPSHOT_SECTION_DEBUG, snapshot, remain,
 			a3xx_snapshot_cp_roq, NULL);
 
 	snapshot = a3xx_snapshot_debugbus(device, snapshot, remain);
 
-	
+	/* Enable Clock gating */
 	adreno_regwrite(device, A3XX_RBBM_CLOCK_CTL,
 			A3XX_RBBM_CLOCK_CTL_DEFAULT);
 
