@@ -107,7 +107,7 @@ int parse_tag_engineerid(const struct tag * tags);
 char *board_serialno(void);
 unsigned long get_kernel_flag(void);
 unsigned int get_radio_flag(void);
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if (defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DTG))
 unsigned int get_radio2_flag(void);
 #endif
 int __init parse_tag_security(const struct tag *tags);

@@ -343,8 +343,6 @@ static void xhci_disable_port(struct usb_hcd *hcd, struct xhci_hcd *xhci,
 
 	/* Write 1 to disable the port */
 	xhci_writel(xhci, port_status | PORT_PE, addr);
-	if (xhci->quirks & XHCI_PORTSC_DELAY)
-		ndelay(100);
 	port_status = xhci_readl(xhci, addr);
 	xhci_dbg(xhci, "disable port, actual port %d status  = 0x%x\n",
 			wIndex, port_status);
@@ -391,8 +389,6 @@ static void xhci_clear_port_change_bit(struct xhci_hcd *xhci, u16 wValue,
 	}
 	/* Change bits are all write 1 to clear */
 	xhci_writel(xhci, port_status | status, addr);
-	if (xhci->quirks & XHCI_PORTSC_DELAY)
-		ndelay(100);
 	port_status = xhci_readl(xhci, addr);
 	xhci_dbg(xhci, "clear port %s change, actual port %d status  = 0x%x\n",
 			port_change_bit, wIndex, port_status);
@@ -424,8 +420,6 @@ void xhci_set_link_state(struct xhci_hcd *xhci, __le32 __iomem **port_array,
 	temp &= ~PORT_PLS_MASK;
 	temp |= PORT_LINK_STROBE | link_state;
 	xhci_writel(xhci, temp, port_array[port_id]);
-	if (xhci->quirks & XHCI_PORTSC_DELAY)
-		ndelay(100);
 }
 
 void xhci_set_remote_wake_mask(struct xhci_hcd *xhci,
@@ -452,8 +446,6 @@ void xhci_set_remote_wake_mask(struct xhci_hcd *xhci,
 		temp &= ~PORT_WKOC_E;
 
 	xhci_writel(xhci, temp, port_array[port_id]);
-	if (xhci->quirks & XHCI_PORTSC_DELAY)
-		ndelay(100);
 }
 
 /* Test and clear port RWC bit */
@@ -467,9 +459,43 @@ void xhci_test_and_clear_bit(struct xhci_hcd *xhci, __le32 __iomem **port_array,
 		temp = xhci_port_state_to_neutral(temp);
 		temp |= port_bit;
 		xhci_writel(xhci, temp, port_array[port_id]);
-		if (xhci->quirks & XHCI_PORTSC_DELAY)
-			ndelay(100);
 	}
+}
+
+/* Updates Link Status for super Speed port */
+static void xhci_hub_report_link_state(u32 *status, u32 status_reg)
+{
+	u32 pls = status_reg & PORT_PLS_MASK;
+
+	/* resume state is a xHCI internal state.
+	 * Do not report it to usb core.
+	 */
+	if (pls == XDEV_RESUME)
+		return;
+
+	/* When the CAS bit is set then warm reset
+	 * should be performed on port
+	 */
+	if (status_reg & PORT_CAS) {
+		/* The CAS bit can be set while the port is
+		 * in any link state.
+		 * Only roothubs have CAS bit, so we
+		 * pretend to be in compliance mode
+		 * unless we're already in compliance
+		 * or the inactive state.
+		 */
+		if (pls != USB_SS_PORT_LS_COMP_MOD &&
+		    pls != USB_SS_PORT_LS_SS_INACTIVE) {
+			pls = USB_SS_PORT_LS_COMP_MOD;
+		}
+		/* Return also connection bit -
+		 * hub state machine resets port
+		 * when this bit is set.
+		 */
+		pls |= USB_PORT_STAT_CONNECTION;
+	}
+	/* update status field */
+	*status |= pls;
 }
 
 int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
@@ -568,6 +594,7 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 				xhci_dbg(xhci, "Resume USB2 port %d\n",
 					wIndex + 1);
 				bus_state->resume_done[wIndex] = 0;
+				clear_bit(wIndex, &bus_state->resuming_ports);
 				xhci_set_link_state(xhci, port_array, wIndex,
 							XDEV_U0);
 				xhci_dbg(xhci, "set port %d resume\n",
@@ -614,13 +641,9 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 			else
 				status |= USB_PORT_STAT_POWER;
 		}
-		/* Port Link State */
+		/* Update Port Link State for super speed ports*/
 		if (hcd->speed == HCD_USB3) {
-			/* resume state is a xHCI internal state.
-			 * Do not report it to usb core.
-			 */
-			if ((temp & PORT_PLS_MASK) != XDEV_RESUME)
-				status |= (temp & PORT_PLS_MASK);
+			xhci_hub_report_link_state(&status, temp);
 		}
 		if (bus_state->port_c_suspend & (1 << wIndex))
 			status |= 1 << USB_PORT_FEAT_C_SUSPEND;
@@ -731,8 +754,6 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 			 */
 			xhci_writel(xhci, temp | PORT_POWER,
 					port_array[wIndex]);
-			if (xhci->quirks & XHCI_PORTSC_DELAY)
-				ndelay(100);
 
 			temp = xhci_readl(xhci, port_array[wIndex]);
 			xhci_dbg(xhci, "set port power, actual port %d status  = 0x%x\n", wIndex, temp);
@@ -740,8 +761,6 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 		case USB_PORT_FEAT_RESET:
 			temp = (temp | PORT_RESET);
 			xhci_writel(xhci, temp, port_array[wIndex]);
-			if (xhci->quirks & XHCI_PORTSC_DELAY)
-				ndelay(100);
 
 			temp = xhci_readl(xhci, port_array[wIndex]);
 			xhci_dbg(xhci, "set port reset, actual port %d status  = 0x%x\n", wIndex, temp);
@@ -757,8 +776,6 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 		case USB_PORT_FEAT_BH_PORT_RESET:
 			temp |= PORT_WR;
 			xhci_writel(xhci, temp, port_array[wIndex]);
-			if (xhci->quirks & XHCI_PORTSC_DELAY)
-				ndelay(100);
 
 			temp = xhci_readl(xhci, port_array[wIndex]);
 			break;
@@ -861,7 +878,12 @@ int xhci_hub_status_data(struct usb_hcd *hcd, char *buf)
 	/* Initial status is no changes */
 	retval = (max_ports + 8) / 8;
 	memset(buf, 0, retval);
-	status = 0;
+
+	/*
+	 * Inform the usbcore about resume-in-progress by returning
+	 * a non-zero value even if there are no status changes.
+	 */
+	status = bus_state->resuming_ports;
 
 	mask = PORT_CSC | PORT_PEC | PORT_OCC | PORT_PLC | PORT_WRC;
 
@@ -901,15 +923,11 @@ int xhci_bus_suspend(struct usb_hcd *hcd)
 	spin_lock_irqsave(&xhci->lock, flags);
 
 	if (hcd->self.root_hub->do_remote_wakeup) {
-		port_index = max_ports;
-		while (port_index--) {
-			if (bus_state->resume_done[port_index] != 0) {
-				spin_unlock_irqrestore(&xhci->lock, flags);
-				xhci_dbg(xhci, "suspend failed because "
-						"port %d is resuming\n",
-						port_index + 1);
-				return -EBUSY;
-			}
+		if (bus_state->resuming_ports) {
+			spin_unlock_irqrestore(&xhci->lock, flags);
+			xhci_dbg(xhci, "suspend failed because "
+						"a port is resuming\n");
+			return -EBUSY;
 		}
 	}
 
@@ -952,11 +970,8 @@ int xhci_bus_suspend(struct usb_hcd *hcd)
 			t2 &= ~PORT_WAKE_BITS;
 
 		t1 = xhci_port_state_to_neutral(t1);
-		if (t1 != t2) {
+		if (t1 != t2)
 			xhci_writel(xhci, t2, port_array[port_index]);
-			if (xhci->quirks & XHCI_PORTSC_DELAY)
-				ndelay(100);
-		}
 
 		if (hcd->speed != HCD_USB3) {
 			/* enable remote wake up for USB 2.0 */
@@ -970,8 +985,6 @@ int xhci_bus_suspend(struct usb_hcd *hcd)
 			tmp = xhci_readl(xhci, addr);
 			tmp |= PORT_RWE;
 			xhci_writel(xhci, tmp, addr);
-			if (xhci->quirks & XHCI_PORTSC_DELAY)
-				ndelay(100);
 		}
 	}
 	hcd->state = HC_STATE_SUSPENDED;
@@ -1049,11 +1062,8 @@ int xhci_bus_resume(struct usb_hcd *hcd)
 					xhci, port_index + 1);
 			if (slot_id)
 				xhci_ring_device(xhci, slot_id);
-		} else {
+		} else
 			xhci_writel(xhci, temp, port_array[port_index]);
-			if (xhci->quirks & XHCI_PORTSC_DELAY)
-				ndelay(100);
-		}
 
 		if (hcd->speed != HCD_USB3) {
 			/* disable remote wake up for USB 2.0 */
@@ -1067,8 +1077,6 @@ int xhci_bus_resume(struct usb_hcd *hcd)
 			tmp = xhci_readl(xhci, addr);
 			tmp &= ~PORT_RWE;
 			xhci_writel(xhci, tmp, addr);
-			if (xhci->quirks & XHCI_PORTSC_DELAY)
-				ndelay(100);
 		}
 	}
 

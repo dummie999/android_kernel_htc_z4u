@@ -1278,7 +1278,7 @@ static int max17050_battery_probe(struct platform_device *pdev)
 	poweralg.pdata = pdev->dev.platform_data;
 	poweralg.battery.thermal_id = pdata->func_get_thermal_id();
 	if ((pdata->func_get_battery_id != NULL) && (0 < pdata->func_get_battery_id())) {
-#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_PROTOU) || defined(CONFIG_MACH_PROTODUG) || defined(CONFIG_MACH_MAGNIDS) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_Z4U))
+#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_PROTOU) || defined(CONFIG_MACH_PROTODUG) || defined(CONFIG_MACH_MAGNIDS) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3U) || defined(CONFIG_MACH_Z4DUG) || defined(CONFIG_MACH_Z4DCG) || defined(CONFIG_MACH_Z4U))
 		poweralg.battery.id_index = get_batt_id();
 #else
 		poweralg.battery.id_index = pdata->func_get_battery_id();

@@ -16,12 +16,18 @@
 
 #ifdef CONFIG_MACH_PROTODCG
 #include "../../arch/arm/mach-msm/board-protodcg.h"
-#elif (defined CONFIG_MACH_DUMMY)
+#elif (defined CONFIG_MACH_CP3DCG)
 #include "../../arch/arm/mach-msm/board-cp3dcg.h"
-#elif (defined CONFIG_MACH_DUMMY)
+#elif (defined CONFIG_MACH_CP3DUG)
 #include "../../arch/arm/mach-msm/board-cp3dug.h"
-#elif (defined CONFIG_MACH_DUMMY)
+#elif (defined CONFIG_MACH_CP3DTG)
+#include "../../arch/arm/mach-msm/board-cp3dtg.h"
+#elif (defined CONFIG_MACH_CP3U)
+#include "../../arch/arm/mach-msm/board-cp3u.h"
+#elif (defined CONFIG_MACH_Z4DUG)
 #include "../../arch/arm/mach-msm/board-z4dug.h"
+#elif (defined CONFIG_MACH_Z4DCG)
+#include "../../arch/arm/mach-msm/board-z4dcg.h"
 #elif (defined CONFIG_MACH_Z4U)
 #include "../../arch/arm/mach-msm/board-z4u.h"
 #endif
@@ -107,7 +113,7 @@ static struct cpld_driver *g_cpld;
 #define EBI2_DATA_7    PROTODCG_GPIO_DATA_7
 #define EBI2_OE        PROTODCG_GPIO_OE
 #define EBI2_WE        PROTODCG_GPIO_WE
-#elif (defined CONFIG_MACH_DUMMY)
+#elif (defined CONFIG_MACH_CP3DCG)
 #define EBI2_ADDR_0    CP3DCG_GPIO_ADDR_0
 #define EBI2_ADDR_1    CP3DCG_GPIO_ADDR_1
 #define EBI2_ADDR_2    CP3DCG_GPIO_ADDR_2
@@ -121,7 +127,7 @@ static struct cpld_driver *g_cpld;
 #define EBI2_DATA_7    CP3DCG_GPIO_DATA_7
 #define EBI2_OE        CP3DCG_GPIO_OE
 #define EBI2_WE        CP3DCG_GPIO_WE
-#elif (defined CONFIG_MACH_DUMMY)
+#elif (defined CONFIG_MACH_CP3DUG)
 #define EBI2_ADDR_0    CP3DUG_GPIO_ADDR_0
 #define EBI2_ADDR_1    CP3DUG_GPIO_ADDR_1
 #define EBI2_ADDR_2    CP3DUG_GPIO_ADDR_2
@@ -135,7 +141,7 @@ static struct cpld_driver *g_cpld;
 #define EBI2_DATA_7    CP3DUG_GPIO_DATA_7
 #define EBI2_OE        CP3DUG_GPIO_OE
 #define EBI2_WE        CP3DUG_GPIO_WE
-#elif (defined CONFIG_MACH_DUMMY)
+#elif (defined CONFIG_MACH_CP3DTG)
 #define EBI2_ADDR_0    CP3DTG_GPIO_ADDR_0
 #define EBI2_ADDR_1    CP3DTG_GPIO_ADDR_1
 #define EBI2_ADDR_2    CP3DTG_GPIO_ADDR_2
@@ -149,7 +155,7 @@ static struct cpld_driver *g_cpld;
 #define EBI2_DATA_7    CP3DTG_GPIO_DATA_7
 #define EBI2_OE        CP3DTG_GPIO_OE
 #define EBI2_WE        CP3DTG_GPIO_WE
-#elif (defined CONFIG_MACH_DUMMY)
+#elif (defined CONFIG_MACH_CP3U)
 #define EBI2_ADDR_0    CP3U_GPIO_ADDR_0
 #define EBI2_ADDR_1    CP3U_GPIO_ADDR_1
 #define EBI2_ADDR_2    CP3U_GPIO_ADDR_2
@@ -163,7 +169,7 @@ static struct cpld_driver *g_cpld;
 #define EBI2_DATA_7    CP3U_GPIO_DATA_7
 #define EBI2_OE        CP3U_GPIO_OE
 #define EBI2_WE        CP3U_GPIO_WE
-#elif (defined CONFIG_MACH_DUMMY)
+#elif (defined CONFIG_MACH_Z4DUG)
 #define EBI2_ADDR_0    Z4DUG_GPIO_ADDR_0
 #define EBI2_ADDR_1    Z4DUG_GPIO_ADDR_1
 #define EBI2_ADDR_2    Z4DUG_GPIO_ADDR_2
@@ -177,7 +183,7 @@ static struct cpld_driver *g_cpld;
 #define EBI2_DATA_7    Z4DUG_GPIO_DATA_7
 #define EBI2_OE        Z4DUG_GPIO_OE
 #define EBI2_WE        Z4DUG_GPIO_WE
-#elif (defined CONFIG_MACH_DUMMY)
+#elif (defined CONFIG_MACH_Z4DCG)
 #define EBI2_ADDR_0    Z4DCG_GPIO_ADDR_0
 #define EBI2_ADDR_1    Z4DCG_GPIO_ADDR_1
 #define EBI2_ADDR_2    Z4DCG_GPIO_ADDR_2
@@ -233,7 +239,7 @@ static void clock_setting(struct cpld_driver *cpld, int enable)
 
 int spi_set_route(int path)
 {
-#if !((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U))
+#if !((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U))
 	struct cpld_driver *cpld = g_cpld;
 
 	clock_setting(cpld, 1);
@@ -475,7 +481,7 @@ int gpio_spi_read(int length, unsigned char *buffer)
 EXPORT_SYMBOL(gpio_spi_read);
 
 
-#if ((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U))
+#if ((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U))
 #define DEBUG 0
 #define GPIOHACK 0
 #define GPIO_DIRECTION_OPTIMIZE 0
@@ -490,7 +496,7 @@ int cpld_spi_write(int length, unsigned char *buffer)
 	unsigned short byte_low = 0;
 	int i = 0;
 	int len = 0;
-#if ((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U))
+#if ((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U))
 	unsigned mask[]={EBI2_ADDR_0, EBI2_ADDR_1, EBI2_ADDR_2, EBI2_DATA_0, EBI2_DATA_1, EBI2_DATA_2, EBI2_DATA_3, EBI2_DATA_4, EBI2_DATA_5, EBI2_DATA_6, EBI2_DATA_7, EBI2_OE, EBI2_WE, 0};
 	int     value[]={  1, 
 					   0, 
@@ -535,7 +541,7 @@ int cpld_spi_write(int length, unsigned char *buffer)
 		pr_info("*pBuf:0x%x, data:0x%x, tx_buff_num:%d\n", *pBuf, data, g_cpld_manager.current_tx_buf_num);
 #endif
 
-#if ((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U))
+#if ((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U))
 		
 		
 		mask[0]= EBI2_ADDR_0;	mask[1]= EBI2_ADDR_1;	mask[2]= EBI2_ADDR_2;
@@ -689,7 +695,7 @@ int cpld_spi_read(int length, unsigned char *buffer)
     int count = 0;
 	int write_count = 0;
 	int len = 0;
-#if ((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U))
+#if ((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U))
 	unsigned mask[]={EBI2_ADDR_0, EBI2_ADDR_1, EBI2_ADDR_2, EBI2_DATA_0, EBI2_DATA_1, EBI2_DATA_2, EBI2_DATA_3, EBI2_DATA_4, EBI2_DATA_5, EBI2_DATA_6, EBI2_DATA_7, EBI2_OE, EBI2_WE, 0};
 	int     value[]={  1, 
 					   0, 
@@ -752,7 +758,7 @@ int cpld_spi_read(int length, unsigned char *buffer)
 	pr_info("*pBuf:0x%x, data:0x%x\n", *pBuf, data);
 #endif
 
-#if ((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U))
+#if ((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U))
 	
 	mask[0]= EBI2_ADDR_0;	mask[1]= EBI2_ADDR_1;	mask[2]= EBI2_ADDR_2;
 	
@@ -1698,7 +1704,7 @@ static struct spi_driver cpld_gpiospi_driver = {
 
 static int cpld_gpio_init(struct cpld_driver *cpld)
 {
-#if !((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U))
+#if !((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U))
 	unsigned int value;
 #endif
 	
@@ -1713,7 +1719,7 @@ static int cpld_gpio_init(struct cpld_driver *cpld)
 	}
 #endif
 
-#if !((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U))
+#if !((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U))
 	value = readl(cpld->clk_base + 0xb8);
 	pr_info("0131-1: cpld_gpio_init. SDC4_MD: 0x%08x\n", value);
 
@@ -1756,7 +1762,7 @@ static int cpld_gpio_init(struct cpld_driver *cpld)
 		gpio_direction_output(cpld->pdata->intf_select, 1);
 #endif
 
-#if ((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U))
+#if ((defined CONFIG_MACH_PROTODCG) || (defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U))
 	gpio_request(EBI2_ADDR_0, "EBI2_ADDR_0");
 	gpio_direction_output(EBI2_ADDR_0, 0);
 	gpio_free(EBI2_ADDR_0);

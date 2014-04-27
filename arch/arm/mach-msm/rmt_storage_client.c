@@ -1512,7 +1512,7 @@ static int rmt_storage_reboot_call(
                 msleep(1500);
                 
 		timeout = timeout - 1.5;
-#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_Z4U)
+#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3U) || defined(CONFIG_MACH_Z4DUG) || defined(CONFIG_MACH_Z4U)
 		
 		for(i=0; i<timeout*2; i++)
 		{

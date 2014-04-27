@@ -33,29 +33,29 @@ initrd_phys-$(CONFIG_MACH_PROTODUG)	:= 0x04200000
 params_phys-$(CONFIG_MACH_PROTODCG)	:= 0x03200100
 initrd_phys-$(CONFIG_MACH_PROTODCG)	:= 0x04200000
 
-   zreladdr-$(CONFIG_MACH_DUMMY)	:= 0x03B08000
-params_phys-$(CONFIG_MACH_DUMMY)	:= 0x03B00100
-initrd_phys-$(CONFIG_MACH_DUMMY)	:= 0x04B00000
+   zreladdr-$(CONFIG_MACH_CP3DCG)	:= 0x03B08000
+params_phys-$(CONFIG_MACH_CP3DCG)	:= 0x03B00100
+initrd_phys-$(CONFIG_MACH_CP3DCG)	:= 0x04B00000
 
-   zreladdr-$(CONFIG_MACH_DUMMY)	:= 0x03B08000
-params_phys-$(CONFIG_MACH_DUMMY)	:= 0x03B00100
-initrd_phys-$(CONFIG_MACH_DUMMY)	:= 0x04B00000
+   zreladdr-$(CONFIG_MACH_CP3DTG)	:= 0x03B08000
+params_phys-$(CONFIG_MACH_CP3DTG)	:= 0x03B00100
+initrd_phys-$(CONFIG_MACH_CP3DTG)	:= 0x04B00000
 
-   zreladdr-$(CONFIG_MACH_DUMMY)	:= 0x03B08000
-params_phys-$(CONFIG_MACH_DUMMY)	:= 0x03B00100
-initrd_phys-$(CONFIG_MACH_DUMMY)	:= 0x04B00000
+   zreladdr-$(CONFIG_MACH_CP3DUG)	:= 0x03B08000
+params_phys-$(CONFIG_MACH_CP3DUG)	:= 0x03B00100
+initrd_phys-$(CONFIG_MACH_CP3DUG)	:= 0x04B00000
 
-   zreladdr-$(CONFIG_MACH_DUMMY)	:= 0x03B08000
-params_phys-$(CONFIG_MACH_DUMMY)	:= 0x03B00100
-initrd_phys-$(CONFIG_MACH_DUMMY)	:= 0x04B00000
+   zreladdr-$(CONFIG_MACH_CP3U)	:= 0x03B08000
+params_phys-$(CONFIG_MACH_CP3U)	:= 0x03B00100
+initrd_phys-$(CONFIG_MACH_CP3U)	:= 0x04B00000
 
-   zreladdr-$(CONFIG_MACH_DUMMY)	:= 0x03B08000
-params_phys-$(CONFIG_MACH_DUMMY)	:= 0x03B00100
-initrd_phys-$(CONFIG_MACH_DUMMY)	:= 0x04B00000
+   zreladdr-$(CONFIG_MACH_Z4DUG)	:= 0x03B08000
+params_phys-$(CONFIG_MACH_Z4DUG)	:= 0x03B00100
+initrd_phys-$(CONFIG_MACH_Z4DUG)	:= 0x04B00000
 
-   zreladdr-$(CONFIG_MACH_DUMMY)	:= 0x03B08000
-params_phys-$(CONFIG_MACH_DUMMY)	:= 0x03B00100
-initrd_phys-$(CONFIG_MACH_DUMMY)	:= 0x04B00000
+   zreladdr-$(CONFIG_MACH_Z4DCG)	:= 0x03B08000
+params_phys-$(CONFIG_MACH_Z4DCG)	:= 0x03B00100
+initrd_phys-$(CONFIG_MACH_Z4DCG)	:= 0x04B00000
 
    zreladdr-$(CONFIG_MACH_Z4U)          := 0x03B08000
 params_phys-$(CONFIG_MACH_Z4U)          := 0x03B00100

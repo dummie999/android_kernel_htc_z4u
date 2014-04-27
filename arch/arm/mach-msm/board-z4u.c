@@ -2355,7 +2355,7 @@ static void __init msm8625_device_i2c_init(void)
 					= &msm_gsbi0_qup_i2c_pdata;
 	msm8625_gsbi1_qup_i2c_device.dev.platform_data
 					= &msm_gsbi1_qup_i2c_pdata;
-	if (0 || cpu_is_msm8625q()) {
+	if (machine_is_qrd_skud_prime() || cpu_is_msm8625q()) {
 		for (i = 0 ; i < ARRAY_SIZE(msm8625q_i2c_gpio_config); i++) {
 			rc = gpio_tlmm_config(
 					msm8625q_i2c_gpio_config[i].gpio_cfg,
@@ -2509,11 +2509,11 @@ static void __init add_platform_devices(void)
 				|| machine_is_msm8625_evt()
 				|| machine_is_msm8625q_evbd()
 				|| machine_is_msm8625q_skud()
-				|| 0
-				|| 0
-				|| 0
-				|| 0
-				|| 0
+				|| machine_is_qrd_skud_prime()
+				|| machine_is_cp3dcg()
+				|| machine_is_cp3dtg()
+				|| machine_is_cp3dug()
+				|| machine_is_cp3u()
 				|| machine_is_z4u()
 	) {
 		platform_add_devices(msm8625_evb_devices,
@@ -2771,12 +2771,12 @@ static void __init msm_z4u_init(void)
 	syn_init_vkeys_cp3();
 	#endif
 
-	if (0 || machine_is_msm8625q_evbd()
+	if (machine_is_qrd_skud_prime() || machine_is_msm8625q_evbd()
 					|| machine_is_msm8625q_skud()
-					|| 0
-					|| 0
-					|| 0
-					|| 0
+					|| machine_is_cp3dcg()
+					|| machine_is_cp3dtg()
+					|| machine_is_cp3dug()
+					|| machine_is_cp3u()
 					|| machine_is_z4u()
 	)
 		i2c_register_board_info(2, i2c2_info,

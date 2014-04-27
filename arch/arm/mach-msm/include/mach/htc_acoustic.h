@@ -41,7 +41,7 @@ struct acoustic_ops {
 
 void acoustic_register_ops(struct acoustic_ops *ops);
 int htc_acdb_transfer(void);
-#if defined(CONFIG_MACH_DUMMY)
+#if defined(CONFIG_MACH_CP3DUG)
 extern int htc_get_board_revision(void);
 #endif
 #endif

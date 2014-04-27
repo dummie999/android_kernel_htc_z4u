@@ -112,7 +112,7 @@ struct pll_config_regs {
 
 void __init configure_pll(struct pll_config *, struct pll_config_regs *, u32);
 
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if (defined(CONFIG_MACH_CP3U) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DTG))
 extern int pll_clk_is_able_close(unsigned pll);
 #endif
 

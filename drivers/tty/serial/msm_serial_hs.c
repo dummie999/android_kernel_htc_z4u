@@ -722,7 +722,7 @@ static void msm_hs_set_termios(struct uart_port *uport,
 
 	msm_hs_write(uport, UARTDM_IMR_ADDR, msm_uport->imr_reg);
 	mb();
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if (defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DTG))
 	if (uport->line == 1) {
 		data = msm_hs_read(uport, UARTDM_DMEN_ADDR);
 		data |= UARTDM_RX_DM_EN_BMSK;

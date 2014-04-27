@@ -75,7 +75,7 @@ static int32_t s5k3h2yx_poweron_af(void)
 	pr_info("%s enable AF actuator, gpio = %d\n", __func__,
 			s5k3h2yx_msm_actuator_info->vcm_pwd);
 	mdelay(1);
-#if ((defined CONFIG_CPLD) && ((defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U)))
+#if ((defined CONFIG_CPLD) && ((defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U)))
 	rc = cpld_gpio_write(s5k3h2yx_msm_actuator_info->vcm_pwd, 1);
 	if(rc < 0){
 		pr_err("[CAM]%s: vcm_pwd fail\n", __func__);
@@ -100,7 +100,7 @@ static void s5k3h2yx_poweroff_af(void)
 			s5k3h2yx_msm_actuator_info->vcm_pwd);
 
 	msleep(1);
-#if ((defined CONFIG_CPLD) && ((defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U)))
+#if ((defined CONFIG_CPLD) && ((defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U)))
 	rc = cpld_gpio_write(s5k3h2yx_msm_actuator_info->vcm_pwd, 0);
 	if(rc < 0){
 		pr_err("[CAM]%s: vcm_pwd fail\n", __func__);

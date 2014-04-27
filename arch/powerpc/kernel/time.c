@@ -474,6 +474,7 @@ void timer_interrupt(struct pt_regs * regs)
 	struct pt_regs *old_regs;
 	u64 *next_tb = &__get_cpu_var(decrementers_next_tb);
 	struct clock_event_device *evt = &__get_cpu_var(decrementers);
+	u64 now;
 
 	/* Ensure a positive value is written to the decrementer, or else
 	 * some CPUs will continue to take decrementer exceptions.
@@ -508,9 +509,16 @@ void timer_interrupt(struct pt_regs * regs)
 		irq_work_run();
 	}
 
-	*next_tb = ~(u64)0;
-	if (evt->event_handler)
-		evt->event_handler(evt);
+	now = get_tb_or_rtc();
+	if (now >= *next_tb) {
+		*next_tb = ~(u64)0;
+		if (evt->event_handler)
+			evt->event_handler(evt);
+	} else {
+		now = *next_tb - now;
+		if (now <= DECREMENTER_MAX)
+			set_dec((int)now);
+	}
 
 #ifdef CONFIG_PPC64
 	/* collect purr register values often, for accurate calculations */
@@ -767,15 +775,6 @@ static void __init clocksource_init(void)
 
 	printk(KERN_INFO "clocksource: %s mult[%x] shift[%d] registered\n",
 	       clock->name, clock->mult, clock->shift);
-}
-
-void decrementer_check_overflow(void)
-{
-	u64 now = get_tb_or_rtc();
-	struct decrementer_clock *decrementer = &__get_cpu_var(decrementers);
-
-	if (now >= decrementer->next_tb)
-		set_dec(1);
 }
 
 static int decrementer_set_next_event(unsigned long evt,

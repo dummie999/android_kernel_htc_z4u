@@ -401,7 +401,7 @@ static struct clk_lookup msm_cmn_clk_7625a_7627a[] __initdata = {
 	CLK_LOOKUP("core_clk",		uart1dm_clk.c,	"msm_serial_hs.0"),
 	CLK_LOOKUP("core_clk",		uart1dm_clk.c,	"msm_serial_hs_qct.0"),
 	CLK_LOOKUP("core_clk",		uart1dm_clk.c,	"msm_serial_hs_brcm.0"),
-#if (defined (CONFIG_SERIAL_MSM_HS_IMC) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if (defined (CONFIG_SERIAL_MSM_HS_IMC) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DTG))
 	CLK_LOOKUP("core_clk",		uart2dm_clk.c,	"msm_serial_hs.1"),
 #else
 	CLK_LOOKUP("core_clk",		uart2dm_clk.c,	"msm_serial_hsl.0"),

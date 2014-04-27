@@ -26,11 +26,11 @@
 #include <linux/slab.h>
 
 #include <linux/switch.h>
-#if defined(CONFIG_CPLD) && (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if defined(CONFIG_CPLD) && (defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3U))
 #include <linux/i2c/cpld.h>
 #endif
 
-#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_Z4U) || defined(CONFIG_MACH_Z3DUG) || defined(CONFIG_MACH_Z3DCG)
+#if defined(CONFIG_MACH_Z4DUG) || defined(CONFIG_MACH_Z4DCG) || defined(CONFIG_MACH_Z4U) || defined(CONFIG_MACH_Z3DUG) || defined(CONFIG_MACH_Z3DCG)
 #include <linux/gpio.h>
 #endif 
 
@@ -42,7 +42,7 @@
 
 #include "smd_private.h"
 #include <mach/htc_acoustic.h>
-#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY)
+#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3U)
 #include <mach/tfa9887.h>
 #endif
 #define ACOUSTIC_IOCTL_MAGIC 'p'
@@ -62,22 +62,22 @@
 #define ACOUSTIC_UPDATE_BEATS_STATUS	_IOW(ACOUSTIC_IOCTL_MAGIC, 47, unsigned)
 #define ACOUSTIC_UPDATE_LISTEN_NOTIFICATION	_IOW(ACOUSTIC_IOCTL_MAGIC, 48, unsigned)
 
-#if defined(CONFIG_CPLD) && (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if defined(CONFIG_CPLD) && (defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3U))
 #define ACOUSTIC_SW_SPKL_RECVR	_IOW(ACOUSTIC_IOCTL_MAGIC, 50, unsigned)
 #define ACOUSTIC_ENABLE_MIC		_IOW(ACOUSTIC_IOCTL_MAGIC, 51, unsigned)
 #define ACOUSTIC_SW_MIC		_IOW(ACOUSTIC_IOCTL_MAGIC, 52, unsigned)
 #define ACOUSTIC_ENABLE_RECVR		_IOW(ACOUSTIC_IOCTL_MAGIC, 54, unsigned)
 #endif
-#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY)
+#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3U)
 #define ACOUSTIC_ENABLE_EXTMOD_SPK		_IOW(ACOUSTIC_IOCTL_MAGIC, 53, unsigned)
 #define ACOUSTIC_SET_AMP		_IOW(ACOUSTIC_IOCTL_MAGIC, 55, unsigned)  
 #endif
 
-#if defined(CONFIG_MACH_DUMMY)
+#if defined(CONFIG_MACH_CP3DUG)
 #define ACOUSTIC_GET_PCBID		_IOW(ACOUSTIC_IOCTL_MAGIC, 56, unsigned)
 #endif
 
-#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_Z4U) || defined(CONFIG_MACH_Z3DUG) || defined(CONFIG_MACH_Z3DCG)
+#if defined(CONFIG_MACH_Z4DUG) || defined(CONFIG_MACH_Z4DCG) || defined(CONFIG_MACH_Z4U) || defined(CONFIG_MACH_Z3DUG) || defined(CONFIG_MACH_Z3DCG)
 #define ACOUSTIC_ENABLE_TPA2081    _IOW(ACOUSTIC_IOCTL_MAGIC, 70, int)
 #endif 
 
@@ -305,16 +305,16 @@ static long acoustic_ioctl(struct file *file, unsigned int cmd,
 {
 	int rc = -1, reply_value;
 	int vr_arg, hac_arg, mute_arg, beats_arg, sh_arg;
-#if defined(CONFIG_CPLD) && (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if defined(CONFIG_CPLD) && (defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3U))
 	int extspk_arg; 
 	int setamp_arg; 
 #endif
 	int cdma_mute_arg, beats_cfg_arg;
 	uint32_t level, headset_type;
-#if defined(CONFIG_CPLD) && (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if defined(CONFIG_CPLD) && (defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3U))
 	int dev_sw, dev_en;
 #endif
-#if defined(CONFIG_MACH_DUMMY)
+#if defined(CONFIG_MACH_CP3DUG)
 	unsigned int htc_pcbid = 0;
 #endif
 
@@ -337,7 +337,7 @@ static long acoustic_ioctl(struct file *file, unsigned int cmd,
 		struct rpc_request_hdr hdr;
 		int enable;
 	} beats_req, sh_req;
-#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY)
+#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3U)
 	struct enable_req extmodspk_req; 
 #endif
 
@@ -570,7 +570,7 @@ static long acoustic_ioctl(struct file *file, unsigned int cmd,
 			pr_aud_err("ONCRPC_SET_HEADSET_TYPE_PROC failed"
 				   " %d.\n", rc);
 		break;
-#if defined(CONFIG_CPLD) && (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if defined(CONFIG_CPLD) && (defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3U))
 	case ACOUSTIC_SW_SPKL_RECVR:
 		
 		if (copy_from_user(&dev_sw, (void *)arg, sizeof(dev_sw))) {
@@ -631,7 +631,7 @@ static long acoustic_ioctl(struct file *file, unsigned int cmd,
 		rc = 0;
 		break;
 #endif
-#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY)
+#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3U)
 	case ACOUSTIC_ENABLE_EXTMOD_SPK:
 		if (copy_from_user(&extspk_arg, (void *)arg, sizeof(extspk_arg))) {
 			rc = -EFAULT;
@@ -665,7 +665,7 @@ static long acoustic_ioctl(struct file *file, unsigned int cmd,
 		rc = 0;
 		break;
 #endif
-#if defined(CONFIG_MACH_DUMMY)
+#if defined(CONFIG_MACH_CP3DUG)
 	case ACOUSTIC_GET_PCBID:
 		htc_pcbid = htc_get_board_revision();
 
@@ -679,7 +679,7 @@ static long acoustic_ioctl(struct file *file, unsigned int cmd,
 		pr_aud_info("ACOUSTIC_GET_PCBID: %d, return %d\n", htc_pcbid, rc);
 		break;
 #endif
-#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_Z4U) || defined(CONFIG_MACH_Z3DUG) || defined(CONFIG_MACH_Z3DCG)
+#if defined(CONFIG_MACH_Z4DUG) || defined(CONFIG_MACH_Z4DCG) || defined(CONFIG_MACH_Z4U) || defined(CONFIG_MACH_Z3DUG) || defined(CONFIG_MACH_Z3DCG)
 	case ACOUSTIC_ENABLE_TPA2081:
 		{
             #define Z4_Z3_GPIO_AUD_SPK_EN (12)

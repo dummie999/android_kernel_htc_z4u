@@ -643,6 +643,18 @@ config MACH_MSM8625_EVT
 	help
 	  Support for the Qualcomm MSM8625 Reference Design.
 
+config MACH_QRD_SKUD_PRIME
+	depends on ARCH_MSM8625
+	depends on !MSM_STACKED_MEMORY
+	default n
+	bool "MSM8625 SKUD PRIME"
+	help
+	  Support for the Qualcomm MSM8625 SKUD prime Reference Design.
+	  Add support for a SKUD prime reference design based on MSM8x25
+	  chipset. This device is much closer to a phone than regular form
+	  factor devices, with new touch, display panel and other hardware
+	  configurations.
+
 config MACH_MSM8625Q_EVBD
 	depends on ARCH_MSM8625
 	depends on !MSM_STACKED_MEMORY
@@ -666,6 +678,60 @@ config MACH_MSM8625Q_SKUD
 	  chipset. This device is much closer to a phone than regular form
 	  factor devices, with new touch, display panel and other hardware
 	  configurations.
+
+config MACH_CP3DCG
+	depends on ARCH_MSM8625
+	depends on !MSM_STACKED_MEMORY
+	default n
+	select FB_MSM_MIPI_VIDEO_ONLY
+	bool "CP3DCG"
+	help
+	  Support for the Cp3dcg.
+
+config MACH_CP3DUG
+	depends on ARCH_MSM8625
+	depends on !MSM_STACKED_MEMORY
+	default n
+	select FB_MSM_MIPI_VIDEO_ONLY
+	bool "CP3DUG"
+	help
+	  Support for the Cp3dug.
+
+config MACH_CP3DTG
+	depends on ARCH_MSM8625
+	depends on !MSM_STACKED_MEMORY
+	default n
+	select FB_MSM_MIPI_VIDEO_ONLY
+	bool "CP3DTG"
+	help
+	  Support for the Cp3dtg.
+
+config MACH_CP3U
+	depends on ARCH_MSM8625
+	depends on !MSM_STACKED_MEMORY
+	default n
+	select FB_MSM_MIPI_VIDEO_ONLY
+	bool "CP3U"
+	help
+	  Support for the Cp3u.
+
+config MACH_Z4DUG
+	depends on ARCH_MSM8625
+	depends on !MSM_STACKED_MEMORY
+	default n
+	select FB_MSM_MIPI_VIDEO_ONLY
+	bool "Z4DUG"
+	help
+	  Support for the Z4dug.
+
+config MACH_Z4DCG
+	depends on ARCH_MSM8625
+	depends on !MSM_STACKED_MEMORY
+	default n
+	select FB_MSM_MIPI_VIDEO_ONLY
+	bool "Z4DCG"
+	help
+	  Support for the Z4dcg.
 
 config MACH_Z4U
         depends on ARCH_MSM8625
