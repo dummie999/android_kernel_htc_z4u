@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -20,4 +20,4 @@
 #define SMD_PKT_IOCTL_BLOCKING_WRITE \
 	_IOR(SMD_PKT_IOCTL_MAGIC, 0, unsigned int)
 
-#endif 
+#endif /* __LINUX_MSM_SMD_PKT_H */

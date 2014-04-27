@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -11,6 +11,12 @@
  *
  */
 
+/*
+perf.h
+
+DESCRIPTION: Reads and writes the performance monitoring registers in the ARM
+by using the MRC and MCR instructions.
+*/
 #ifndef PERF_H
 #define PERF_H
 extern unsigned long perf_get_cycles(void);
@@ -77,4 +83,4 @@ void perfmon_register_callback(void);
 void _per_process_switch(unsigned long oldPid, unsigned long newPid);
 extern unsigned int pp_loaded;
 extern atomic_t pm_op_lock;
-#endif 
+#endif /*PERF_H*/

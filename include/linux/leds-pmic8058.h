@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -37,4 +37,4 @@ struct pmic8058_leds_platform_data {
 int pm8058_set_flash_led_current(enum pmic8058_leds id, unsigned mA);
 int pm8058_set_led_current(enum pmic8058_leds id, unsigned mA);
 
-#endif 
+#endif /* __LEDS_PMIC8058_H__ */
