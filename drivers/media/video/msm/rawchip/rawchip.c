@@ -146,7 +146,7 @@ int rawchip_init_yushan(void)
 			rawchip_init_data.width, rawchip_init_data.height,
 			rawchip_init_data.blk_pixels, rawchip_init_data.blk_lines);
 		if (rawchipCtrl->rawchip_init) {
-		#if ((defined CONFIG_I2C_CPLD) && ((defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U)))
+		#if ((defined CONFIG_I2C_CPLD) && ((defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U)))
 			
 			rc = cpld_gpio_write(pdata->rawchip_reset, 0);
 			if(rc < 0){
@@ -654,7 +654,7 @@ int rawchip_power_up(const struct msm_camera_rawchip_info *pdata)
 	}
 	mdelay(1); 
 
-#if ((defined CONFIG_I2C_CPLD) && ((defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U)))
+#if ((defined CONFIG_I2C_CPLD) && ((defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U)))
 	pr_info("[CAM]%s rawchip reset High", __func__);
 	rc = cpld_gpio_write(pdata->rawchip_reset, 1);
 	if(rc < 0){
@@ -701,7 +701,7 @@ int rawchip_power_down(const struct msm_camera_rawchip_info *pdata)
 	int rc = 0;
 	CDBG("%s\n", __func__);
 
-#if ((defined CONFIG_I2C_CPLD) && ((defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U)))
+#if ((defined CONFIG_I2C_CPLD) && ((defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U)))
 	pr_info("[CAM]%s rawchip reset Low", __func__);
 	rc = cpld_gpio_write(pdata->rawchip_reset, 0);
 	if(rc < 0){

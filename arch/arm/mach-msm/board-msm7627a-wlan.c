@@ -21,9 +21,9 @@
 #include "devices-msm7x2xa.h"
 #include "timer.h"
 
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) \
-    || defined(CONFIG_MACH_DUMMY) ||  defined(CONFIG_MACH_DUMMY) \
-    || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_Z4U))
+#if (defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3DCG) \
+    || defined(CONFIG_MACH_CP3DUG) ||  defined(CONFIG_MACH_CP3U) \
+    || defined(CONFIG_MACH_Z4DUG) || defined(CONFIG_MACH_Z4DCG) || defined(CONFIG_MACH_Z4U))
 #else
 #define QCA_ORIGINAL
 #endif
@@ -68,7 +68,7 @@ static void gpio_wlan_config(void)
 					|| machine_is_msm7627a_qrd3()
 					|| machine_is_msm8625_qrd7())
 		gpio_wlan_sys_rest_en = 124;
-	else if (0 || machine_is_msm8625q_evbd()
+	else if (machine_is_qrd_skud_prime() || machine_is_msm8625q_evbd()
 			|| machine_is_msm8625q_skud())
 		gpio_wlan_sys_rest_en = 38;		
 }
@@ -274,7 +274,7 @@ static unsigned int msm_AR600X_setup_power(bool on)
 					|| machine_is_msm7627a_qrd3()
 					|| machine_is_msm8625_qrd7()
 					|| machine_is_msm8625q_evbd()
-					|| 0) {
+					|| machine_is_qrd_skud_prime()) {
 		rc = gpio_tlmm_config(GPIO_CFG(gpio_wlan_sys_rest_en, 0,
 					GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL,
 					GPIO_CFG_2MA), GPIO_CFG_ENABLE);
@@ -369,7 +369,7 @@ static unsigned int msm_AR600X_shutdown_power(bool on)
 					|| machine_is_msm7627a_qrd3()
 					|| machine_is_msm8625_qrd7()
 					|| machine_is_msm8625q_evbd()
-					|| 0) {
+					|| machine_is_qrd_skud_prime()) {
 		rc = gpio_tlmm_config(GPIO_CFG(gpio_wlan_sys_rest_en, 0,
 					GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL,
 					GPIO_CFG_2MA), GPIO_CFG_ENABLE);

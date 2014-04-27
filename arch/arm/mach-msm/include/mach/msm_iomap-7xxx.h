@@ -81,7 +81,7 @@
 #endif
 
 #if defined(CONFIG_ARCH_MSM7X27A)
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if (defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DTG))
 #define MSM_HTC_RAM_CONSOLE_PHYS        0x03A00000  
 #else
 #define MSM_HTC_RAM_CONSOLE_PHYS        0x03100000  

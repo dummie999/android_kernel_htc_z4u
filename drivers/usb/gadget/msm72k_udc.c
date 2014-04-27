@@ -1211,15 +1211,23 @@ dequeue:
 	spin_unlock_irqrestore(&ui->lock, flags);
 }
 
+#define USB_MAX_TIMEOUT	100	
+
 static void flush_endpoint_hw(struct usb_info *ui, unsigned bits)
 {
-	int delay_count = 10; 
+	ktime_t start, diff;
+	start = ktime_get();
+
 	do {
 		writel(bits, USB_ENDPTFLUSH);
-		while (delay_count-- && readl(USB_ENDPTFLUSH) & bits)
+		while (readl(USB_ENDPTFLUSH) & bits) {
 			udelay(10);
-		if (delay_count < 0)
-			pr_err("ENDPTFLUSH is not cleared during flush endpoint\n");
+			diff = ktime_sub(ktime_get(), start);
+			if (ktime_to_ms(diff) > USB_MAX_TIMEOUT) {
+				pr_err("ENDPTFLUSH is not cleared during flush endpoint\n");
+				return;
+			}
+		}
 	} while (readl(USB_ENDPTSTAT) & bits);
 }
 

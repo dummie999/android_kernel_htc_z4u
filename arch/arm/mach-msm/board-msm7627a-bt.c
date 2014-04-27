@@ -142,7 +142,7 @@ static void gpio_bt_config(void)
 		gpio_bt_sys_rest_en = 16;
 	if (machine_is_msm8625_qrd7())
 		gpio_bt_sys_rest_en = 88;
-	if (0 || machine_is_msm8625q_evbd()
+	if (machine_is_qrd_skud_prime() || machine_is_msm8625q_evbd()
 				|| machine_is_msm8625q_skud())
 		gpio_bt_sys_rest_en = 35;
 	if (machine_is_msm7627a_qrd3()) {

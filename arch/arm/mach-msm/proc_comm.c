@@ -252,7 +252,7 @@ again:
 	if (proc_comm_wait_for(base + MDM_STATUS, PCOM_READY))
 		goto again;
 
-#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_PROTOU) || defined(CONFIG_MACH_PROTODUG) || defined(CONFIG_MACH_PROTODCG) || defined(CONFIG_MACH_MAGNIDS) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_PROTOU) || defined(CONFIG_MACH_PROTODUG) || defined(CONFIG_MACH_PROTODCG) || defined(CONFIG_MACH_MAGNIDS) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3DUG))
        if ((cmd == PCOM_CLKCTL_RPC_DISABLE) && (*data1 == 0x1F)) {
                
                ret = 0;

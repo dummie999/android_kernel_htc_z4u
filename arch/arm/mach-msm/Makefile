@@ -104,6 +104,7 @@ obj-$(CONFIG_MSM_IPC_LOGGING) += ipc_logging_debug.o
 endif
 obj-$(CONFIG_MSM_SMD) += smd.o smd_debug.o remote_spinlock.o smd_private.o
 obj-y += socinfo.o
+obj-y += htc_sysinfo.o
 ifndef CONFIG_ARCH_MSM9615
 ifndef CONFIG_ARCH_APQ8064
 ifndef CONFIG_ARCH_MSM8960
@@ -271,7 +272,7 @@ obj-$(CONFIG_ARCH_MSM8625) += htc_acoustic.o
 # obj-$(CONFIG_MACH_MSM8625_SURF) +=  board-msm7x27a.o board-7627a-all.o
 obj-$(CONFIG_MACH_MSM8625_EVB) +=  board-qrd7627a.o board-7627a-all.o
 obj-$(CONFIG_MACH_MSM8625_QRD7) +=  board-qrd7627a.o board-7627a-all.o
-obj-$(CONFIG_MACH_DUMMY) +=  board-qrd7627a.o board-7627a-all.o
+obj-$(CONFIG_MACH_QRD_SKUD_PRIME) +=  board-qrd7627a.o board-7627a-all.o
 # obj-$(CONFIG_MACH_MSM8625_FFA) += board-msm7x27a.o board-7627a-all.o
 # obj-$(CONFIG_MACH_MSM8625_EVT) += board-msm7x27a.o board-7627a-all.o
 obj-$(CONFIG_ARCH_MSM7X30) += board-msm7x30.o devices-msm7x30.o memory_topology.o
@@ -282,9 +283,18 @@ obj-$(CONFIG_MACH_PROTODCG) += board-msm7627a-storage.o board-protodcg-wifi.o ht
 obj-$(CONFIG_MACH_PROTODCG) += board-protodcg.o devices_htc.o board-7627a-all.o emmc_partitions.o board-protodcg-camera.o htc_awb_cal.o board-protodcg-rfkill.o htc_bdaddress.o board-protodcg-keypad.o audiogpio.o board-protodcg-gsm-radio.o
 obj-$(CONFIG_MACH_PROTODUG) += board-msm7627a-storage.o board-protou-wifi.o htc_wifi_nvs.o
 obj-$(CONFIG_MACH_PROTODUG) += board-protou.o devices_htc.o board-7627a-all.o emmc_partitions.o board-protou-keypad.o board-protou-camera.o htc_awb_cal.o board-protou-rfkill.o htc_bdaddress.o
-obj-$(CONFIG_MACH_DUMMY) +=  board-cp3dcg.o devices_htc.o board-7627a-all.o emmc_partitions.o htc_bdaddress.o htc_awb_cal.o board-cp3dcg-camera.o
-obj-$(CONFIG_MACH_DUMMY) +=  board-cp3dug.o devices_htc.o board-7627a-all.o emmc_partitions.o htc_bdaddress.o htc_awb_cal.o board-cp3dug-camera.o
-obj-$(CONFIG_MACH_DUMMY) +=  board-z4dug.o devices_htc.o board-7627a-all.o emmc_partitions.o htc_bdaddress.o htc_awb_cal.o board-z4dug-camera.o z4_change_mode.o
+obj-$(CONFIG_MACH_CP3DCG) +=  board-cp3dcg.o devices_htc.o board-7627a-all.o emmc_partitions.o htc_bdaddress.o htc_awb_cal.o board-cp3dcg-camera.o
+obj-$(CONFIG_MACH_CP3DCG) +=  board-cp3-wifi.o htc_wifi_nvs.o board-cp3dcg-keypad.o board-cp3dcg-storage.o radio_feedback.o
+obj-$(CONFIG_MACH_CP3DUG) +=  board-cp3dug.o devices_htc.o board-7627a-all.o emmc_partitions.o htc_bdaddress.o htc_awb_cal.o board-cp3dug-camera.o
+obj-$(CONFIG_MACH_CP3DUG) +=  board-cp3-wifi.o htc_wifi_nvs.o board-cp3dug-keypad.o board-cp3dug-storage.o radio_feedback.o
+obj-$(CONFIG_MACH_CP3DTG) +=  board-cp3dtg.o devices_htc.o board-7627a-all.o emmc_partitions.o htc_bdaddress.o htc_awb_cal.o board-cp3dtg-camera.o
+obj-$(CONFIG_MACH_CP3DTG) +=  board-cp3-wifi.o htc_wifi_nvs.o board-cp3dtg-keypad.o board-cp3dtg-storage.o radio_feedback.o
+obj-$(CONFIG_MACH_CP3U) +=  board-cp3u.o devices_htc.o board-7627a-all.o emmc_partitions.o htc_bdaddress.o htc_awb_cal.o board-cp3u-camera.o
+obj-$(CONFIG_MACH_CP3U) +=  board-cp3-wifi.o htc_wifi_nvs.o board-cp3u-keypad.o board-cp3u-storage.o
+obj-$(CONFIG_MACH_Z4DUG) +=  board-z4dug.o devices_htc.o board-7627a-all.o emmc_partitions.o htc_bdaddress.o htc_awb_cal.o board-z4dug-camera.o z4_change_mode.o
+obj-$(CONFIG_MACH_Z4DUG) +=  board-cp3-wifi.o htc_wifi_nvs.o board-z4dug-keypad.o board-z4dug-storage.o radio_feedback.o
+obj-$(CONFIG_MACH_Z4DCG) +=  board-z4dcg.o devices_htc.o board-7627a-all.o emmc_partitions.o htc_bdaddress.o htc_awb_cal.o board-z4dcg-camera.o z4_change_mode.o
+obj-$(CONFIG_MACH_Z4DCG) +=  board-cp3-wifi.o htc_wifi_nvs.o board-z4dcg-keypad.o board-z4dcg-storage.o radio_feedback.o
 obj-$(CONFIG_MACH_Z4U) +=  board-z4u.o devices_htc.o board-7627a-all.o emmc_partitions.o htc_bdaddress.o htc_awb_cal.o board-z4u-camera.o z4_change_mode.o
 obj-$(CONFIG_MACH_Z4U) +=  board-cp3-wifi.o htc_wifi_nvs.o board-z4u-keypad.o board-z4u-storage.o radio_feedback.o
 obj-$(CONFIG_MACH_MSM7X25_SURF) += board-msm7x27.o devices-msm7x25.o

@@ -374,9 +374,9 @@ int bcm4330_wifi_set_carddetect(int val)
 }
 #endif
 
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) \
-    || defined(CONFIG_MACH_DUMMY) \
-    || defined(CONFIG_MACH_DUMMY) \
+#if (defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3DCG) \
+    || defined(CONFIG_MACH_CP3DUG) \
+    || defined(CONFIG_MACH_CP3U) \
     || defined(CONFIG_MACH_Z4U))
 static unsigned int atheros_wifislot_type = MMC_TYPE_SDIO_WIFI;
 static struct mmc_platform_data sdc2_plat_data = {
@@ -529,9 +529,9 @@ void __init z4u_init_mmc(void)
     || defined(CONFIG_MACH_PROTODUG) || defined(CONFIG_MACH_PROTOU))
 	msm_add_sdcc(2, &bcm4330_wifi_data); 
 #endif
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) \
-    || defined(CONFIG_MACH_DUMMY) \
-    || defined(CONFIG_MACH_DUMMY) \
+#if (defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3DCG) \
+    || defined(CONFIG_MACH_CP3DUG) \
+    || defined(CONFIG_MACH_CP3U) \
     || defined(CONFIG_MACH_Z4U))
 	msm_add_sdcc(2, &sdc2_plat_data);  
 #endif

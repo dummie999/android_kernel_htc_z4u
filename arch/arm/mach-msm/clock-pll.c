@@ -380,7 +380,7 @@ static void pll_clk_disable(struct clk *c)
 {
 	struct pll_shared_clk *pll = to_pll_shared_clk(c);
 	unsigned int pll_id = pll->id;
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if (defined(CONFIG_MACH_CP3U) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DTG))
 	if (!pll_clk_is_able_close(pll_id)) {
 		printk("=================%s %s PLL%d SKIP to disable!!!\n", __func__, c->dbg_name, pll_id);
 		return;

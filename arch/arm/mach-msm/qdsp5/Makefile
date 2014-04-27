@@ -16,6 +16,7 @@ obj-y += audio_out.o audmgr.o audpp.o  audpreproc.o
 #obj-y += audio_evrc.o audio_qcelp.o audio_amrnb.o audio_aac.o audio_amrnb_in.o
 #obj-y += audio_wma.o audio_voicememo.o audio_pcm.o audio_amrwb.o audio_wmapro.o
 obj-y += snd.o snd_adie.o  audio_acdb.o
+obj-$(CONFIG_MACH_Z4DCG) += snd_cad.o
 #obj-y += snd_cad.o audio_ac3.o
 obj-$(CONFIG_ARCH_MSM7X27A) += audio_fm.o
 obj-$(CONFIG_ARCH_MSM7X27A) += audio_mvs.o

@@ -1195,7 +1195,7 @@ struct platform_device msm8625_device_uart_dm1 = {
 	},
 };
 
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_PROTODCG))
+#if (defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_PROTODCG))
 static struct resource msm8625_uart2dm_resources[] = {
 	{
 		.start	= MSM_UART2DM_PHYS,
@@ -2224,7 +2224,7 @@ int __init msm7x2x_misc_init(void)
 		msm_acpuclock_init(1);
 		platform_device_register(&msm8625q_device_acpuclk);
 	} else if (cpu_is_msm8625()) {
-		if (0) {
+		if (machine_is_qrd_skud_prime()) {
 			msm_acpuclock_init(0);			
 			platform_device_register(&msm8625q_device_acpuclk);			
 		} else if (msm8625_cpu_id() == MSM8625)

@@ -427,7 +427,7 @@ static int cpld_suspend(struct i2c_client *client, pm_message_t mesg)
         }
 
 	if(htc_get_board_revision() == BOARD_EVM) {
-		#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY)
+		#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3U)
 			gpio_direction_output(GPIO_CPLD_CLK,   0); 
 		#else
 			gpio_direction_output(GPIO_CPLD_CLK,   1); 
@@ -467,7 +467,7 @@ static int cpld_resume(struct i2c_client *client)
         }
 	
 	if(htc_get_board_revision() == BOARD_EVM) {
-		#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY)
+		#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3U)
 			gpio_direction_output(GPIO_CPLD_CLK,   1); 
 		#else
 			gpio_direction_output(GPIO_CPLD_CLK,   0); 

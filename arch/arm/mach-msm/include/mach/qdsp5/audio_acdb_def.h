@@ -41,7 +41,7 @@
 #define ACDB_ID_I2S_TX					0x30
 #define ACDB_ID_HDMI					0x40
 #define ACDB_ID_FM_RX					0x4F
-#ifdef CONFIG_MACH_DUMMY
+#ifdef CONFIG_MACH_Z4DCG
 #define ACDB_ID_MAX                                 (1300)
 #else
 #define ACDB_ID_MAX                                 ACDB_ID_FM_RX

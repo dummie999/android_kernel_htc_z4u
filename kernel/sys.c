@@ -53,7 +53,7 @@
 #include <asm/io.h>
 #include <asm/unistd.h>
 
-#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_Z4U)
+#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3U) || defined(CONFIG_MACH_Z4DUG) || defined(CONFIG_MACH_Z4DCG) || defined(CONFIG_MACH_Z4U)
 #include <linux/i2c/cpld.h>
 #include <asm/htc_version.h>
 #endif
@@ -280,7 +280,7 @@ void emergency_restart(void)
 }
 EXPORT_SYMBOL_GPL(emergency_restart);
 
-#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_Z4U)
+#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3U) || defined(CONFIG_MACH_Z4DUG) || defined(CONFIG_MACH_Z4DCG) || defined(CONFIG_MACH_Z4U)
 void ps_hold_en_pull_low(void)
 {
         int ret = -1;
@@ -297,22 +297,22 @@ void ps_hold_en_pull_low(void)
 
 void set_ps_hold_en(void)
 {
-#if defined(CONFIG_MACH_DUMMY)
+#if defined(CONFIG_MACH_CP3DUG)
         if(htc_get_board_revision() <= BOARD_CPEDUG_EVT_XC)
                 ps_hold_en_pull_low();
 #endif
 
-#if defined(CONFIG_MACH_DUMMY)
+#if defined(CONFIG_MACH_CP3DTG)
         if(htc_get_board_revision() <= BOARD_CPEDTG_EVT_XB)
                 ps_hold_en_pull_low();
 #endif
 
-#if defined(CONFIG_MACH_DUMMY)
+#if defined(CONFIG_MACH_CP3DCG)
         if(htc_get_board_revision() <= BOARD_CPEDCG_EVT_XB)
                 ps_hold_en_pull_low();
 #endif
 
-#if defined(CONFIG_MACH_DUMMY)
+#if defined(CONFIG_MACH_CP3U)
         if(htc_get_board_revision() <= BOARD_CPEU_EVT_XA)
                 ps_hold_en_pull_low();
 #endif
@@ -327,7 +327,7 @@ void kernel_restart_prepare(char *cmd)
 	msm_pm_indicate_restart(1); 
 
 	
-#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_Z4U)
+#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3U) || defined(CONFIG_MACH_Z4DUG) || defined(CONFIG_MACH_Z4DCG) || defined(CONFIG_MACH_Z4U)
 	set_ps_hold_en();
 #endif
 
@@ -366,7 +366,7 @@ static void kernel_shutdown_prepare(enum system_states state)
 {
 	msm_pm_indicate_restart(1); 
 
-#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_Z4U)
+#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3U) || defined(CONFIG_MACH_Z4DUG) || defined(CONFIG_MACH_Z4DCG) || defined(CONFIG_MACH_Z4U)
         
         set_ps_hold_en();
 #endif

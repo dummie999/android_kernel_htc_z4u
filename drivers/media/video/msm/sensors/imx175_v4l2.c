@@ -1725,7 +1725,7 @@ int32_t imx175_sensor_setting(struct msm_sensor_ctrl_t *s_ctrl,
 	int rc = 0;
 	pr_info("[CAM] %s\n", __func__);
 
-#if ((defined CONFIG_I2C_CPLD) && ((defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY)))
+#if ((defined CONFIG_I2C_CPLD) && ((defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U)))
 	rc = msm_sensor_setting_parallel1(s_ctrl, update_type, res);
 #else
 	rc = msm_sensor_setting1(s_ctrl, update_type, res);

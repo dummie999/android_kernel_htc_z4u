@@ -439,7 +439,7 @@ int __init board_mfg_mode_init(char *s)
 		mfg_mode = 7;
 	else if (!strcmp(s, "mfgkernel"))
 		mfg_mode = 8;
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if (defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DTG))
 	else if (!strcmp(s, "radiorouter_sprd"))
 		mfg_mode = 9;
 	else if (!strcmp(s, "krouter1_sprd"))
@@ -535,7 +535,7 @@ unsigned int get_radio_flag(void)
 	return radio_flag;
 }
 
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if (defined(CONFIG_MACH_CP3DCG) || defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DTG))
 static unsigned int radio2_flag;
 int __init radio2_flag_init(char *s)
 {
@@ -602,6 +602,23 @@ void board_get_sku_color_tag(char **ret_data)
 }
 EXPORT_SYMBOL(board_get_sku_color_tag);
 #endif
+
+static unsigned long boot_powerkey_debounce_ms;
+int __init boot_powerkey_debounce_time_init(char *s)
+{
+	int ret;
+	ret = strict_strtoul(s, 16, &boot_powerkey_debounce_ms);
+	if (ret != 0)
+		pr_err("%s: boot_powerkey_debounce_ms cannot be parsed from `%s'\r\n", __func__, s);
+	return 1;
+}
+__setup("bpht=", boot_powerkey_debounce_time_init);
+
+int board_get_boot_powerkey_debounce_time(void)
+{
+	return boot_powerkey_debounce_ms;
+}
+EXPORT_SYMBOL(board_get_boot_powerkey_debounce_time);
 
 static int usb_ats;
 int __init board_ats_init(char *s)

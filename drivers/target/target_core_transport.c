@@ -1550,11 +1550,11 @@ static int transport_check_alloc_task_attr(struct se_cmd *cmd)
 	return 0;
 }
 
-/*	target_setup_cmd_from_cdb():
+/*	transport_generic_allocate_tasks():
  *
  *	Called from fabric RX Thread.
  */
-int target_setup_cmd_from_cdb(
+int transport_generic_allocate_tasks(
 	struct se_cmd *cmd,
 	unsigned char *cdb)
 {
@@ -1620,7 +1620,7 @@ int target_setup_cmd_from_cdb(
 	spin_unlock(&cmd->se_lun->lun_sep_lock);
 	return 0;
 }
-EXPORT_SYMBOL(target_setup_cmd_from_cdb);
+EXPORT_SYMBOL(transport_generic_allocate_tasks);
 
 /*
  * Used by fabric module frontends to queue tasks directly.
@@ -1701,8 +1701,6 @@ void target_submit_cmd(struct se_cmd *se_cmd, struct se_session *se_sess,
 	 */
 	transport_init_se_cmd(se_cmd, se_tpg->se_tpg_tfo, se_sess,
 				data_length, data_dir, task_attr, sense);
-	if (flags & TARGET_SCF_UNKNOWN_SIZE)
-		se_cmd->unknown_data_length = 1;
 	/*
 	 * Obtain struct se_cmd->cmd_kref reference and add new cmd to
 	 * se_sess->sess_cmd_list.  A second kref_get here is necessary
@@ -1728,7 +1726,7 @@ void target_submit_cmd(struct se_cmd *se_cmd, struct se_session *se_sess,
 	 * Sanitize CDBs via transport_generic_cmd_sequencer() and
 	 * allocate the necessary tasks to complete the received CDB+data
 	 */
-	rc = target_setup_cmd_from_cdb(se_cmd, cdb);
+	rc = transport_generic_allocate_tasks(se_cmd, cdb);
 	if (rc != 0) {
 		transport_generic_request_failure(se_cmd);
 		return;
@@ -1978,6 +1976,7 @@ void transport_generic_request_failure(struct se_cmd *cmd)
 	case TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE:
 	case TCM_UNKNOWN_MODE_PAGE:
 	case TCM_WRITE_PROTECTED:
+	case TCM_ADDRESS_OUT_OF_RANGE:
 	case TCM_CHECK_CONDITION_ABORT_CMD:
 	case TCM_CHECK_CONDITION_UNIT_ATTENTION:
 	case TCM_CHECK_CONDITION_NOT_READY:
@@ -2583,7 +2582,7 @@ static int target_check_write_same_discard(unsigned char *flags, struct se_devic
  *	Generic Command Sequencer that should work for most DAS transport
  *	drivers.
  *
- *	Called from target_setup_cmd_from_cdb() in the $FABRIC_MOD
+ *	Called from transport_generic_allocate_tasks() in the $FABRIC_MOD
  *	RX Thread.
  *
  *	FIXME: Need to support other SCSI OPCODES where as well.
@@ -3143,9 +3142,6 @@ static int transport_generic_cmd_sequencer(
 			cmd->se_tfo->get_fabric_name(), cdb[0]);
 		goto out_unsupported_cdb;
 	}
-
-	if (cmd->unknown_data_length)
-		cmd->data_length = size;
 
 	if (size != cmd->data_length) {
 		pr_warn("TARGET_CORE[%s]: Expected Transfer Length:"
@@ -4660,6 +4656,15 @@ int transport_send_check_condition_and_sense(
 		buffer[offset+SPC_SENSE_KEY_OFFSET] = DATA_PROTECT;
 		/* WRITE PROTECTED */
 		buffer[offset+SPC_ASC_KEY_OFFSET] = 0x27;
+		break;
+	case TCM_ADDRESS_OUT_OF_RANGE:
+		/* CURRENT ERROR */
+		buffer[offset] = 0x70;
+		buffer[offset+SPC_ADD_SENSE_LEN_OFFSET] = 10;
+		/* ILLEGAL REQUEST */
+		buffer[offset+SPC_SENSE_KEY_OFFSET] = ILLEGAL_REQUEST;
+		/* LOGICAL BLOCK ADDRESS OUT OF RANGE */
+		buffer[offset+SPC_ASC_KEY_OFFSET] = 0x21;
 		break;
 	case TCM_CHECK_CONDITION_UNIT_ATTENTION:
 		/* CURRENT ERROR */

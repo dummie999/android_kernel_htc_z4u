@@ -1942,7 +1942,7 @@ int32_t msm_sensor_set_power_up(struct msm_sensor_ctrl_t *s_ctrl)
 		gpio = data->sensor_platform_info->sensor_pwd;
 #endif
 
-#if ((defined CONFIG_I2C_CPLD) && ((defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U)))
+#if ((defined CONFIG_I2C_CPLD) && ((defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U)))
     mdelay(1);
 	pr_info("[CAM]%s: sensor reset/pwd high\n", __func__);
     rc = cpld_gpio_write(gpio, 1);
@@ -1991,7 +1991,7 @@ int32_t msm_sensor_set_power_down(struct msm_sensor_ctrl_t *s_ctrl)
 		gpio = data->sensor_platform_info->sensor_pwd;
 #endif
 
-#if ((defined CONFIG_I2C_CPLD) && ((defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_Z4U)))
+#if ((defined CONFIG_I2C_CPLD) && ((defined CONFIG_MACH_CP3DCG) || (defined CONFIG_MACH_CP3DUG) || (defined CONFIG_MACH_CP3DTG) || (defined CONFIG_MACH_CP3U) || (defined CONFIG_MACH_Z4DUG) || (defined CONFIG_MACH_Z4DCG) || (defined CONFIG_MACH_Z4U)))
 	mdelay(1);
 	pr_info("[CAM]%s: sensor reset/pwd low\n", __func__);
  	rc = cpld_gpio_write(gpio, 0);
