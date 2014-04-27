@@ -99,6 +99,10 @@ static int soc_pcm_apply_symmetry(struct snd_pcm_substream *substream,
 	    !rtd->dai_link->symmetric_rates)
 		return 0;
 
+	/* This can happen if multiple streams are starting simultaneously -
+	 * the second can need to get its constraints before the first has
+	 * picked a rate.  Complain and allow the application to carry on.
+	 */
 	if (!soc_dai->rate) {
 		dev_warn(soc_dai->dev,
 			 "Not enforcing symmetric_rates due to race\n");
@@ -119,6 +123,11 @@ static int soc_pcm_apply_symmetry(struct snd_pcm_substream *substream,
 	return 0;
 }
 
+/*
+ * List of sample sizes that might go over the bus for parameter
+ * application.  There ought to be a wildcard sample size for things
+ * like the DAC/ADC resolution to use but there isn't right now.
+ */
 static int sample_sizes[] = {
 	8, 16, 24, 32,
 };
@@ -169,6 +178,11 @@ int soc_dpcm_dapm_stream_event(struct snd_soc_pcm_runtime *fe,
 	return 0;
 }
 
+/*
+ * Called by ALSA when a PCM substream is opened, the runtime->hw record is
+ * then initialized and any private data can be allocated. This also calls
+ * startup for the cpu DAI, platform, machine and codec DAI.
+ */
 static int soc_pcm_open(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
@@ -189,7 +203,7 @@ static int soc_pcm_open(struct snd_pcm_substream *substream)
 	if (rtd->dai_link->no_host_mode == SND_SOC_DAI_LINK_NO_HOST)
 		snd_soc_set_runtime_hwparams(substream, &no_host_hardware);
 
-	
+	/* startup the audio subsystem */
 	if (cpu_dai->driver->ops->startup) {
 		ret = cpu_dai->driver->ops->startup(substream, cpu_dai);
 		if (ret < 0) {
@@ -241,7 +255,7 @@ static int soc_pcm_open(struct snd_pcm_substream *substream)
 	if (rtd->dai_link->dynamic || rtd->dai_link->no_pcm)
 		goto dynamic;
 
-	
+	/* Check that the codec and cpu DAIs are compatible */
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
 		runtime->hw.rate_min =
 			max(codec_dai_drv->playback.rate_min,
@@ -312,7 +326,7 @@ static int soc_pcm_open(struct snd_pcm_substream *substream)
 	soc_pcm_apply_msb(substream, codec_dai);
 	soc_pcm_apply_msb(substream, cpu_dai);
 
-	
+	/* Symmetry only applies if we've already got an active stream. */
 	if (cpu_dai->active) {
 		ret = soc_pcm_apply_symmetry(substream, cpu_dai);
 		if (ret != 0)
@@ -372,6 +386,11 @@ out:
 	return ret;
 }
 
+/*
+ * Power down the audio subsystem pmdown_time msecs after close is called.
+ * This is to ensure there are no pops or clicks in between any music tracks
+ * due to DAPM power cycling.
+ */
 static void close_delayed_work(struct work_struct *work)
 {
 	struct snd_soc_pcm_runtime *rtd =
@@ -385,7 +404,7 @@ static void close_delayed_work(struct work_struct *work)
 		 codec_dai->playback_active ? "active" : "inactive",
 		 codec_dai->pop_wait ? "yes" : "no");
 
-	
+	/* are we waiting on this codec DAI stream */
 	if (codec_dai->pop_wait == 1) {
 		codec_dai->pop_wait = 0;
 		snd_soc_dapm_stream_event(rtd,
@@ -396,6 +415,11 @@ static void close_delayed_work(struct work_struct *work)
 	mutex_unlock(&rtd->pcm_mutex);
 }
 
+/*
+ * Called by ALSA when a PCM substream is closed. Private data can be
+ * freed here. The cpu DAI, codec DAI, machine and platform are also
+ * shutdown.
+ */
 static int soc_pcm_close(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
@@ -418,13 +442,16 @@ static int soc_pcm_close(struct snd_pcm_substream *substream)
 	codec_dai->active--;
 	codec->active--;
 
-	
+	/* clear the corresponding DAIs rate when inactive */
 	if (!cpu_dai->active)
 		cpu_dai->rate = 0;
 
 	if (!codec_dai->active)
 		codec_dai->rate = 0;
 
+	/* Muting the DAC suppresses artifacts caused during digital
+	 * shutdown, for example from stopping clocks.
+	 */
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
 		snd_soc_dai_digital_mute(codec_dai, 1);
 
@@ -452,18 +479,18 @@ static int soc_pcm_close(struct snd_pcm_substream *substream)
 		if (codec->ignore_pmdown_time ||
 		    rtd->dai_link->ignore_pmdown_time ||
 		    !rtd->pmdown_time) {
-			
+			/* powered down playback stream now */
 			snd_soc_dapm_stream_event(rtd,
 				codec_dai->driver->playback.stream_name,
 				SND_SOC_DAPM_STREAM_STOP);
 		} else {
-			
+			/* start delayed pop wq here for playback streams */
 			codec_dai->pop_wait = 1;
 			schedule_delayed_work(&rtd->delayed_work,
 				msecs_to_jiffies(rtd->pmdown_time));
 		}
 	} else {
-		
+		/* capture streams can be powered down now */
 		if (!codec_dai->capture_active)
 			snd_soc_dapm_stream_event(rtd,
 			codec_dai->driver->capture.stream_name,
@@ -479,6 +506,11 @@ static int soc_pcm_close(struct snd_pcm_substream *substream)
 	return 0;
 }
 
+/*
+ * Called by ALSA when the PCM substream is prepared, can set format, sample
+ * rate, etc.  This function is non atomic and can be called multiple times,
+ * it can refer to the runtime info.
+ */
 static int soc_pcm_prepare(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
@@ -521,7 +553,7 @@ static int soc_pcm_prepare(struct snd_pcm_substream *substream)
 		}
 	}
 
-	
+	/* cancel any delayed stream shutdown that is pending */
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK &&
 	    codec_dai->pop_wait) {
 		codec_dai->pop_wait = 0;
@@ -545,6 +577,11 @@ out:
 	return ret;
 }
 
+/*
+ * Called by ALSA when the hardware params are set by application. This
+ * function can also be called multiple times and can allocate buffers
+ * (using snd_pcm_lib_* ). It's non-atomic.
+ */
 static int soc_pcm_hw_params(struct snd_pcm_substream *substream,
 				struct snd_pcm_hw_params *params)
 {
@@ -639,6 +676,9 @@ codec_err:
 	return ret;
 }
 
+/*
+ * Frees resources allocated by hw_params, can be called multiple times
+ */
 static int soc_pcm_hw_free(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
@@ -649,19 +689,19 @@ static int soc_pcm_hw_free(struct snd_pcm_substream *substream)
 
 	mutex_lock_nested(&rtd->pcm_mutex, rtd->pcm_subclass);
 
-	
+	/* apply codec digital mute */
 	if (!codec->active)
 		snd_soc_dai_digital_mute(codec_dai, 1);
 
-	
+	/* free any machine hw params */
 	if (rtd->dai_link->ops && rtd->dai_link->ops->hw_free)
 		rtd->dai_link->ops->hw_free(substream);
 
-	
+	/* free any DMA resources */
 	if (platform->driver->ops && platform->driver->ops->hw_free)
 		platform->driver->ops->hw_free(substream);
 
-	
+	/* now free hw params for the DAIs  */
 	if (codec_dai->driver->ops->hw_free)
 		codec_dai->driver->ops->hw_free(substream, codec_dai);
 
@@ -741,6 +781,11 @@ int soc_pcm_bespoke_trigger(struct snd_pcm_substream *substream, int cmd)
 	return 0;
 }
 
+/*
+ * soc level wrapper for pointer callback
+ * If cpu_dai, codec_dai, platform driver has the delay callback, than
+ * the runtime->delay will be updated accordingly.
+ */
 static snd_pcm_uframes_t soc_pcm_pointer(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
@@ -2394,6 +2439,7 @@ int soc_dpcm_fe_dai_close(struct snd_pcm_substream *fe_substream)
 	return ret;
 }
 
+/* create a new pcm */
 int soc_new_pcm(struct snd_soc_pcm_runtime *rtd, int num)
 {
 	struct snd_soc_codec *codec = rtd->codec;
@@ -2417,7 +2463,7 @@ int soc_new_pcm(struct snd_soc_pcm_runtime *rtd, int num)
 			capture = 1;
 	}
 
-	
+	/* check client and interface hw capabilities */
 	if (rtd->dai_link->no_pcm) {
 		snprintf(new_name, sizeof(new_name), "(%s)",
 			rtd->dai_link->stream_name);

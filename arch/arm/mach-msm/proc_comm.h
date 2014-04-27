@@ -169,16 +169,17 @@ enum {
 	PCOM_CMD_FAIL_PROC_COMM_NOT_INIT,
 };
 
+/* List of VREGs that support the Pull Down Resistor setting. */
 enum vreg_pdown_id {
 	PM_VREG_PDOWN_MSMA_ID,
 	PM_VREG_PDOWN_MSMP_ID,
-	PM_VREG_PDOWN_MSME1_ID,	
-	PM_VREG_PDOWN_MSMC1_ID,	
-	PM_VREG_PDOWN_MSMC2_ID,	
-	PM_VREG_PDOWN_GP3_ID,	
-	PM_VREG_PDOWN_MSME2_ID,	
-	PM_VREG_PDOWN_GP4_ID,	
-	PM_VREG_PDOWN_GP1_ID,	
+	PM_VREG_PDOWN_MSME1_ID,	/* Not supported in Panoramix */
+	PM_VREG_PDOWN_MSMC1_ID,	/* Not supported in PM6620 */
+	PM_VREG_PDOWN_MSMC2_ID,	/* Supported in PM7500 only */
+	PM_VREG_PDOWN_GP3_ID,	/* Supported in PM7500 only */
+	PM_VREG_PDOWN_MSME2_ID,	/* Supported in PM7500 and Panoramix only */
+	PM_VREG_PDOWN_GP4_ID,	/* Supported in PM7500 only */
+	PM_VREG_PDOWN_GP1_ID,	/* Supported in PM7500 only */
 	PM_VREG_PDOWN_TCXO_ID,
 	PM_VREG_PDOWN_PA_ID,
 	PM_VREG_PDOWN_RFTX_ID,
@@ -189,10 +190,10 @@ enum vreg_pdown_id {
 	PM_VREG_PDOWN_USB_ID,
 	PM_VREG_PDOWN_MMC_ID,
 	PM_VREG_PDOWN_RUIM_ID,
-	PM_VREG_PDOWN_MSMC0_ID,	
-	PM_VREG_PDOWN_GP2_ID,	
-	PM_VREG_PDOWN_GP5_ID,	
-	PM_VREG_PDOWN_GP6_ID,	
+	PM_VREG_PDOWN_MSMC0_ID,	/* Supported in PM6610 only */
+	PM_VREG_PDOWN_GP2_ID,	/* Supported in PM7500 only */
+	PM_VREG_PDOWN_GP5_ID,	/* Supported in PM7500 only */
+	PM_VREG_PDOWN_GP6_ID,	/* Supported in PM7500 only */
 	PM_VREG_PDOWN_RF_ID,
 	PM_VREG_PDOWN_RF_VCO_ID,
 	PM_VREG_PDOWN_MPLL_ID,
@@ -200,7 +201,7 @@ enum vreg_pdown_id {
 	PM_VREG_PDOWN_S3_ID,
 	PM_VREG_PDOWN_RFUBM_ID,
 
-	
+	/* new for HAN */
 	PM_VREG_PDOWN_RF1_ID,
 	PM_VREG_PDOWN_RF2_ID,
 	PM_VREG_PDOWN_RFA_ID,
@@ -211,7 +212,7 @@ enum vreg_pdown_id {
 	PM_VREG_PDOWN_USB3P3_ID,
 	PM_VREG_PDOWN_INVALID_ID,
 
-	
+	/* backward compatible enums only */
 	PM_VREG_PDOWN_CAM_ID = PM_VREG_PDOWN_GP1_ID,
 	PM_VREG_PDOWN_MDDI_ID = PM_VREG_PDOWN_GP2_ID,
 	PM_VREG_PDOWN_RUIM2_ID = PM_VREG_PDOWN_GP3_ID,
@@ -231,6 +232,7 @@ enum {
 	PCOM_CLKRGM_APPS_RESET_USBH     = 37,
 };
 
+/* gpio info for PCOM_RPC_GPIO_TLMM_CONFIG_EX */
 
 #define GPIO_ENABLE	0
 #define GPIO_DISABLE	1

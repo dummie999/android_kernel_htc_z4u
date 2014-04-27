@@ -115,6 +115,7 @@ int smd_open(const char *name, smd_channel_t **ch, void *priv,
 
 int smd_close(smd_channel_t *ch);
 
+/* passing a null pointer for data reads and discards */
 int smd_read(smd_channel_t *ch, void *data, int len);
 int smd_read_from_cb(smd_channel_t *ch, void *data, int len);
 int smd_read_user_buffer(smd_channel_t *ch, void *data, int len);
@@ -130,10 +131,16 @@ int smd_write_user_buffer(smd_channel_t *ch, const void *data, int len);
 int smd_write_avail(smd_channel_t *ch);
 int smd_read_avail(smd_channel_t *ch);
 
+/* Returns the total size of the current packet being read.
+** Returns 0 if no packets available or a stream channel.
+*/
 int smd_cur_packet_size(smd_channel_t *ch);
 
 
 #if 0
+/* these are interruptable waits which will block you until the specified
+** number of bytes are readable or writable.
+*/
 int smd_wait_until_readable(smd_channel_t *ch, int bytes);
 int smd_wait_until_writable(smd_channel_t *ch, int bytes);
 #endif

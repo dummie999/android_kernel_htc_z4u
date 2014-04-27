@@ -74,6 +74,8 @@ static int pmdown_time;
 module_param(pmdown_time, int, 0);
 MODULE_PARM_DESC(pmdown_time, "DAPM stream powerdown time (msecs)");
 
+/* returns the minimum number of bytes needed to represent
+ * a particular given value */
 static int min_bytes_needed(unsigned long val)
 {
 	int c = 0;
@@ -90,6 +92,8 @@ static int min_bytes_needed(unsigned long val)
 	return c;
 }
 
+/* fill buf which is 'len' bytes with a formatted
+ * string of the form 'reg: value\n' */
 static int format_register_str(struct snd_soc_codec *codec,
 			       unsigned int reg, char *buf, size_t len)
 {
@@ -99,9 +103,11 @@ static int format_register_str(struct snd_soc_codec *codec,
 	char tmpbuf[len + 1];
 	char regbuf[regsize + 1];
 
+	/* since tmpbuf is allocated on the stack, warn the callers if they
+	 * try to abuse this function */
 	WARN_ON(len > 63);
 
-	
+	/* +2 for ': ' and + 1 for '\n' */
 	if (wordsize + regsize + 2 + 1 != len)
 		return -EINVAL;
 
@@ -113,14 +119,15 @@ static int format_register_str(struct snd_soc_codec *codec,
 		snprintf(regbuf, regsize + 1, "%.*x", regsize, ret);
 	}
 
-	
+	/* prepare the buffer */
 	snprintf(tmpbuf, len + 1, "%.*x: %s\n", wordsize, reg, regbuf);
-	
+	/* copy it back to the caller without the '\0' */
 	memcpy(buf, tmpbuf, len);
 
 	return 0;
 }
 
+/* codec register dump */
 static ssize_t soc_codec_reg_show(struct snd_soc_codec *codec, char *buf,
 				  size_t count, loff_t pos)
 {

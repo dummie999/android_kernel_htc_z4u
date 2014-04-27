@@ -34,6 +34,8 @@ static DEFINE_PER_CPU_SHARED_ALIGNED(struct msm_hotplug_device,
 
 static inline void cpu_enter_lowpower(void)
 {
+	/* Just flush the cache. Changing the coherency is not yet
+	 * available on msm. */
 	flush_cache_all();
 }
 
@@ -43,7 +45,7 @@ static inline void cpu_leave_lowpower(void)
 
 static inline void platform_do_lowpower(unsigned int cpu)
 {
-	
+	/* Just enter wfi for now. TODO: Properly shut off the cpu. */
 	for (;;) {
 
 		msm_pm_cpu_enter_lowpower(cpu);
@@ -65,6 +67,11 @@ int platform_cpu_kill(unsigned int cpu)
 	return 1;
 }
 
+/*
+ * platform-specific code to shutdown a CPU
+ *
+ * Called with IRQs disabled
+ */
 void platform_cpu_die(unsigned int cpu)
 {
 	if (unlikely(cpu != smp_processor_id())) {
@@ -73,15 +80,26 @@ void platform_cpu_die(unsigned int cpu)
 		BUG();
 	}
 	complete(&__get_cpu_var(msm_hotplug_devices).cpu_killed);
+	/*
+	 * we're ready for shutdown now, so do it
+	 */
 	cpu_enter_lowpower();
 	platform_do_lowpower(cpu);
 
 	pr_debug("CPU%u: %s: normal wakeup\n", cpu, __func__);
+	/*
+	 * bring this CPU back into the world of cache
+	 * coherency, and then restore interrupts
+	 */
 	cpu_leave_lowpower();
 }
 
 int platform_cpu_disable(unsigned int cpu)
 {
+	/*
+	 * we don't allow CPU 0 to be shutdown (it is still too special
+	 * e.g. clock tick interrupts)
+	 */
 	return cpu == 0 ? -EPERM : 0;
 }
 
