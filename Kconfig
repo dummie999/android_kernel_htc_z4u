@@ -1,0 +1,33 @@
+#
+# For a description of the syntax of this configuration file,
+# see Documentation/kbuild/kconfig-language.txt.
+#
+mainmenu "Linux/$ARCH $KERNELVERSION Kernel Configuration"
+
+config SRCARCH
+	string
+	option env="SRCARCH"
+
+source "arch/$SRCARCH/Kconfig"
+
+config CABLE_DETECT_8X55
+boolean "Cable detect driver"
+default n
+help
+Detect usb, ac and other accessories.
+
+config CABLE_DETECT_ACCESSORY
+boolean "CABLE ACCESSORY DETECT"
+default n
+
+config CABLE_DETECT_ACCESSORY_BY_ADC
+boolean "DETECT ACCESSORY BY PMIC ADC"
+default n
+
+config GPS_1530
+boolean "ENABLE GPS 1530 UART"
+default n
+
+config GPS_1530_LNA_POWER
+boolean "GPS 2.7V LNA POWER"
+default n

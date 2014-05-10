@@ -1,0 +1,11 @@
+obj-$(CONFIG_MACH_PROTOU) += board-protou-panel.o
+obj-$(CONFIG_MACH_PROTODUG) += board-protou-panel.o
+obj-$(CONFIG_MACH_PROTODCG) += board-protodcg-panel.o
+obj-$(CONFIG_MACH_MAGNIDS) += board-magnids-panel.o
+obj-$(CONFIG_MACH_CP3DCG) +=  board-cp3dcg-panel.o
+obj-$(CONFIG_MACH_CP3DUG) +=  board-cp3dcg-panel.o
+obj-$(CONFIG_MACH_CP3DTG) +=  board-cp3dcg-panel.o
+obj-$(CONFIG_MACH_CP3U) +=  board-cp3dcg-panel.o
+obj-$(CONFIG_MACH_Z4DUG) +=  board-z4-panel.o
+obj-$(CONFIG_MACH_Z4DCG) +=  board-z4-panel.o
+obj-$(CONFIG_MACH_Z4U) +=  board-z4-panel.o
