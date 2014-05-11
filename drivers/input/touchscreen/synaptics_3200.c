@@ -162,7 +162,7 @@ static irqreturn_t synaptics_irq_thread(int irq, void *ptr);
 extern unsigned int get_tamper_sf(void);
 
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
-#define S2W_Y_MAX 800
+#define S2W_Y_MAX 1100
 #define S2W_X_MAX 480
 #define S2W_Y_LIMIT S2W_Y_MAX-180
 #define S2W_X_B1 180
