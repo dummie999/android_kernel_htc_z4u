@@ -164,7 +164,7 @@ extern unsigned int get_tamper_sf(void);
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
 #define S2W_Y_MAX 1100
 #define S2W_X_MAX 480
-#define S2W_Y_LIMIT S2W_Y_MAX-180
+#define S2W_Y_LIMIT S2W_Y_MAX-110
 #define S2W_X_B1 180
 #define S2W_X_B2 360
 #define S2W_X_FINAL 110
