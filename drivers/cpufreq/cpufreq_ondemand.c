@@ -92,6 +92,7 @@ struct cpu_dbs_info_s {
 };
 static DEFINE_PER_CPU(struct cpu_dbs_info_s, od_cpu_dbs_info);
 static DEFINE_PER_CPU(unsigned int, cpu_load);
+static DEFINE_PER_CPU(int, cpufreq_init_done);
 
 static inline void dbs_timer_init(struct cpu_dbs_info_s *dbs_info);
 static inline void dbs_timer_exit(struct cpu_dbs_info_s *dbs_info);
