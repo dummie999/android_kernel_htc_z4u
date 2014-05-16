@@ -1695,6 +1695,13 @@ config MSM_RPC_WATCHDOG
 	help
 	  The dog_keepalive client module.
 
+config FORCE_FAST_CHARGE
+	bool "Force AC charge mode at will"
+	default y
+	help
+	  A simple sysfs interface to force adapters that
+	  are detected as USB to charge as AC.
+
 config MSM_RPC_PING
 	depends on MSM_ONCRPCROUTER && DEBUG_FS
 	default m
