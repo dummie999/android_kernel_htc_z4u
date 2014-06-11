@@ -25,6 +25,7 @@
 #include <linux/wakelock.h>
 #include <mach/msm_rpcrouter.h>
 #include <linux/module.h>
+#include <linux/msm_vibrator.h>
 #define VIB_INFO_LOG(fmt, ...) \
 		printk(KERN_INFO "[VIB]" fmt, ##__VA_ARGS__)
 #define VIB_ERR_LOG(fmt, ...) \
@@ -46,7 +47,6 @@ static spinlock_t vibe_lock;
 static struct hrtimer vibe_timer;
 static int pmic_vibrator_level;
 struct wake_lock vib_wake_lock;
-
 
 #ifdef CONFIG_RPC_VIBRATOR
 static void set_pmic_vibrator(int on)
@@ -196,6 +196,11 @@ static struct timed_output_dev pmic_vibrator = {
 	.get_time = vibrator_get_time,
 	.enable = vibrator_enable,
 };
+
+int vibrate(int time) {
+	vibrator_enable(&pmic_vibrator, time);
+	return 0;
+}
 
 #if defined(CONFIG_DEBUG_BY_VIBRATOR)	 
 #define DEBUG_VIBRATOR_TIME	(3000)
