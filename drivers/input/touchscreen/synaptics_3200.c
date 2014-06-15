@@ -176,9 +176,9 @@ extern unsigned int get_tamper_sf(void);
 #define PWRKEY_DUR 20
 
 #define S2W_DELTA 80
-#define S2W_TIMEOUT_B1 300
-#define S2W_TIMEOUT_B2 650
-#define S2W_TIMEOUT_FINAL 1000
+#define S2W_TIMEOUT_B1 450
+#define S2W_TIMEOUT_B2 1000
+#define S2W_TIMEOUT_FINAL 1500
 
 #define DT2W_TIMEOUT_MAX 300
 #define DT2W_TIMEOUT_MIN 100
@@ -513,7 +513,6 @@ static void dt2w_func(int x, int y, cputime64_t trigger_time)
         	} else {
         	        if ((((abs(x - prev_x) < DT2W_DELTA) && (abs(y - prev_y) < DT2W_DELTA))
 							|| (prev_x == 0 && prev_y == 0)) && screen_untouched) {
-        	                //wakesleep_vib = 1;
         	                reset_dt2w();
 				//printk("dt2w ON\n");
         	                sweep2sleep_pwrtrigger();
@@ -2490,8 +2489,6 @@ static void synaptics_ts_finger_func(struct synaptics_ts_data *ts)
 	uint8_t buf[ts->finger_support * 8], noise_index[10], noise_state = 0;
 	static int x_pos[10] = {0}, y_pos[10] = {0};
 
-	cputime64_t dt_trigger_time;
-
 	memset(buf, 0x0, sizeof(buf));
 	memset(noise_index, 0x0, sizeof(noise_index));
 	if (ts->package_id < 3400)
@@ -2798,14 +2795,15 @@ static void synaptics_ts_finger_func(struct synaptics_ts_data *ts)
 						y_pos[i] = finger_data[i][1];
 						finger_pressed &= ~BIT(i);
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
-						if (!scr_suspended) {
-							detect_sweep2sleep(x_pos[i], y_pos[i]);
-						} else {
-							detect_sweep2wake(x_pos[i], y_pos[i], ktime_to_ms(ktime_get()));
+						if (ts->finger_count == 1) {
+							if (!scr_suspended) {
+								detect_sweep2sleep(x_pos[i], y_pos[i]);
+							} else {
+								detect_sweep2wake(x_pos[i], y_pos[i], ktime_to_ms(ktime_get()));
+							}
 						}
 						if ((ts->finger_count == 1) && (dt2w_switch > 0)) {
-							dt_trigger_time = ktime_to_ms(ktime_get());
-							dt2w_func(last_touch_position_x, last_touch_position_y, dt_trigger_time);
+							dt2w_func(last_touch_position_x, last_touch_position_y, ktime_to_ms(ktime_get()));
 						}
 #endif
 						if ((finger_press_changed & BIT(i)) && ts->debug_log_level & BIT(3)) {
@@ -3987,7 +3985,7 @@ static int synaptics_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 	printk(KERN_INFO "[TP] %s: enter\n", __func__);
 
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
-	if (s2w_switch == 1 || dt2w_switch > 0) {
+	if (s2w_switch > 0 || dt2w_switch > 0) {
 		//screen off, enable_irq_wake
 		enable_irq_wake(client->irq);
 	}
@@ -3995,7 +3993,7 @@ static int synaptics_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 	if (ts->use_irq) {
 
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
-		if ((s2w_switch == 2 || s2w_switch == 0) && dt2w_switch == 0) {
+		if (s2w_switch == 0 && dt2w_switch == 0) {
 #endif
 			disable_irq(client->irq);
 			ts->irq_enabled = 0;
@@ -4006,7 +4004,7 @@ static int synaptics_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 		hrtimer_cancel(&ts->timer);
 		ret = cancel_work_sync(&ts->work);
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
-	if ((s2w_switch == 2 || s2w_switch == 0) && dt2w_switch == 0) {
+	if (s2w_switch == 0 && dt2w_switch == 0) {
 		if (ret && ts->use_irq) /* if work was pending disable-count is now 2 */
 			enable_irq(client->irq);
 	}
@@ -4176,7 +4174,7 @@ static int synaptics_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 		ts->disable_CBC = 0;
 	}
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
-	if ((s2w_switch == 2 || s2w_switch == 0) && dt2w_switch == 0) {
+	if (s2w_switch == 0 && dt2w_switch == 0) {
 #endif
 	if (ts->power)
 		ts->power(0);
@@ -4216,10 +4214,10 @@ static int synaptics_ts_resume(struct i2c_client *client)
 
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE  
         //screen on, disable_irq_wake
-	if (s2w_switch == 1 || dt2w_switch > 0)
+	if (s2w_switch > 0 || dt2w_switch > 0)
 		disable_irq_wake(client->irq);
 
-        if ((s2w_switch == 2 || s2w_switch == 0) && dt2w_switch == 0) {
+        if (s2w_switch == 0 && dt2w_switch == 0) {
 #endif 
 
 	if (ts->power) {
@@ -4270,7 +4268,7 @@ static int synaptics_ts_resume(struct i2c_client *client)
 		}
 	}
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
-        if ((s2w_switch == 2 || s2w_switch == 0) && dt2w_switch == 0) {
+        if (s2w_switch == 0 && dt2w_switch == 0) {
 #endif
 
 	if (ts->use_irq) {
