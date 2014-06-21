@@ -435,5 +435,6 @@ obj-$(CONFIG_MSM_PBUS) += pbus_support.o
 obj-$(CONFIG_PERFLOCK) += perflock.o
 
 obj-$(CONFIG_FORCE_FAST_CHARGE) += fastchg.o
+obj-$(CONFIG_INTELLI_PLUG) += intelli_plug.o
 
 obj-$(CONFIG_SPRD_MODEM) += sprd_modem.o
