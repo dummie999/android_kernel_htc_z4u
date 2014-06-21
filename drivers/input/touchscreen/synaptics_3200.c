@@ -191,27 +191,36 @@ static bool scr_on_touch = false;
 static bool barrier[2][2] = {{false, false},{false, false}};
 static bool scr_suspended = false;
 static bool screen_untouched;
+static int init_y;
+
 static int s2w_switch = 1;
 static int s2sl_switch = 1;
 static int dt2w_switch = 1;
 static int vibrate_switch = 0;
-static int init_y;
+static int pocket_detection = 1;
 
 static struct input_dev * sweep2sleep_pwrdev;
 static DEFINE_MUTEX(pwrkeyworklock);
 
 static void sweep2sleep_presspwr(struct work_struct * sweep2sleep_presspwr_work) {
-	if (!mutex_trylock(&pwrkeyworklock))
-		return;
+	int pocket_mode = 0;
+
+	if (scr_suspended == true && pocket_detection == 1)
+		pocket_mode = pocket_detection_check();
+
+	if (!pocket_mode || pocket_detection == 0) {
+		if (!mutex_trylock(&pwrkeyworklock))
+			return;
 	
-	input_event(sweep2sleep_pwrdev, EV_KEY, KEY_POWER, 1);
-	input_event(sweep2sleep_pwrdev, EV_SYN, 0, 0);
-	msleep(PWRKEY_DUR);
-	input_event(sweep2sleep_pwrdev, EV_KEY, KEY_POWER, 0);
-	input_event(sweep2sleep_pwrdev, EV_SYN, 0, 0);
-	msleep(PWRKEY_DUR);
-   	mutex_unlock(&pwrkeyworklock);
-	return;
+		input_event(sweep2sleep_pwrdev, EV_KEY, KEY_POWER, 1);
+		input_event(sweep2sleep_pwrdev, EV_SYN, 0, 0);
+		msleep(PWRKEY_DUR);
+		input_event(sweep2sleep_pwrdev, EV_KEY, KEY_POWER, 0);
+		input_event(sweep2sleep_pwrdev, EV_SYN, 0, 0);
+		msleep(PWRKEY_DUR);
+	   	mutex_unlock(&pwrkeyworklock);
+		return;
+	}
 }
 
 static DECLARE_WORK(sweep2sleep_presspwr_work, sweep2sleep_presspwr);
@@ -292,6 +301,20 @@ static int __init get_vib_opt(char *vib)
 }
 
 __setup("vib=", get_vib_opt);
+
+static int __init get_pocket_detection_opt(char *pd)
+{
+	if (strcmp(pd, "0") == 0) {
+		pocket_detection = 0;
+	} else if (strcmp(pd, "1") == 0) {
+		pocket_detection = 1;
+	} else {
+		pocket_detection = 0;
+	}
+	return 1;
+}
+
+__setup("pd=", get_pocket_detection_opt); 
 
 static void reset_s2sl(void)
 {
@@ -2169,6 +2192,26 @@ static ssize_t synaptics_vib_dump(struct device *dev, struct device_attribute *a
 
 static DEVICE_ATTR(vibrate_switch, 0666,
 	synaptics_vib_show, synaptics_vib_dump);
+
+
+static ssize_t synaptics_pocket_detection_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+	count += sprintf(buf, "%d\n", pocket_detection);
+	return count;
+}
+
+static ssize_t synaptics_pocket_detection_dump(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	if (buf[0] >= '0' && buf[0] <= '1' && buf[1] == '\n')
+                if (pocket_detection != buf[0] - '0')
+		        pocket_detection = buf[0] - '0';
+
+	return count;
+}
+
+static DEVICE_ATTR(pocket_detection, 0666,
+	synaptics_pocket_detection_show, synaptics_pocket_detection_dump);
 #endif	
 
 enum SR_REG_STATE{
@@ -2315,6 +2358,12 @@ static int synaptics_touch_sysfs_init(void)
 		printk(KERN_ERR "%s: sysfs_create_file failed\n", __func__);
 		return ret;
 	}
+
+	ret = sysfs_create_file(android_touch_kobj, &dev_attr_pocket_detection.attr);
+	if (ret) {
+		printk(KERN_ERR "%s: sysfs_create_file failed\n", __func__);
+		return ret;
+	} 
 #endif
 
 #ifdef SYN_WIRELESS_DEBUG
@@ -2371,6 +2420,7 @@ static void synaptics_touch_sysfs_remove(void)
 	sysfs_remove_file(android_touch_kobj, &dev_attr_doubletap2wake.attr);
 	sysfs_remove_file(android_touch_kobj, &dev_attr_vibrate_switch.attr);
 	sysfs_remove_file(android_touch_kobj, &dev_attr_sweep2wake.attr);
+	sysfs_remove_file(android_touch_kobj, &dev_attr_pocket_detection.attr);
 #endif
 	kobject_del(android_touch_kobj);
 }
