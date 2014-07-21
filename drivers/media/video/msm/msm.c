@@ -44,7 +44,7 @@ int Block_IN_VFE_RESET = 0;
 #define D(fmt, args...) do {} while (0)
 #endif
 
-#define DEBUG_DUMP
+#define DEBUG_FRAME_COUNT
 
 static unsigned msm_camera_v4l2_nr = -1;
 static struct msm_cam_server_dev g_server_dev;
@@ -60,19 +60,37 @@ static long msm_server_send_v4l2_evt(void *evt);
 static void msm_cam_server_subdev_notify(struct v4l2_subdev *sd,
 	unsigned int notification, void *arg);
 
-#ifdef DEBUG_DUMP
+#ifdef DEBUG_FRAME_COUNT
+#if defined(CONFIG_S5K3H2YX)
 extern void s5k3h2yx_check_frame_count(void);
+#endif
+
+#if defined(CONFIG_S5K4E5YX)
+extern void s5k4e5yx_check_frame_count(void);
+#endif
+
 static void dump_info(void)
 {
 	Yushan_Debug_Reg_Dump(REG_DUMP_TX_FRAME_COUNT);
 	Yushan_Debug_Reg_Dump(REG_DUMP_RX_FRAME_COUNT);
+#if defined(CONFIG_S5K3H2YX)
 	s5k3h2yx_check_frame_count();
+#endif
 
-	msleep(200);		
+#if defined(CONFIG_S5K4E5YX)
+	s5k4e5yx_check_frame_count();
+#endif
+
+	msleep(200);
 
 	Yushan_Debug_Reg_Dump(REG_DUMP_TX_FRAME_COUNT);
 	Yushan_Debug_Reg_Dump(REG_DUMP_RX_FRAME_COUNT);
+#if defined(CONFIG_S5K3H2YX)
 	s5k3h2yx_check_frame_count();
+#endif
+#if defined(CONFIG_S5K4E5YX)
+	s5k4e5yx_check_frame_count();
+#endif
 
 }
 #endif
@@ -389,7 +407,7 @@ wait_event:
 					pr_info("%s: ctrl_cmd.type = %d\n", __func__, 
 						((struct msm_ctrl_cmd *)out->value)->type);
 			}
-#ifdef DEBUG_DUMP
+#ifdef DEBUG_FRAME_COUNT
 			dump_info();
 #endif
 			
