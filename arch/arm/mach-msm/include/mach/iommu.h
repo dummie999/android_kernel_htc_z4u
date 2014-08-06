@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -21,6 +21,7 @@
 extern pgprot_t     pgprot_kernel;
 extern struct platform_device *msm_iommu_root_dev;
 
+/* Domain attributes */
 #define MSM_IOMMU_DOMAIN_PT_CACHEABLE	0x1
 
 /* Mask for the cache policy attribute */
@@ -100,6 +101,11 @@ struct msm_iommu_ctx_drvdata {
 	const char *name;
 };
 
+/*
+ * Interrupt handler for the IOMMU context fault interrupt. Hooking the
+ * interrupt is not supported in the API yet, but this will print an error
+ * message and dump useful IOMMU registers.
+ */
 irqreturn_t msm_iommu_fault_handler(int irq, void *dev_id);
 irqreturn_t msm_iommu_fault_handler_v2(int irq, void *dev_id);
 

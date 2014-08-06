@@ -384,6 +384,7 @@ int sprint_symbol(char *buffer, unsigned long address)
 {
 	return __sprint_symbol(buffer, address, 0, 1);
 }
+
 EXPORT_SYMBOL_GPL(sprint_symbol);
 
 /**

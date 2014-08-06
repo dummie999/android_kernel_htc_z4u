@@ -55,6 +55,7 @@ extern void __flush_dcache_page(struct address_space *mapping, struct page *page
 /* permanent static mappings from iotable_init() */
 #define VM_ARM_STATIC_MAPPING	0x40000000
 
+/* empty mapping */
 #define VM_ARM_EMPTY_MAPPING	0x20000000
 
 /* mapping type (attributes) for permanent static mappings */

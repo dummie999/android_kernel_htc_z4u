@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -19,15 +19,22 @@
 #ifdef CONFIG_MSM_FIQ
 #define FIQ_START               0
 
+/*
+ * Use GIC_SECURE_SOFT_IRQ as secure SGI, so that
+ * it gets handled as FIQ.
+ */
 #define GIC_SECURE_SOFT_IRQ	9
 #endif
 
+/* As per QGIC2 PPI 16 aka 0 is reserved */
 #define MSM8625_INT_A5_PMU_IRQ		(GIC_PPI_START + 1)
 #define MSM8625_INT_DEBUG_TIMER_EXP	(GIC_PPI_START + 2)
 #define MSM8625_INT_GP_TIMER_EXP	(GIC_PPI_START + 3)
 #define MSM8625_INT_COMMRX		(GIC_PPI_START + 4)
 #define MSM8625_INT_COMMTX		(GIC_PPI_START + 5)
 
+/* rest of the PPI's not used
+ */
 
 #define MSM8625_INT_A9_M2A_0		(GIC_SPI_START + 0)
 #define MSM8625_INT_A9_M2A_1		(GIC_SPI_START + 1)

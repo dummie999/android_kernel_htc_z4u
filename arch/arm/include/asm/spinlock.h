@@ -59,7 +59,6 @@ static inline void dsb_sev(void)
 }
 
 #ifndef CONFIG_ARM_TICKET_LOCKS
-
 /*
  * ARMv6 Spin-locking.
  *
@@ -129,6 +128,23 @@ static inline void arch_spin_unlock(arch_spinlock_t *lock)
 	dsb_sev();
 }
 #else
+/*
+ * ARM Ticket spin-locking
+ *
+ * Ticket locks are conceptually two parts, one indicating the current head of
+ * the queue, and the other indicating the current tail. The lock is acquired
+ * by atomically noting the tail and incrementing it by one (thus adding
+ * ourself to the queue and noting our position), then waiting until the head
+ * becomes equal to the the initial value of the tail.
+ *
+ * Unlocked value: 0
+ * Locked value: now_serving != next_ticket
+ *
+ *   31             17  16    15  14                    0
+ *  +----------------------------------------------------+
+ *  |  now_serving          |     next_ticket            |
+ *  +----------------------------------------------------+
+ */
 
 #define TICKET_SHIFT	16
 #define TICKET_BITS	16
@@ -140,7 +156,7 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 {
 	unsigned long tmp, ticket, next_ticket;
 
-	
+	/* Grab the next ticket and wait for it to be "served" */
 	__asm__ __volatile__(
 "1:	ldrex	%[ticket], [%[lockaddr]]\n"
 "	uadd16	%[next_ticket], %[ticket], %[val1]\n"
@@ -165,7 +181,7 @@ static inline int arch_spin_trylock(arch_spinlock_t *lock)
 {
 	unsigned long tmp, ticket, next_ticket;
 
-	
+	/* Grab lock if now_serving == next_ticket and access is exclusive */
 	__asm__ __volatile__(
 "	ldrex	%[ticket], [%[lockaddr]]\n"
 "	ror	%[tmp], %[ticket], #16\n"
@@ -189,7 +205,7 @@ static inline void arch_spin_unlock(arch_spinlock_t *lock)
 
 	smp_mb();
 
-	
+	/* Bump now_serving by 1 */
 	__asm__ __volatile__(
 "1:	ldrex	%[ticket], [%[lockaddr]]\n"
 "	uadd16	%[ticket], %[ticket], %[serving1]\n"
@@ -206,7 +222,7 @@ static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
 {
 	unsigned long ticket;
 
-	
+	/* Wait for now_serving == next_ticket */
 	__asm__ __volatile__(
 #ifdef CONFIG_CPU_32v6K
 "	cmpne	%[lockaddr], %[lockaddr]\n"

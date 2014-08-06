@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -70,4 +70,4 @@ static inline void msm_mpm_exit_sleep(bool from_idle) {}
 
 
 
-#endif 
+#endif /* __ARCH_ARM_MACH_MSM_MPM_H */

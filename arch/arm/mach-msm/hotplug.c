@@ -1,7 +1,7 @@
 /*
  *  Copyright (C) 2002 ARM Ltd.
  *  All Rights Reserved
- *  Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+ *  Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -50,12 +50,23 @@ static inline void platform_do_lowpower(unsigned int cpu)
 
 		msm_pm_cpu_enter_lowpower(cpu);
 		if (pen_release == cpu_logical_map(cpu)) {
+			/*
+			 * OK, proper wakeup, we're done
+			 */
 			pen_release = -1;
 			dmac_flush_range((void *)&pen_release,
 				(void *)(&pen_release + sizeof(pen_release)));
 			break;
 		}
 
+		/*
+		 * getting here, means that we have come out of WFI without
+		 * having been woken up - this shouldn't happen
+		 *
+		 * The trouble is, letting people know about this is not really
+		 * possible, since we are currently running incoherently, and
+		 * therefore cannot safely call printk() or anything else
+		 */
 		dmac_inv_range((void *)&pen_release,
 			       (void *)(&pen_release + sizeof(pen_release)));
 		pr_debug("CPU%u: spurious wakeup call\n", cpu);
@@ -113,6 +124,14 @@ int platform_cpu_disable(unsigned int cpu)
 static int hotplug_rtb_callback(struct notifier_block *nfb,
 				unsigned long action, void *hcpu)
 {
+	/*
+	 * Bits [19:4] of the data are the online mask, lower 4 bits are the
+	 * cpu number that is being changed. Additionally, changes to the
+	 * online_mask that will be done by the current hotplug will be made
+	 * even though they aren't necessarily in the online mask yet.
+	 *
+	 * XXX: This design is limited to supporting at most 16 cpus
+	 */
 	int this_cpumask = CPUSET_OF(1 << (int)hcpu);
 	int cpumask = CPUSET_OF(cpumask_bits(cpu_online_mask)[0]);
 	int cpudata = CPU_OF((int)hcpu) | cpumask;

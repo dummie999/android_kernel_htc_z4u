@@ -1,7 +1,7 @@
 /* linux/include/asm-arm/arch-msm/dma.h
  *
  * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2008-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2008-2012, The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -36,8 +36,8 @@ struct msm_dmov_cmd {
 			      struct msm_dmov_errdata *err);
 	void (*exec_func)(struct msm_dmov_cmd *cmd);
 	struct work_struct work;
-	unsigned id;    
-	void *user;	
+	unsigned id;    /* For internal use */
+	void *user;	/* Pointer for caller's reference */
 	u8 toflush;
 };
 
@@ -56,10 +56,10 @@ int msm_dmov_exec_cmd(unsigned id, unsigned int cmdptr);
 #define DMOV_ADDR(off, ch) ((off) + ((ch) << 2))
 
 #define DMOV_CMD_PTR(ch)      DMOV_ADDR(0x000, ch)
-#define DMOV_CMD_LIST         (0 << 29) 
-#define DMOV_CMD_PTR_LIST     (1 << 29) 
-#define DMOV_CMD_INPUT_CFG    (2 << 29) 
-#define DMOV_CMD_OUTPUT_CFG   (3 << 29) 
+#define DMOV_CMD_LIST         (0 << 29) /* does not work */
+#define DMOV_CMD_PTR_LIST     (1 << 29) /* works */
+#define DMOV_CMD_INPUT_CFG    (2 << 29) /* untested */
+#define DMOV_CMD_OUTPUT_CFG   (3 << 29) /* untested */
 #define DMOV_CMD_ADDR(addr)   ((addr) >> 3)
 
 #define DMOV_RSLT(ch)         DMOV_ADDR(0x040, ch)
@@ -117,8 +117,12 @@ int msm_dmov_exec_cmd(unsigned id, unsigned int cmdptr);
 #define DMOV_CRCI_CTL_RST              (1 << 17)
 #define DMOV_CRCI_MUX                  (1 << 18)
 
-
 /* channel assignments */
+
+/*
+ * Format of CRCI numbers: crci number + (muxsel << 4)
+ */
+
 #if defined(CONFIG_ARCH_MSM8X60)
 #define DMOV_GP_CHAN           15
 
@@ -190,7 +194,6 @@ int msm_dmov_exec_cmd(unsigned id, unsigned int cmdptr);
 #define DMOV_HSUART_GSBI9_RX_CHAN	3
 #define DMOV_HSUART_GSBI9_RX_CRCI	12
 
-
 #elif defined(CONFIG_ARCH_MSM9615)
 
 #define DMOV_GP_CHAN          4
@@ -206,6 +209,7 @@ int msm_dmov_exec_cmd(unsigned id, unsigned int cmdptr);
 #define DMOV_NAND_CRCI_DATA   3
 
 #elif defined(CONFIG_ARCH_FSM9XXX)
+/* defined in dma-fsm9xxx.h */
 
 #else
 #define DMOV_GP_CHAN          4
@@ -252,11 +256,13 @@ int msm_dmov_exec_cmd(unsigned id, unsigned int cmdptr);
 #define DMOV_HSUART2_RX_CRCI   15
 #endif
 
+/* channels for APQ8064 */
 #define DMOV8064_CE_IN_CHAN        0
 #define DMOV8064_CE_IN_CRCI       14
 
 #define DMOV8064_CE_OUT_CHAN       1
 #define DMOV8064_CE_OUT_CRCI       15
+
 
 /* no client rate control ifc (eg, ram) */
 #define DMOV_NONE_CRCI        0
