@@ -788,7 +788,7 @@ static void swap_key_to_BE(struct wl_wsec_key *key)
 }
 
 /* For debug: Dump the contents of the encoded wps ie buffe */
-static void
+static void __maybe_unused
 wl_validate_wps_ie(char *wps_ie, bool *pbc)
 {
 	#define WPS_IE_FIXED_LEN 6
@@ -3937,7 +3937,7 @@ wl_cfg80211_set_channel(struct wiphy *wiphy, struct net_device *dev,
 	return err;
 }
 
-static s32
+static s32 __maybe_unused
 wl_validate_opensecurity(struct net_device *dev, s32 bssidx)
 {
 	s32 err = BCME_OK;
@@ -3964,7 +3964,7 @@ wl_validate_opensecurity(struct net_device *dev, s32 bssidx)
 	return 0;
 }
 
-static s32
+static s32 __maybe_unused
 wl_validate_wpa2ie(struct net_device *dev, bcm_tlv_t *wpa2ie, s32 bssidx)
 {
 	s32 len = 0;
@@ -4077,7 +4077,7 @@ exit:
 	return 0;
 }
 
-static s32
+static s32 __maybe_unused
 wl_validate_wpaie(struct net_device *dev, wpa_ie_fixed_t *wpaie, s32 bssidx)
 {
 	wpa_suite_mcast_t *mcast;
@@ -6724,7 +6724,7 @@ static s32 wl_config_ifmode(struct wl_priv *wl, struct net_device *ndev, s32 ift
 	return 0;
 }
 
-static s32 wl_add_remove_eventmsg(struct net_device *ndev, u16 event, bool add)
+static s32 __maybe_unused wl_add_remove_eventmsg(struct net_device *ndev, u16 event, bool add)
 {
 	s8 iovbuf[WL_EVENTING_MASK_LEN + 12];
 
