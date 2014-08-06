@@ -342,7 +342,7 @@ static void dapm_set_path_status(struct snd_soc_dapm_widget *w,
 		}
 	}
 	break;
-	
+	/* does not affect routing - always connected */
 	case snd_soc_dapm_pga:
 	case snd_soc_dapm_out_drv:
 	case snd_soc_dapm_output:
@@ -658,6 +658,7 @@ static int snd_soc_dapm_suspend_check(struct snd_soc_dapm_widget *widget)
 	}
 }
 
+/* reset 'walked' bit for each dapm path */
 static inline void dapm_clear_walk(struct snd_soc_dapm_context *dapm)
 {
 	struct snd_soc_dapm_path *p;
@@ -666,6 +667,7 @@ static inline void dapm_clear_walk(struct snd_soc_dapm_context *dapm)
 		p->walked = 0;
 }
 
+/* add widget to list if it's not already in the list */
 static int dapm_list_add_widget(struct snd_soc_dapm_widget_list **list,
 	struct snd_soc_dapm_widget *w)
 {
@@ -677,13 +679,13 @@ static int dapm_list_add_widget(struct snd_soc_dapm_widget_list **list,
 
 	wlist = *list;
 
-	
+	/* is this widget already in the list */
 	for (i = 0; i < wlist->num_widgets; i++) {
 		if (wlist->widgets[i] == w)
 			return 0;
 	}
 
-	
+	/* allocate some new space */
 	wlistentries = wlist->num_widgets + 1;
 	wlistsize = sizeof(struct snd_soc_dapm_widget_list) +
 			wlistentries * sizeof(struct snd_soc_dapm_widget *);
@@ -695,7 +697,7 @@ static int dapm_list_add_widget(struct snd_soc_dapm_widget_list **list,
 	}
 	wlist = *list;
 
-	
+	/* insert the widget */
 	dev_dbg(w->dapm->dev, "added %s in widget list pos %d\n",
 			w->name, wlist->num_widgets);
 
@@ -767,7 +769,7 @@ static int is_connected_output_ep(struct snd_soc_dapm_widget *widget,
 		if (path->sink && path->connect) {
 			path->walked = 1;
 
-			
+			/* do we need to add this widget to the list ? */
 			if (list) {
 				int err;
 				err = dapm_list_add_widget(list, path->sink);
@@ -863,7 +865,7 @@ static int is_connected_input_ep(struct snd_soc_dapm_widget *widget,
 		if (path->source && path->connect) {
 			path->walked = 1;
 
-			
+			/* do we need to add this widget to the list ? */
 			if (list) {
 				int err;
 				err = dapm_list_add_widget(list, path->sink);
@@ -883,18 +885,16 @@ static int is_connected_input_ep(struct snd_soc_dapm_widget *widget,
 	return con;
 }
 
-/*
- * Handler for generic register modifier widget.
- */
+/* Get the DAPM AIF widget for thie DAI stream */
 struct snd_soc_dapm_widget *snd_soc_get_codec_widget(struct snd_soc_card *card,
 		struct snd_soc_codec *codec, const char *name)
 {
 	struct snd_soc_dapm_widget *w;
 
-	
+	/* get stream root widget AIF from stream string and direction */
 	list_for_each_entry(w, &card->widgets, list) {
 
-		
+		/* make sure the widget belongs the DAI codec or platform */
 		if (w->codec && w->codec != codec)
 			continue;
 
@@ -912,10 +912,10 @@ struct snd_soc_dapm_widget *snd_soc_get_platform_widget(struct snd_soc_card *car
 {
 	struct snd_soc_dapm_widget *w;
 
-	
+	/* get stream root widget AIF from stream string and direction */
 	list_for_each_entry(w, &card->widgets, list) {
 
-		
+		/* make sure the widget belongs the DAI codec or platform */
 		if (w->platform && w->platform != platform)
 			continue;
 
@@ -963,6 +963,18 @@ static int dapm_get_capture_paths(struct snd_soc_dapm_context *dapm,
 	return paths;
 }
 
+/**
+ * snd_soc_dapm_get_connected_widgets - query audio path and it's widgets.
+ * @dai: the soc DAI.
+ * @stream: stream direction.
+ * @list: list of active widgets for this stream.
+ *
+ * Queries DAPM graph as to whether an valid audio stream path exists for
+ * the initial stream specified by name. This takes into account
+ * current mixer and mux kcontrol settings. Creates list of valid widgets.
+ *
+ * Returns the number of valid paths or negative error.
+ */
 int snd_soc_dapm_dai_get_connected_widgets(struct snd_soc_dai *dai, int stream,
 	struct snd_soc_dapm_widget_list **list)
 {
@@ -987,6 +999,9 @@ int snd_soc_dapm_dai_get_connected_widgets(struct snd_soc_dai *dai, int stream,
 	return paths;
 }
 
+/*
+ * Handler for generic register modifier widget.
+ */
 int dapm_reg_event(struct snd_soc_dapm_widget *w,
 		   struct snd_kcontrol *kcontrol, int event)
 {
@@ -1590,9 +1605,7 @@ static int dapm_power_widgets(struct snd_soc_dapm_context *dapm, int event)
 			/* Supplies and micbiases only bring the
 			 * context up to STANDBY as unless something
 			 * else is active and passing audio they
-			 * generally don't require full power.  Signal
-			 * generators are virtual pins and have no
-			 * power impact themselves.
+			 * generally don't require full power.
 			 */
 			switch (w->id) {
 			case snd_soc_dapm_supply:
@@ -2859,6 +2872,15 @@ int snd_soc_dapm_put_pin_switch(struct snd_kcontrol *kcontrol,
 }
 EXPORT_SYMBOL_GPL(snd_soc_dapm_put_pin_switch);
 
+/**
+ * snd_soc_dapm_new_control - create new dapm control
+ * @dapm: DAPM context
+ * @widget: widget template
+ *
+ * Creates a new dapm control based upon the template.
+ *
+ * Returns 0 for success else error.
+ */
 int snd_soc_dapm_new_control(struct snd_soc_dapm_context *dapm,
 	const struct snd_soc_dapm_widget *widget)
 {
@@ -3001,7 +3023,7 @@ static void soc_dapm_stream_event(struct snd_soc_dapm_context *dapm,
 
 	dapm_power_widgets(dapm, event);
 
-	
+	/* do we need to notify any clients that DAPM stream is complete */
 	if (dapm->stream_event)
 		dapm->stream_event(dapm, event);
 }
@@ -3047,7 +3069,7 @@ void snd_soc_dapm_rtd_stream_event(struct snd_soc_pcm_runtime *rtd,
 		widget_stream_event(cdapm, rtd->codec_dai->capture_aif, event);
 	}
 
-	
+	/* do we need to notify any clients that DAPM stream is complete */
 	if (pdapm->stream_event)
 		pdapm->stream_event(pdapm, event);
 	if (cdapm->stream_event)
@@ -3084,7 +3106,9 @@ int snd_soc_dapm_stream_event(struct snd_soc_pcm_runtime *rtd,
 void snd_soc_dapm_codec_stream_event(struct snd_soc_codec *codec,
 	const char *stream, int event)
 {
+//	mutex_lock(&codec->card->dapm_mutex);
 	soc_dapm_stream_event(&codec->dapm, stream, event);
+//	mutex_unlock(&codec->card->dapm_mutex);
 }
 EXPORT_SYMBOL(snd_soc_dapm_codec_stream_event);
 
