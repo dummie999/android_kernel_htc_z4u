@@ -163,7 +163,7 @@ static const inline bool is_cpu_secure(void)
 
 	asm volatile ("mrc p14, 0, %0, c0, c1, 0" : "=r" (dscr));
 
-	
+	/* BIT(18) - NS bit; 1 = NS; 0 = S */
 	if (BIT(18) & dscr)
 		return false;
 	else
@@ -218,10 +218,10 @@ static int gic_suspend_one(struct gic_chip_data *gic)
 	for (i = 0; i * 32 < gic->max_irq; i++) {
 		gic->enabled_irqs[i]
 			= readl_relaxed(base + GIC_DIST_ENABLE_SET + i * 4);
-		
+		/* disable all of them */
 		writel_relaxed(0xffffffff, base + GIC_DIST_ENABLE_CLEAR + i * 4);
 		dummy_r = readl_relaxed(base + GIC_DIST_ENABLE_SET + i * 4);
-		
+		/* enable the wakeup set */
 		writel_relaxed(gic->wakeup_irqs[i],
 			base + GIC_DIST_ENABLE_SET + i * 4);
 		dummy_r = readl_relaxed(base + GIC_DIST_ENABLE_SET + i * 4);
@@ -274,9 +274,9 @@ static void gic_resume_one(struct gic_chip_data *gic)
 
 	gic_show_resume_irq(gic);
 	for (i = 0; i * 32 < gic->max_irq; i++) {
-		
+		/* disable all of them */
 		writel_relaxed(0xffffffff, base + GIC_DIST_ENABLE_CLEAR + i * 4);
-		
+		/* enable the enabled set */
 		writel_relaxed(gic->enabled_irqs[i],
 			base + GIC_DIST_ENABLE_SET + i * 4);
 	}
@@ -379,7 +379,7 @@ static int gic_retrigger(struct irq_data *d)
 	if (gic_arch_extn.irq_retrigger)
 		return gic_arch_extn.irq_retrigger(d);
 
-	
+	/* the genirq layer expects 0 for a failure */
 	return 0;
 }
 
@@ -415,7 +415,7 @@ static int gic_set_wake(struct irq_data *d, unsigned int on)
 	unsigned int gicirq = gic_irq(d);
 	struct gic_chip_data *gic_data = irq_data_get_irq_chip_data(d);
 
-	
+	/* per-cpu interrupts cannot be wakeup interrupts */
 	WARN_ON(gicirq < 32);
 
 	reg_offset = gicirq / 32;
@@ -555,6 +555,9 @@ static void __init gic_dist_init(struct gic_chip_data *gic)
 			writel_relaxed(0xFFFFFFFF,
 					base + GIC_DIST_ISR + i * 4 / 32);
 
+	/*
+	 * Set priority on all global interrupts.
+	 */
 	for (i = 32; i < gic_irqs; i += 4)
 		writel_relaxed(0xa0a0a0a0, base + GIC_DIST_PRI + i * 4 / 4);
 
@@ -592,7 +595,7 @@ static void __cpuinit gic_cpu_init(struct gic_chip_data *gic)
 	writel_relaxed(0x0000ffff, dist_base + GIC_DIST_ENABLE_SET);
 	dummy_r =readl_relaxed(dist_base + GIC_DIST_ENABLE_SET);
 
-	
+	/* Set NS/S */
 	if (is_cpu_secure()) {
 		writel_relaxed(0xFFFFFFFF, dist_base + GIC_DIST_ISR);
 		dummy_r =readl_relaxed(dist_base + GIC_DIST_ENABLE_SET);
@@ -997,16 +1000,20 @@ void gic_raise_secure_softirq(const struct cpumask *mask, unsigned int irq)
 	unsigned long flags = 0;
 	struct gic_chip_data *gic = &gic_data[0];
 
-	
+	/* Convert our logical CPU mask into a physical one. */
 	for_each_cpu(cpu, mask)
 		map |= 1 << cpu_logical_map(cpu);
 
 	sgir = (map << 16) | irq;
+	/*
+	 * Ensure that stores to Normal memory are visible to the
+	 * other CPUs before issuing the IPI.
+	 */
 	dsb();
 
 	if (gic->need_access_lock)
 		raw_spin_lock_irqsave(&irq_controller_lock, flags);
-	
+	/* this always happens on GIC0 */
 	writel_relaxed(sgir, gic_data_dist_base(gic) + GIC_DIST_SOFTINT);
 	if (gic->need_access_lock)
 		raw_spin_unlock_irqrestore(&irq_controller_lock, flags);
@@ -1064,13 +1071,13 @@ void gic_set_irq_secure(unsigned int irq)
 		gicd_isr_reg &= ~BIT(irq % 32);
 		writel_relaxed(gicd_isr_reg, dist_base +
 				GIC_DIST_ISR + irq / 32 * 4);
-		
+		/* Also increase the priority of that irq */
 		gicd_pri_reg = readl_relaxed(dist_base +
 					GIC_DIST_PRI + ((irq / 4) * 4));
 		mask = mask << (irq % 4) * 8;
 		mask = ~mask;
 		gicd_pri_reg &= mask;
-		
+		/* Priority of 0x80 > 0xA0 */
 		gicd_pri_reg |= 0x80 << ((irq % 4) * 8);
 		writel_relaxed(gicd_pri_reg, dist_base + GIC_DIST_PRI +
 				(irq / 4) * 4);
@@ -1113,6 +1120,10 @@ int __init gic_of_init(struct device_node *node, struct device_node *parent)
 	return 0;
 }
 #endif
+/*
+ * Before calling this function the interrupts should be disabled
+ * and the irq must be disabled at gic to avoid spurious interrupts
+ */
 bool gic_is_irq_pending(unsigned int irq)
 {
 	struct irq_data *d = irq_get_irq_data(irq);
@@ -1124,7 +1135,7 @@ bool gic_is_irq_pending(unsigned int irq)
 	mask = 1 << (gic_irq(d) % 32);
 	val = readl(gic_dist_base(d) +
 			GIC_DIST_ENABLE_SET + (gic_irq(d) / 32) * 4);
-	
+	/* warn if the interrupt is enabled */
 	WARN_ON(val & mask);
 	val = readl(gic_dist_base(d) +
 			GIC_DIST_PENDING_SET + (gic_irq(d) / 32) * 4);
@@ -1132,6 +1143,10 @@ bool gic_is_irq_pending(unsigned int irq)
 	return (bool) (val & mask);
 }
 
+/*
+ * Before calling this function the interrupts should be disabled
+ * and the irq must be disabled at gic to avoid spurious interrupts
+ */
 void gic_clear_irq_pending(unsigned int irq)
 {
 	struct gic_chip_data *gic_data = &gic_data[0];
@@ -1143,7 +1158,7 @@ void gic_clear_irq_pending(unsigned int irq)
 	mask = 1 << (gic_irq(d) % 32);
 	val = readl(gic_dist_base(d) +
 			GIC_DIST_ENABLE_SET + (gic_irq(d) / 32) * 4);
-	
+	/* warn if the interrupt is enabled */
 	WARN_ON(val & mask);
 	writel(mask, gic_dist_base(d) +
 			GIC_DIST_PENDING_CLEAR + (gic_irq(d) / 32) * 4);
@@ -1151,6 +1166,13 @@ void gic_clear_irq_pending(unsigned int irq)
 }
 
 #ifdef CONFIG_ARCH_MSM8625
+ /*
+  *  Check for any interrupts which are enabled are pending
+  *  in the pending set or not.
+  *  Return :
+  *       0 : No pending interrupts
+  *       1 : Pending interrupts other than A9_M2A_5
+  */
 unsigned int msm_gic_spi_ppi_pending(void)
 {
 	unsigned int i, bit = 0;
@@ -1161,6 +1183,11 @@ unsigned int msm_gic_spi_ppi_pending(void)
 	unsigned long flags;
 
 	raw_spin_lock_irqsave(&irq_controller_lock, flags);
+	/*
+	 * PPI and SGI to be included.
+	 * MSM8625_INT_A9_M2A_5 needs to be ignored, as A9_M2A_5
+	 * requesting sleep triggers it
+	 */
 	for (i = 0; (i * 32) < gic->max_irq; i++) {
 		pending = readl_relaxed(base +
 				GIC_DIST_PENDING_SET + i * 4);
@@ -1194,7 +1221,7 @@ void msm_gic_save(void)
 	gic_cpu_save(0);
 	gic_dist_save(0);
 
-	
+	/* Disable all the Interrupts, before we enter pc */
 	for (i = 0; (i * 32) < gic->max_irq; i++) {
 		raw_spin_lock(&irq_controller_lock);
 		writel_relaxed(0xffffffff, base
@@ -1222,6 +1249,12 @@ void read_active_irq(void)
 	   }
 }
 
+/*
+ * Configure the GIC after we come out of power collapse.
+ * This function will configure some of the GIC registers so as to prepare the
+ * secondary cores to receive an SPI(ACSR_MP_CORE_IPC1/IPC2/IPC3, 40/92/93),
+ * which will bring cores out of GDFS.
+ */
 void gic_configure_and_raise(unsigned int irq, unsigned int cpu)
 {
 	struct gic_chip_data *gic = &gic_data[0];
