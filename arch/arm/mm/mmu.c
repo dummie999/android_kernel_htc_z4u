@@ -220,7 +220,7 @@ static struct mem_type mem_types[] = {
 		.prot_l1	= PMD_TYPE_TABLE,
 		.prot_sect	= PROT_SECT_DEVICE | PMD_SECT_WB,
 		.domain		= DOMAIN_IO,
-	},	
+	},
 	[MT_DEVICE_WC] = {	/* ioremap_wc */
 		.prot_pte	= PROT_PTE_DEVICE | L_PTE_MT_DEV_WC,
 		.prot_l1	= PMD_TYPE_TABLE,
@@ -628,7 +628,7 @@ static void __init alloc_init_pte(pmd_t *pmd, unsigned long addr,
 	pte_t *start_pte = early_pte_alloc(pmd);
 	pte_t *pte = start_pte + pte_index(addr);
 
-	
+
 	BUG_ON(pmd_bad(*pmd) && ((addr | end) & ~PMD_MASK));
 
 	do {
@@ -831,8 +831,8 @@ void __init iotable_init(struct map_desc *io_desc, int nr)
 		create_mapping(md, false);
 		vm->addr = (void *)(md->virtual & PAGE_MASK);
 		vm->size = PAGE_ALIGN(md->length + (md->virtual & ~PAGE_MASK));
-		vm->phys_addr = __pfn_to_phys(md->pfn); 
-		vm->flags = VM_IOREMAP | VM_ARM_STATIC_MAPPING; 
+		vm->phys_addr = __pfn_to_phys(md->pfn);
+		vm->flags = VM_IOREMAP | VM_ARM_STATIC_MAPPING;
 		vm->flags |= VM_ARM_MTYPE(md->type);
 		vm->caller = iotable_init;
 		vm_area_add_early(vm++);
@@ -841,6 +841,18 @@ void __init iotable_init(struct map_desc *io_desc, int nr)
 
 #ifndef CONFIG_ARM_LPAE
 
+/*
+ * The Linux PMD is made of two consecutive section entries covering 2MB
+ * (see definition in include/asm/pgtable-2level.h).  However a call to
+ * create_mapping() may optimize static mappings by using individual
+ * 1MB section mappings.  This leaves the actual PMD potentially half
+ * initialized if the top or bottom section entry isn't used, leaving it
+ * open to problems if a subsequent ioremap() or vmalloc() tries to use
+ * the virtual space left free by that unused section entry.
+ *
+ * Let's avoid the issue by inserting dummy vm entries covering the unused
+ * PMD halves once the static mappings are in place.
+ */
 
 static void __init pmd_empty_section_gap(unsigned long addr)
 {
@@ -860,7 +872,7 @@ static void __init fill_pmd_gaps(void)
 	unsigned long addr, next = 0;
 	pmd_t *pmd;
 
-	
+	/* we're still single threaded hence no lock needed here */
 	for (vm = vmlist; vm; vm = vm->next) {
 		if (!(vm->flags & (VM_ARM_STATIC_MAPPING | VM_ARM_EMPTY_MAPPING)))
 			continue;
@@ -868,12 +880,22 @@ static void __init fill_pmd_gaps(void)
 		if (addr < next)
 			continue;
 
+		/*
+		 * Check if this vm starts on an odd section boundary.
+		 * If so and the first section entry for this PMD is free
+		 * then we block the corresponding virtual address.
+		 */
 		if ((addr & ~PMD_MASK) == SECTION_SIZE) {
 			pmd = pmd_off_k(addr);
 			if (pmd_none(*pmd))
 				pmd_empty_section_gap(addr & PMD_MASK);
 		}
 
+		/*
+		 * Then check if this vm ends on an odd section boundary.
+		 * If so and the second section entry for this PMD is empty
+		 * then we block the corresponding virtual address.
+		 */
 		addr += vm->size;
 		if ((addr & ~PMD_MASK) == SECTION_SIZE) {
 			pmd = pmd_off_k(addr) + 1;
@@ -881,7 +903,7 @@ static void __init fill_pmd_gaps(void)
 				pmd_empty_section_gap(addr);
 		}
 
-		
+		/* no need to look at any vm entry until we hit the next PMD */
 		next = (addr + PMD_SIZE - 1) & PMD_MASK;
 	}
 }

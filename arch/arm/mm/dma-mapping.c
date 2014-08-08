@@ -64,6 +64,10 @@ static u64 get_coherent_dma_mask(struct device *dev)
 static void __dma_clear_buffer(struct page *page, size_t size)
 {
 	void *ptr;
+	/*
+	 * Ensure that the allocated pages are zeroed, and that any data
+	 * lurking in the kernel direct-mapped region is invalidated.
+	 */
 	ptr = page_address(page);
 	memset(ptr, 0, size);
 	dmac_flush_range(ptr, ptr + size);
@@ -223,6 +227,9 @@ static int __init early_coherent_pool(char *p)
 }
 early_param("coherent_pool", early_coherent_pool);
 
+/*
+ * Initialise the coherent pool for atomic allocations.
+ */
 static int __init coherent_init(void)
 {
 	pgprot_t prot = pgprot_dmacoherent(pgprot_kernel);
@@ -245,6 +252,9 @@ static int __init coherent_init(void)
 	       (unsigned)size / 1024);
 	return -ENOMEM;
 }
+/*
+ * CMA is activated by core_initcall, so we must be called after it.
+ */
 postcore_initcall(coherent_init);
 
 struct dma_contig_early_reserve {
@@ -282,6 +292,9 @@ void __init dma_contiguous_remap(void)
 		map.length = end - start;
 		map.type = MT_MEMORY_DMA_READY;
 
+		/*
+		 * Clear previous low-memory mapping
+		 */
 		for (addr = __phys_to_virt(start); addr < __phys_to_virt(end);
 		     addr += PGDIR_SIZE)
 			pmd_clear(pmd_off_k(addr));
@@ -449,6 +462,11 @@ static void *__alloc_from_pool(struct device *dev, size_t size,
 		return NULL;
 	}
 
+	/*
+	 * Align the region allocation - allocations from pool are rather
+	 * small, so align them to their order in pages, minimum is a page
+	 * size. This helps reduce fragmentation of the DMA space.
+	 */
 	align = PAGE_SIZE << get_order(size);
 	c = arm_vmregion_alloc(&coherent_head, align, size, 0, caller);
 	if (c) {
@@ -509,7 +527,7 @@ static void __free_from_contiguous(struct device *dev, struct page *page,
 
 #define nommu() 0
 
-#else	
+#else	/* !CONFIG_MMU */
 
 #define nommu() 1
 
@@ -520,7 +538,7 @@ static void __free_from_contiguous(struct device *dev, struct page *page,
 #define __free_from_contiguous(dev, page, size)			do { } while (0)
 #define __dma_free_remap(cpu_addr, size)			do { } while (0)
 
-#endif	
+#endif	/* CONFIG_MMU */
 
 static void *__alloc_simple_buffer(struct device *dev, size_t size, gfp_t gfp,
 				   struct page **ret_page)
@@ -558,6 +576,13 @@ static void *__dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
 	if (mask < 0xffffffffULL)
 		gfp |= GFP_DMA;
 
+	/*
+	 * Following is a work-around (a.k.a. hack) to prevent pages
+	 * with __GFP_COMP being passed to split_page() which cannot
+	 * handle them.  The real problem is that this flag probably
+	 * should be 0 on ARM as it is not supported on this
+	 * platform; see CONFIG_HUGETLBFS.
+	 */
 	gfp &= ~(__GFP_COMP);
 
 	*handle = ~0;
@@ -619,7 +644,7 @@ static int dma_mmap(struct device *dev, struct vm_area_struct *vma,
 			      pfn + vma->vm_pgoff,
 			      vma->vm_end - vma->vm_start,
 			      vma->vm_page_prot);
-#endif	
+#endif	/* CONFIG_MMU */
 
 	return ret;
 }
@@ -661,6 +686,9 @@ void dma_free_coherent(struct device *dev, size_t size, void *cpu_addr, dma_addr
 	} else {
 		if (__free_from_pool(cpu_addr, size))
 			return;
+		/*
+		 * Non-atomic allocations cannot be freed with IRQs disabled
+		 */
 		WARN_ON(irqs_disabled());
 		__free_from_contiguous(dev, page, size);
 	}

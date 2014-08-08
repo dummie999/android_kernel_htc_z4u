@@ -106,6 +106,7 @@ enum flags { DM_CRYPT_SUSPENDED, DM_CRYPT_KEY_VALID };
 
 /*
  * The fields in here must be read only after initialization,
+ * changing state should be in crypt_cpu.
  */
 struct crypt_config {
 	struct dm_dev *dev;
