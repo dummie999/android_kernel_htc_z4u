@@ -87,6 +87,7 @@ static void cpld_power(int on)
 	pr_info("[CAM]%s: %d\n", __func__, on);
 
 	if (on) {
+		/*  sensor VCM power on with CPLD power */
 		config_gpio_table(cpld_on_gpio_table, ARRAY_SIZE(cpld_on_gpio_table));
 
 	} else {
@@ -251,8 +252,8 @@ static struct msm_camera_rawchip_info msm_rawchip_board_info = {
 	.rawchip_reset	= CPLD_EXT_GPIO_RAW_RSTN,
 	.rawchip_intr0	= CP3DCG_GPIO_RAW_INTR0,
 	.rawchip_intr1	= CP3DCG_GPIO_RAW_INTR1,
-	.rawchip_spi_freq = 10, 
-	.rawchip_mclk_freq = 24, 
+	.rawchip_spi_freq = 10, /* MHz, should be the same to spi max_speed_hz */
+	.rawchip_mclk_freq = 24, /* MHz, should be the same as cam csi0 mclk_clk_rate */
 	.camera_rawchip_power_on = cp3dcg_rawchip_vreg_on,
 	.camera_rawchip_power_off = cp3dcg_rawchip_vreg_off,
 	

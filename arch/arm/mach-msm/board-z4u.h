@@ -21,7 +21,7 @@ void __init z4u_init_mmc(void);
 void __init msm_msm7627a_allocate_memory_regions(void);
 void __init msm_fb_add_devices(void);
 
-#define MSM_RAM_CONSOLE_BASE    0x03A00000 
+#define MSM_RAM_CONSOLE_BASE    0x03A00000 /* MSM_HTC_RAM_CONSOLE_PHYS must be the same */
 #define MSM_RAM_CONSOLE_SIZE    MSM_HTC_RAM_CONSOLE_SIZE
 
 #define MSM_FB_BASE             0x3FA00000
@@ -39,7 +39,7 @@ void __init msm_fb_add_devices(void);
 enum {
 	GPIO_EXPANDER_IRQ_BASE  = NR_MSM_IRQS + NR_GPIO_IRQS,
 	GPIO_EXPANDER_GPIO_BASE = NR_MSM_GPIOS,
-	
+	/* SURF expander */
 	GPIO_CORE_EXPANDER_BASE = GPIO_EXPANDER_GPIO_BASE,
 	GPIO_BT_SYS_REST_EN     = GPIO_CORE_EXPANDER_BASE,
 	GPIO_WLAN_EXT_POR_N,
@@ -57,7 +57,7 @@ enum {
 	GPIO_CORE_EXPANDER_IO13,
 	GPIO_CORE_EXPANDER_IO14,
 	GPIO_CORE_EXPANDER_IO15,
-	
+	/* Camera expander */
 	GPIO_CAM_EXPANDER_BASE  = GPIO_CORE_EXPANDER_BASE + 16,
 	GPIO_CAM_GP_STROBE_READY	= GPIO_CAM_EXPANDER_BASE,
 	GPIO_CAM_GP_AFBUSY,
@@ -75,7 +75,7 @@ enum {
 	QRD_GPIO_WAKE_ON_WIRELESS,
 	QRD_GPIO_BACKLIGHT_EN,
 	QRD_GPIO_NC,
-	QRD_GPIO_CAM_3MP_PWDN,      
+	QRD_GPIO_CAM_3MP_PWDN,      /* CAM_VGA */
 	QRD_GPIO_WLAN_EN,
 	QRD_GPIO_CAM_5MP_SHDN_EN,
 	QRD_GPIO_CAM_5MP_RESET,
@@ -103,7 +103,7 @@ enum {
 #define Z4U_GPIO_BATID_USBID_SEL		(14)
 #define Z4U_GPIO_PS_HOLD         		(25)
 #define Z4U_POWER_KEY                	(37)
-
+/* Compass  */
 #define Z4U_GPIO_GSENSORS_INT         (83)
 #define Z4U_LAYOUTS_EVM               { \
                 { {  0,  1, 0}, { -1,  0, 0}, {0, 0,  1} }, \
@@ -126,19 +126,19 @@ enum {
 #define Z4U_AUD_UART_SEL		(118)
 
 
-
+/* Camera */
 #define Z4U_GPIO_CAM_I2C_SDA    (61)
 #define Z4U_GPIO_CAM_I2C_SCL    (60)
 #define Z4U_GPIO_CAM_MCLK       (15)
 #define Z4U_GPIO_CAM_ID         (6)
-
+/* Rawchip */
 #define	Z4U_GPIO_RAW_INTR0      (23)
 #define	Z4U_GPIO_RAW_INTR1      (26)
 
 #define CPLDGPIO(x) (x)
 #define CP3_VOL_UP						CPLD_EXT_GPIO_KEY_UP_INPUT_LEVEL
 #define CP3_VOL_DN						CPLD_EXT_GPIO_KEY_DW_INPUT_LEVEL
-
+/* CPLD */
 #define	Z4U_GPIO_CPLD_TMS       (13)
 #define	Z4U_GPIO_CPLD_TCK       (11)
 #define	Z4U_GPIO_CPLD_RST       (49)

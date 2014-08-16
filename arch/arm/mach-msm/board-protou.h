@@ -20,7 +20,7 @@ void __init msm7627a_init_mmc(void);
 void __init msm_msm7627a_allocate_memory_regions(void);
 void __init msm_fb_add_devices(void);
 
-#define MSM_RAM_CONSOLE_BASE    0x03100000 
+#define MSM_RAM_CONSOLE_BASE    0x03100000 /* MSM_HTC_RAM_CONSOLE_PHYS must be the same */
 #define MSM_RAM_CONSOLE_SIZE    MSM_HTC_RAM_CONSOLE_SIZE
 
 #define MSM_FB_BASE             0x2FB00000
@@ -34,7 +34,7 @@ void __init msm_fb_add_devices(void);
 enum {
 	GPIO_EXPANDER_IRQ_BASE  = NR_MSM_IRQS + NR_GPIO_IRQS,
 	GPIO_EXPANDER_GPIO_BASE = NR_MSM_GPIOS,
-	
+	/* SURF expander */
 	GPIO_CORE_EXPANDER_BASE = GPIO_EXPANDER_GPIO_BASE,
 	GPIO_BT_SYS_REST_EN     = GPIO_CORE_EXPANDER_BASE,
 	GPIO_WLAN_EXT_POR_N,
@@ -52,7 +52,7 @@ enum {
 	GPIO_CORE_EXPANDER_IO13,
 	GPIO_CORE_EXPANDER_IO14,
 	GPIO_CORE_EXPANDER_IO15,
-	
+	/* Camera expander */
 	GPIO_CAM_EXPANDER_BASE  = GPIO_CORE_EXPANDER_BASE + 16,
 	GPIO_CAM_GP_STROBE_READY	= GPIO_CAM_EXPANDER_BASE,
 	GPIO_CAM_GP_AFBUSY,
@@ -70,7 +70,7 @@ enum {
 	QRD_GPIO_WAKE_ON_WIRELESS,
 	QRD_GPIO_BACKLIGHT_EN,
 	QRD_GPIO_NC,
-	QRD_GPIO_CAM_3MP_PWDN,      
+	QRD_GPIO_CAM_3MP_PWDN,      /* CAM_VGA */
 	QRD_GPIO_WLAN_EN,
 	QRD_GPIO_CAM_5MP_SHDN_EN,
 	QRD_GPIO_CAM_5MP_RESET,
@@ -123,10 +123,10 @@ void __init msm7627a_bt_power_init(void);
 		{ { -1,  0, 0}, {  0,  1, 0}, {0, 0, -1} }, \
 		{ {  1,  0, 0}, {  0,  0, 1}, {0, 1,  0} }  \
 					}
-
+/* USB */
 #define PROTOU_GPIO_USB_ID			(42)
 #define UART1DM_RX_GPIO				(45)
-
+/* HEADSET DRIVER BEGIN */
 #define PROTOU_AUD_UART_OEz			(7)
 #define PROTOU_AUD_HP_INz			(27)
 #define PROTOU_AUD_REMO_PRESz		(114)
@@ -134,10 +134,10 @@ void __init msm7627a_bt_power_init(void);
 #define PROTOU_AUD_UART_SEL			(119)
 #define PROTOU_AUD_UART_RX			(122)
 #define PROTOU_AUD_UART_TX			(123)
-
+/*flashlight */
 #define PROTOU_GPIO_FLASH_ENABLE	(32)
 #define PROTOU_GPIO_FLASH_SWITCH	(115)
-
+/* Camera */
 #define PROTOU_GPIO_CAM_I2C_SDA    (61)
 #define PROTOU_GPIO_CAM_I2C_SCL    (60)
 #define PROTOU_GPIO_CAM_RST        (128)
@@ -146,11 +146,13 @@ void __init msm7627a_bt_power_init(void);
 #define	PROTOU_GPIO_CAMIO_1V8_EN   (12)
 #define	PROTOU_GPIO_CAM_1V8_EN     (81)
 #define	PROTOU_GPIO_CAM_ID         (4)
+/* Rawchip */
 #define	PROTOU_GPIO_RAW_RST        (111)
 #define	PROTOU_GPIO_RAW_INTR0      (85)
 #define	PROTOU_GPIO_RAW_INTR1      (49)
 #define	PROTOU_GPIO_RAW_1V2_EN     (9)
 #define	PROTOU_GPIO_RAW_1V8_EN     PROTOU_GPIO_CAM_1V8_EN
+/* CPLD */
 #define	PROTOU_GPIO_CPLD_1V8_EN    PROTOU_GPIO_CAM_1V8_EN
 #define	PROTOU_GPIO_CPLD_RST       (98)
 #define	PROTOU_GPIO_CPLD_SPI_CS    (121)
