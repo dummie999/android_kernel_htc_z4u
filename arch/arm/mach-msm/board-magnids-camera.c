@@ -36,10 +36,8 @@
 #include <linux/spi/spi_gpio.h>
 #endif
 
-
-static int config_gpio_table(uint32_t *table, int len);
-
 #ifdef CONFIG_MSM_CAMERA_V4L2
+static int config_gpio_table(uint32_t *table, int len);
 static void magnids_camera_vreg_config(int vreg_en);
 static int config_camera_on_gpios_rear(void);
 static int config_camera_off_gpios_rear(void);
@@ -270,10 +268,7 @@ static struct msm_camera_rawchip_info msm_rawchip_board_info = {
 	.rawchip_spi_freq = 25, /* MHz, should be the same to spi max_speed_hz */
 	.rawchip_mclk_freq = 24, /* MHz, should be the same as cam csi0 mclk_clk_rate */
 	.camera_rawchip_power_on = magnids_rawchip_vreg_on,
-	.camera_rawchip_power_off = magnids_rawchip_vreg_off,
-	.rawchip_gpio_on = config_rawchip_on_gpios,
-	.rawchip_gpio_off = config_rawchip_off_gpios,
-	//.rawchip_use_ext_1v2 = magnids_use_ext_1v2,
+	.camera_rawchip_power_off = magnids_rawchip_vreg_off
 };
 
 static struct platform_device msm_rawchip_device = {

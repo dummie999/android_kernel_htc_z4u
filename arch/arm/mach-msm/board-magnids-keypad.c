@@ -22,7 +22,10 @@
 #include <mach/board_htc.h>
 
 #include "board-msm7627a.h"
-#include "proc_comm.h"
+#include <linux/module.h>
+#include <mach/proc_comm.h>
+
+extern unsigned int system_rev;
 
 static char *keycaps = "--qwerty";
 #undef MODULE_PARAM_PREFIX

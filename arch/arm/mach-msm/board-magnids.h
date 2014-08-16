@@ -135,6 +135,19 @@ enum {
 #define MAGNIDS_GPIO_CAM_I2C_SDA      (61)
 #define MAGNIDS_GPIO_CAM_I2C_SCL      (60)
 #define MAGNIDS_GPIO_CAM_MCLK         (15)
+#define	MAGNIDS_GPIO_CAM_1V8_EN       (81)
+/* Rawchip */
+#define	MAGNIDS_GPIO_RAW_RST          (111)
+#define	MAGNIDS_GPIO_RAW_INTR0        (85)
+#define	MAGNIDS_GPIO_RAW_INTR1        (49)
+#define	MAGNIDS_GPIO_RAW_1V2_EN       (9)
+#define	MAGNIDS_GPIO_RAW_1V8_EN       MAGNIDS_GPIO_CAM_1V8_EN
+/* CPLD */
+#define	MAGNIDS_GPIO_CPLD_1V8_EN      MAGNIDS_GPIO_CAM_1V8_EN
+#define	MAGNIDS_GPIO_CPLD_RST         (98)
+#define	MAGNIDS_GPIO_CPLD_SPI_CS      (121)
+#define	MAGNIDS_GPIO_CPLD_CLK         (109)
+
 /* Camera extend IO on TCA6418E */
 #define MAGNIDS_EXT_GPIO_CAM_PD       (12)
 #define MAGNIDS_EXT_GPIO_VCM_PD       (13)

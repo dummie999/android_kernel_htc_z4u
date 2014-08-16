@@ -282,7 +282,7 @@ static struct lcdc_platform_data lcdc_pdata = {
 	.lcdc_power_save = lcdc_panel_power,
 };
 
-#define BRI_SETTING_MIN                 30
+#define BRI_SETTING_MIN                 1
 #define BRI_SETTING_DEF                 143
 #define BRI_SETTING_MAX                 255
 

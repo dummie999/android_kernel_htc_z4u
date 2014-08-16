@@ -11,6 +11,10 @@
  *
  */
 
+#include <linux/gpio.h>
+#include <linux/irq.h>
+#include <asm/gpio.h>
+#include <asm/io.h>
 #include <asm/mach-types.h>
 #include <asm/mach/mmc.h>
 #include <linux/regulator/consumer.h>
@@ -23,6 +27,7 @@
 #include "board-msm7627a.h"
 #include <linux/mmc/card.h>
 #include <mach/TCA6418_ioextender.h>
+#include <linux/export.h>
 
 /* #define QCT_original */
 
@@ -433,7 +438,7 @@ static struct mmc_platform_data sdc1_plat_data = {
 	.msmsdcc_fmid   = 25000000,
 	.msmsdcc_fmax   = 50000000,
 	.slot_type      = &msm7627a_sdslot_type,
-	.emmc_dma_ch    = 10,
+	.mmc_dma_ch    = 10,
 #ifdef CONFIG_MMC_MSM_CARD_HW_DETECTION
 	.status      = msm7627a_sdcc_slot_status,
 	.irq_flags   = IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
@@ -477,7 +482,7 @@ static struct mmc_platform_data sdc3_plat_data = {
 	.msmsdcc_fmid   = 25000000,
 	.msmsdcc_fmax   = 50000000,
 	.nonremovable   = 1,
-	.emmc_dma_ch    = 7,
+	.mmc_dma_ch    = 7,
 	.slot_type      = &msm7627a_emmcslot_type,
 };
 #endif

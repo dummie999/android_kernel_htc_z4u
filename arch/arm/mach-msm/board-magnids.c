@@ -95,6 +95,8 @@
 #include <mach/TCA6418_ioextender.h>
 #define CPU_FOOT_PRINT (MSM_HTC_DEBUG_INFO_BASE + 0x0)
 
+#define MSM8625_SECONDARY_PHYS		0x0FE00000
+
 int htc_get_usb_accessory_adc_level(uint32_t *buffer);
 #include <mach/cable_detect.h>
 
@@ -345,11 +347,13 @@ static int msm_hsusb_pmic_notif_init(void (*callback)(int online), int init)
 #endif
 #endif
 
+#ifdef CONFIG_USB_GADGET_MSM_72K
 static int phy_init_settings[] =
 {	0x0c, 0x31,
 	0x28, 0x31,
         -1
 };
+#endif
 
 static struct msm_otg_platform_data msm_otg_pdata = {
         .vbus_power              = msm_hsusb_vbus_power,
@@ -711,20 +715,33 @@ static unsigned msm7x27a_perf_acpu_table[] = {
 	1008000000,/* PERF_LOCK_HIGHEST */
 };
 
-static struct perflock_platform_data msm7x27a_perflock_data = {
+static struct perflock_data msm7x27a_perflock_data = {
 	.perf_acpu_table = msm7x27a_perf_acpu_table,
 	.table_size = ARRAY_SIZE(msm7x27a_perf_acpu_table),
 };
 
 static unsigned msm7x27a_cpufreq_ceiling_acpu_table[] = {
 	320000000, /* CEILING_LEVEL_MEDIUM :4,5 */
-	480000000, /* CEILING_LEVEL_HIGH   :2,3 */
-	600000000, /* CEILING_LEVEL_HIGHEST:0,1 */
+	480000000, /* PERF_LOCK_HIGH   :2,3 */
+	600000000, /* PERF_LOCK_HIGHEST:0,1 */
 };
 
-static struct perflock_platform_data msm7x27a_cpufreq_ceiling_data = {
+static struct perflock_data msm7x27a_cpufreq_ceiling_data = {
 	.perf_acpu_table = msm7x27a_cpufreq_ceiling_acpu_table,
 	.table_size = ARRAY_SIZE(msm7x27a_cpufreq_ceiling_acpu_table),
+};
+
+static struct perflock_pdata perflock_pdata = {
+	.perf_floor = &msm7x27a_perflock_data,
+	.perf_ceiling = &msm7x27a_cpufreq_ceiling_data,
+};
+
+struct platform_device msm7x27a_device_perf_lock = {
+	.name = "perf_lock",
+	.id = -1,
+	.dev = {
+		.platform_data = &perflock_pdata,
+	},
 };
 
 #ifdef CONFIG_PERFLOCK_SCREEN_POLICY
@@ -734,7 +751,7 @@ static struct perflock_screen_policy msm7x27a_screen_off_policy = {
 	.on_min  = NULL,
 		   /*  245760 = PERF_LOCK_LOWEST */
 	.off_max = &screen_off_ceiling_lock,
-		   /*  600000 = CEILING_LEVEL_HIGHEST */
+		   /*  600000 = PERF_LOCK_HIGHEST */
 };
 #endif /* CONFIG_PERFLOCK_SCREEN_POLICY */
 #endif
@@ -1284,8 +1301,7 @@ static struct platform_device htc_headset_pmic = {
 
 static struct htc_headset_1wire_platform_data htc_headset_1wire_data = {
 	.tx_level_shift_en	= MAGNIDS_AUD_UART_OEz,
-	.uart_sw		= 0,
-	.ioext_uart_sw		= MAGNIDS_IOEXT_AUD_UART_SEL,
+	.uart_sw		= MAGNIDS_IOEXT_AUD_UART_SEL,
 	.remote_press		= 0,
 	.one_wire_remote	={0x7E, 0x7F, 0x7D, 0x7F, 0x7B, 0x7F},
 	.onewire_tty_dev	= "/dev/ttyMSM0",
@@ -1519,6 +1535,9 @@ static struct platform_device *common_devices[] __initdata = {
 	&msm_batt_device,
 #endif
 	&htc_battery_pdev,
+#ifdef CONFIG_PERFLOCK
+	&msm7x27a_device_perf_lock,
+#endif
 	&max17050_battery_pdev,
 	&pm8029_leds,
 	&gpio_leds,
@@ -2103,13 +2122,10 @@ static void __init msm7x2x_init(void)
 	msm7x2x_misc_init();
 
 #ifdef CONFIG_PERFLOCK
-	perflock_init(&msm7x27a_perflock_data);
-	cpufreq_ceiling_init(&msm7x27a_cpufreq_ceiling_data);
 #ifdef CONFIG_PERFLOCK_SCREEN_POLICY
 	/* Init screen off policy perflocks */
-	perf_lock_init_v2(&screen_off_ceiling_lock,
-			   CEILING_LEVEL_HIGHEST,
-			   "screen_off_scaling_max");
+	perf_lock_init(&screen_off_ceiling_lock, TYPE_CPUFREQ_CEILING,
+					PERF_LOCK_HIGH, "screen_off_scaling_max");
 	perflock_screen_policy_init(&msm7x27a_screen_off_policy);
 #endif /* CONFIG_PERFLOCK_SCREEN_POLICY */
 #endif
@@ -2267,8 +2283,7 @@ static void __init msm7x2x_init(void)
 
 static unsigned int radio_sm_log_enable = 0;
 
-static void __init magnids_fixup(struct machine_desc *desc, struct tag *tags,
-					char **cmdline, struct meminfo *mi)
+static void __init magnids_fixup(struct tag *tags, char **cmdline, struct meminfo *mi)
 {
 	radio_sm_log_enable = parse_tag_security((const struct tag *)tags);
 	printk(KERN_INFO "%s: radio_sm_log_enable=0x%x\n", __func__, radio_sm_log_enable);
@@ -2291,7 +2306,7 @@ static void __init msm7x2x_init_early(void)
 }
 
 MACHINE_START(MAGNIDS, "magnids")
-	.boot_params	= PHYS_OFFSET + 0x100,
+	.atag_offset	= PHYS_OFFSET + 0x100,
 	.fixup = magnids_fixup,
 	.map_io		= msm8625_map_io,
 	.reserve	= msm8625_reserve,
