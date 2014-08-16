@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2008-2012 Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2008-2012 The Linux Foundation. All rights reserved.
  * Author: Brian Swetland <swetland@google.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -23,6 +23,17 @@
 #ifndef __ASM_ARCH_MSM_IOMAP_7X30_H
 #define __ASM_ARCH_MSM_IOMAP_7X30_H
 
+/* Physical base address and size of peripherals.
+ * Ordered by the virtual base addresses they will be mapped at.
+ *
+ * MSM_VIC_BASE must be an value that can be loaded via a "mov"
+ * instruction, otherwise entry-macro.S will not compile.
+ *
+ * If you add or remove entries here, you'll want to edit the
+ * msm_io_desc array in arch/arm/mach-msm/io.c to reflect your
+ * changes.
+ *
+ */
 
 #define MSM7X30_VIC_PHYS		0xC0080000
 #define MSM7X30_VIC_SIZE		SZ_4K

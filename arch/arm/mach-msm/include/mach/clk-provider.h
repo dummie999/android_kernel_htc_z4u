@@ -23,18 +23,32 @@
 #include <linux/mutex.h>
 #include <mach/clk.h>
 
+/*
+ * Bit manipulation macros
+ */
 #define BM(msb, lsb)	(((((uint32_t)-1) << (31-msb)) >> (31-msb+lsb)) << lsb)
 #define BVAL(msb, lsb, val)	(((val) << lsb) & BM(msb, lsb))
 
-#define HALT		0	
-#define NOCHECK		1	
-#define HALT_VOTED	2	
-#define ENABLE		3	
-#define ENABLE_VOTED	4	
-#define DELAY		5	
+/*
+ * Halt/Status Checking Mode Macros
+ */
+#define HALT		0	/* Bit pol: 1 = halted */
+#define NOCHECK		1	/* No bit to check, do nothing */
+#define HALT_VOTED	2	/* Bit pol: 1 = halted; delay on disable */
+#define ENABLE		3	/* Bit pol: 1 = running */
+#define ENABLE_VOTED	4	/* Bit pol: 1 = running; delay on disable */
+#define DELAY		5	/* No bit to check, just delay */
 
 #define MAX_VDD_LEVELS			4
 
+/**
+ * struct clk_vdd_class - Voltage scaling class
+ * @class_name: name of the class
+ * @set_vdd: function to call when applying a new voltage setting
+ * @level_votes: array of votes for each level
+ * @cur_level: the currently set voltage level
+ * @lock: lock to protect this struct
+ */
 struct clk_vdd_class {
 	const char *class_name;
 	int (*set_vdd)(struct clk_vdd_class *v_class, int level);
@@ -79,6 +93,16 @@ struct clk_ops {
 	bool (*is_local)(struct clk *clk);
 };
 
+/**
+ * struct clk
+ * @prepare_count: prepare refcount
+ * @prepare_lock: protects clk_prepare()/clk_unprepare() path and @prepare_count
+ * @count: enable refcount
+ * @lock: protects clk_enable()/clk_disable() path and @count
+ * @depends: non-direct parent of clock to enable when this clock is enabled
+ * @vdd_class: voltage scaling requirement class
+ * @fmax: maximum frequency in Hz supported at each voltage level
+ */
 struct clk {
 	uint32_t flags;
 	struct clk_ops *ops;
@@ -106,6 +130,7 @@ struct clk {
 int vote_vdd_level(struct clk_vdd_class *vdd_class, int level);
 int unvote_vdd_level(struct clk_vdd_class *vdd_class, int level);
 
+/* Register clocks with the MSM clock driver */
 int msm_clock_register(struct clk_lookup *table, size_t size);
 
 extern struct clk dummy_clk;

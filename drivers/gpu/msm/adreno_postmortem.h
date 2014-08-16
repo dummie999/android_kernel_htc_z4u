@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -18,4 +18,4 @@ struct kgsl_device;
 
 int adreno_postmortem_dump(struct kgsl_device *device, int manual);
 
-#endif 
+#endif /* __ADRENO_POSTMORTEM_H */

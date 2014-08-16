@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -15,9 +15,11 @@
 
 #include <linux/serial_core.h>
 
+/* Optional platform device data for msm_serial driver.
+ * Used to configure low power wakeup */
 struct msm_serial_platform_data {
-	int wakeup_irq;  
-	
+	int wakeup_irq;  /* wakeup irq */
+	/* bool: inject char into rx tty on wakeup */
 	unsigned char inject_rx_on_wakeup;
 	char rx_to_inject;
 	int userid;

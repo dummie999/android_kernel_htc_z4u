@@ -1,7 +1,7 @@
 /* arch/arm/mach-msm/qdsp5/audmgr.h
  *
  * Copyright (C) 2008 Google, Inc.
- * Copyright (c) 2008-2009, 2012 Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2008-2009, 2012 The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -170,10 +170,14 @@ struct cad_device_info_type {
 };
 
 struct rpc_audmgr_cb_common {
-	uint32_t cb_id; 
-	uint32_t status; 
-	uint32_t set_to_one;  
+	uint32_t cb_id; /* cb_func */
+	uint32_t status; /* Audmgr status */
+	uint32_t set_to_one;  /* Pointer status (1 = valid, 0  = invalid) */
 	uint32_t disc;
+	/* disc = AUDMGR_STATUS_READY => data=handle
+	   disc = AUDMGR_STATUS_CODEC_CONFIG => data = volume
+	   disc = AUDMGR_STATUS_DISABLED => data =status_disabled
+	   disc = AUDMGR_STATUS_VOLUME_CHANGE => data = volume_change */
 };
 
 struct rpc_audmgr_cb_ready {

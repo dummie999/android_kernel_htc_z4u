@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -51,6 +51,6 @@ static inline int msm_xo_mode_vote(struct msm_xo_voter *xo_voter,
 	return 0;
 }
 static inline int msm_xo_init(void) { return 0; }
-#endif 
+#endif /* CONFIG_MSM_XO */
 
 #endif

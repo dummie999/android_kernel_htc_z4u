@@ -3,7 +3,7 @@
  * Verificion code for aDSP VENC packets from userspace.
  *
  * Copyright (C) 2008 Google, Inc.
- * Copyright (c) 2008-2009, 2012 Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2008-2009, 2012 The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -144,7 +144,7 @@ static int verify_venc_cmd(struct msm_adsp_module *module,
 		ptr_to_high_low_short((void *)frame_buf_size,
 			      &frame_buf_size_high,
 			      &frame_buf_size_low);
-		
+		/* Address of raw Y data. */
 		if (pmem_fixup_high_low(&frame_cmd->input_luma_addr_high,
 					&frame_cmd->input_luma_addr_low,
 					luma_buf_size_high,
@@ -152,7 +152,7 @@ static int verify_venc_cmd(struct msm_adsp_module *module,
 					module,
 					NULL, NULL))
 			return -1;
-		
+		/* Address of raw CbCr data */
 		if (pmem_fixup_high_low(&frame_cmd->input_chroma_addr_high,
 					&frame_cmd->input_chroma_addr_low,
 					chroma_buf_size_high,
@@ -160,7 +160,7 @@ static int verify_venc_cmd(struct msm_adsp_module *module,
 					module,
 					NULL, NULL))
 			return -1;
-		
+		/* Reference VOP */
 		if (pmem_fixup_high_low(&frame_cmd->ref_vop_buf_ptr_high,
 					&frame_cmd->ref_vop_buf_ptr_low,
 					frame_buf_size_high,
@@ -168,7 +168,7 @@ static int verify_venc_cmd(struct msm_adsp_module *module,
 					module,
 					NULL, NULL))
 			return -1;
-		
+		/* Encoded Packet Address */
 		if (pmem_fixup_high_low(&frame_cmd->enc_pkt_buf_ptr_high,
 					&frame_cmd->enc_pkt_buf_ptr_low,
 					frame_cmd->enc_pkt_buf_size_high,
@@ -176,7 +176,7 @@ static int verify_venc_cmd(struct msm_adsp_module *module,
 					module,
 					NULL, NULL))
 			return -1;
-		
+		/* Unfiltered VOP Buffer Address */
 		if (pmem_fixup_high_low(
 				&frame_cmd->unfilt_recon_vop_buf_ptr_high,
 				&frame_cmd->unfilt_recon_vop_buf_ptr_low,
@@ -185,7 +185,7 @@ static int verify_venc_cmd(struct msm_adsp_module *module,
 				module,
 				NULL, NULL))
 			return -1;
-		
+		/* Filtered VOP Buffer Address */
 		if (pmem_fixup_high_low(&frame_cmd->filt_recon_vop_buf_ptr_high,
 					&frame_cmd->filt_recon_vop_buf_ptr_low,
 					frame_buf_size_high,
@@ -202,7 +202,7 @@ static int verify_venc_cmd(struct msm_adsp_module *module,
 		ptr_to_high_low_short((void *)luma_buf_size,
 			      &luma_buf_size_high,
 			      &luma_buf_size_low);
-		
+		/* Prev VFE Luma Output Address */
 		if (pmem_fixup_high_low(&dis_cmd->vfe_out_prev_luma_addr_high,
 					&dis_cmd->vfe_out_prev_luma_addr_low,
 					luma_buf_size_high,

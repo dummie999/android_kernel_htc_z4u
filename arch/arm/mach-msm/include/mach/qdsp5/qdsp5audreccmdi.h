@@ -15,7 +15,7 @@
  * EXTERNALIZED FUNCTIONS
  *  None
  *
- * Copyright (c) 1992-2009, 2011 Code Aurora Forum. All rights reserved.
+ * Copyright (c) 1992-2009, 2011 The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -28,9 +28,37 @@
  *
  *====*====*====*====*====*====*====*====*====*====*====*====*====*====*====*/
 
+/*===========================================================================
 
+                      EDIT HISTORY FOR FILE
 
+This section contains comments describing changes made to this file.
+Notice that changes are listed in reverse chronological order.
+   
+ $Header: //source/qcom/qct/multimedia2/Audio/drivers/QDSP5Driver/QDSP5Interface/main/latest/qdsp5audreccmdi.h#3 $
+  
+============================================================================*/
 
+/*
+ * AUDRECTASK COMMANDS
+ * ARM uses 2 queues to communicate with the AUDRECTASK
+ * 1.uPAudRecCmdQueue
+ * Location :MEMC
+ * Buffer Size : 8
+ * No of Buffers in a queue : 3
+ * 2.audRecUpBitStreamQueue
+ * Location : MEMC
+ * Buffer Size : 4
+ * No of buffers in a queue : 2
+ */
+
+/*
+ * Commands on uPAudRecCmdQueue 
+ */
+
+/*
+ * Command to initiate and terminate the audio recording section
+ */
 
 #define AUDREC_CMD_CFG		0x0000
 #define	AUDREC_CMD_CFG_LEN	sizeof(audrec_cmd_cfg)
@@ -62,6 +90,9 @@ typedef struct {
 } __attribute__((packed)) audrec_cmd_cfg;
 
 
+/*
+ * Command to configure the recording parameters for RecType0(AAC/WAV) encoder
+ */
 
 #define	AUDREC_CMD_AREC0PARAM_CFG	0x0001
 #define	AUDREC_CMD_AREC0PARAM_CFG_LEN	\
@@ -90,6 +121,9 @@ typedef struct {
 	unsigned short 	rec_quality;
 } __attribute__((packed)) audrec_cmd_arec0param_cfg;
 
+/*
+ * Command to configure the recording parameters for RecType1(SBC) encoder
+ */
 
 #define AUDREC_CMD_AREC1PARAM_CFG	0x0002
 #define AUDREC_CMD_AREC1PARAM_CFG_LEN	\
@@ -119,6 +153,9 @@ typedef struct {
 	unsigned short	bit_rate_1;
 } __attribute__((packed)) audrec_cmd_arec1param_cfg;
 
+/*
+ * Command to enable encoder for the recording
+ */
 
 #define AUDREC_CMD_ENC_CFG	0x0003
 #define AUDREC_CMD_ENC_CFG_LEN	\
@@ -136,6 +173,9 @@ struct audrec_cmd_enc_cfg {
 	unsigned short	audrec_obj_idx;
 } __attribute__((packed));
 
+/*
+ * Command to set external memory config for the selected encoder
+ */
 
 #define AUDREC_CMD_ARECMEM_CFG	0x0004
 #define AUDREC_CMD_ARECMEM_CFG_LEN	\
@@ -151,6 +191,9 @@ struct audrec_cmd_arecmem_cfg {
 	unsigned short	audrec_extpkt_buffer_num;
 } __attribute__((packed));
 
+/*
+ * Command to configure the recording parameters for selected encoder
+ */
 
 #define AUDREC_CMD_ARECPARAM_CFG	0x0005
 #define AUDREC_CMD_ARECPARAM_COMMON_CFG_LEN	\
@@ -263,6 +306,9 @@ struct audrec_cmd_arecparam_fgvnb_cfg {
 	unsigned short 	reduced_rate_level;
 } __attribute__((packed));
 
+/*
+ * Command to configure Tunnel(RT) or Non-Tunnel(FTRT) mode
+ */
 
 #define AUDREC_CMD_ROUTING_MODE		0x0006
 #define	AUDREC_CMD_ROUTING_MODE_LEN	\
@@ -276,6 +322,9 @@ struct audrec_cmd_routing_mode {
 	unsigned short routing_mode;
 } __packed;
 
+/*
+ * Command to configure pcm input memory
+ */
 
 #define AUDREC_CMD_PCM_CFG_ARM_TO_ENC 0x0007
 #define AUDREC_CMD_PCM_CFG_ARM_TO_ENC_LEN	\
@@ -297,6 +346,9 @@ struct audrec_cmd_pcm_cfg_arm_to_enc {
 #define AUDREC_ENABLE_FLAG_VALUE -1
 #define AUDREC_DISABLE_FLAG_VALUE 0
 
+/*
+ * Command to intimate available pcm buffer
+ */
 
 #define AUDREC_CMD_PCM_BUFFER_PTR_REFRESH_ARM_TO_ENC 0x0008
 #define AUDREC_CMD_PCM_BUFFER_PTR_REFRESH_ARM_TO_ENC_LEN \
@@ -307,9 +359,14 @@ struct audrec_cmd_pcm_buffer_ptr_refresh_arm_enc {
 	unsigned short num_buffers;
 	unsigned short buffer_write_cnt_msw;
 	unsigned short buffer_write_cnt_lsw;
-	unsigned short buf_address_length[8];
+	unsigned short buf_address_length[8];/*this array holds address
+						and length details of
+						two buffers*/
 } __packed;
 
+/*
+ * Command to flush
+ */
 
 #define AUDREC_CMD_FLUSH 0x009
 #define AUDREC_CMD_FLUSH_LEN	\
@@ -319,7 +376,13 @@ struct audrec_cmd_flush {
 	unsigned short cmd_id;
 } __packed;
 
+/*
+ * Commands on audRecUpBitStreamQueue
+ */
 
+/*
+ * Command to indicate the current packet read count
+ */
 
 #define AUDREC_CMD_PACKET_EXT_PTR		0x0000
 #define AUDREC_CMD_PACKET_EXT_PTR_LEN	\
@@ -330,7 +393,7 @@ struct audrec_cmd_flush {
 
 typedef struct {
 	unsigned short  cmd_id;
-	unsigned short	type; 
+	unsigned short	type; /* audrec_obj_idx */
 	unsigned short 	curr_rec_count_msw;
 	unsigned short 	curr_rec_count_lsw;
 } __attribute__((packed)) audrec_cmd_packet_ext_ptr;

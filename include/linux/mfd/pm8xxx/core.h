@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -9,6 +9,10 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
+ */
+/*
+ * Qualcomm PMIC 8xxx driver header file
+ *
  */
 
 #ifndef __MFD_PM8XXX_CORE_H
@@ -27,6 +31,7 @@ enum pm8xxx_version {
 	PM8XXX_VERSION_8917,
 };
 
+/* PMIC version specific silicon revisions */
 #define PM8XXX_REVISION_8058_TEST	0
 #define PM8XXX_REVISION_8058_1p0	1
 #define PM8XXX_REVISION_8058_2p0	2
