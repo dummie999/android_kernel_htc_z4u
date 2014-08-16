@@ -1257,7 +1257,7 @@ static BOOL __battery_param_udpate(struct battery_type *battery)
 	if (is_need_battery_id_detection == TRUE) {
 		battery_id_detection(battery);
 	} else {
-#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_PROTOU) || defined(CONFIG_MACH_PROTODUG) || defined(CONFIG_MACH_MAGNIDS))
 		battery->id_index = (INT32)get_batt_id();
 #endif
 	}

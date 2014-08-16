@@ -131,7 +131,7 @@ extern unsigned int batt_get_status(enum power_supply_property psp);
 
 #if (defined(CONFIG_BATTERY_DS2746) || defined(CONFIG_BATTERY_MAX17050))
 int htc_battery_update_change(int force_update);
-#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_Z4U))
+#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_PROTOU) || defined(CONFIG_MACH_PROTODUG) || defined(CONFIG_MACH_PROTODCG) || defined(CONFIG_MACH_MAGNIDS) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_Z4U))
 extern int get_batt_id(void); 
 extern void set_smem_chg_avalible(int chg_avalible);
 #endif

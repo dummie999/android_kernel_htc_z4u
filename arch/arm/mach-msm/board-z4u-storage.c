@@ -314,8 +314,8 @@ static struct mmc_platform_data sdc1_plat_data = {
 
 
 #ifdef CONFIG_MMC_MSM_SDC2_SUPPORT
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) \
-    || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if (defined(CONFIG_MACH_PROTODCG) || defined(CONFIG_MACH_MAGNIDS) \
+    || defined(CONFIG_MACH_PROTODUG) || defined(CONFIG_MACH_PROTOU))
 static struct embedded_sdio_data bcm4330_wifi_emb_data = {
 	.cccr	= {
 		.sdio_vsn	= 2,
@@ -525,8 +525,8 @@ void __init z4u_init_mmc(void)
 	if (mmc_regulator_init(2, "smps3", 1800000))
 		return;
 
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) \
-    || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if (defined(CONFIG_MACH_PROTODCG) || defined(CONFIG_MACH_MAGNIDS) \
+    || defined(CONFIG_MACH_PROTODUG) || defined(CONFIG_MACH_PROTOU))
 	msm_add_sdcc(2, &bcm4330_wifi_data); 
 #endif
 #if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) \

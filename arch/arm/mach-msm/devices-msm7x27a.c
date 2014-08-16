@@ -1195,7 +1195,7 @@ struct platform_device msm8625_device_uart_dm1 = {
 	},
 };
 
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
+#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_PROTODCG))
 static struct resource msm8625_uart2dm_resources[] = {
 	{
 		.start	= MSM_UART2DM_PHYS,

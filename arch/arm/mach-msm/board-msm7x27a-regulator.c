@@ -232,7 +232,7 @@ static struct proccomm_regulator_info msm7x27a_pcom_vreg_info[] = {
 	PCOM_VREG_LDO(ldo17, 56, NULL, 2850000, 2850000, 0, -1, 0, 0, 0, 0, p),
 #endif
 	PCOM_VREG_LDO(ldo18, 11, NULL, 2700000, 2700000, 0, -1, 0, 0, 0, 0, p),
-#if defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY)
+#if defined(CONFIG_MACH_PROTOU) || defined(CONFIG_MACH_PROTODUG)
 	PCOM_VREG_LDO(ldo19, 57, NULL, 2850000, 2850000, 0, -1, 0, 0, 0, 0, p),
 #else
 	PCOM_VREG_LDO(ldo19, 57, NULL, 1800000, 1800000, 0, -1, 0, 0, 0, 0, p),
