@@ -804,4 +804,6 @@ extern unsigned int msm_shared_ram_phys;
 extern int dying_processors_read_proc(char *page, char **start, off_t off,
 	int count, int *eof, void *data);
 
+extern int get_partition_num_by_name(char *name);
+
 #endif

@@ -346,7 +346,7 @@ extern int mipi_orise_lcd_pre_off(struct platform_device *pdev);
 #ifdef CONFIG_FB_MSM_MDP303
 void update_lane_config(struct msm_panel_info *pinfo);
 #endif
-#ifdef CONFIG_MACH_MAGNIDS
+#ifdef CONFIG_MACH_DUMMY
 #endif
 int mipi_lg_lcd_off(struct platform_device *pdev);
 #endif 

@@ -882,7 +882,7 @@ static struct platform_device cable_detect_device = {
 
 static struct android_usb_platform_data android_usb_pdata = {
 	.vendor_id              = 0x0bb4,
-#ifdef CONFIG_MACH_PROTOU
+#ifdef CONFIG_MACH_DUMMY
 	.product_id             = 0x0dd5,
 #else
 	.product_id             = 0x0dc9,

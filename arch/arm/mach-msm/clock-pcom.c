@@ -24,7 +24,7 @@
 #include "clock-pcom.h"
 
 #ifdef CONFIG_SPI_CPLD
-#if ((defined CONFIG_MACH_PROTOU) || (defined CONFIG_MACH_PROTODUG) || (defined CONFIG_MACH_PROTODCG))
+#if ((defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY))
 int cpld_clk_set(int enable)
 {
 	int rc;

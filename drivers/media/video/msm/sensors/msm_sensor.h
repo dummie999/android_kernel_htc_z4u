@@ -29,7 +29,7 @@
 #include <media/v4l2-subdev.h>
 #include "msm_camera_i2c.h"
 #include "msm_camera_eeprom.h"
-#ifdef CONFIG_MACH_MAGNIDS
+#ifdef CONFIG_MACH_DUMMY
 #include <mach/TCA6418_ioextender.h>
 #endif
 #define Q8  0x00000100

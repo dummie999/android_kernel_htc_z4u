@@ -603,6 +603,23 @@ void board_get_sku_color_tag(char **ret_data)
 EXPORT_SYMBOL(board_get_sku_color_tag);
 #endif
 
+static unsigned long boot_powerkey_debounce_ms;
+int __init boot_powerkey_debounce_time_init(char *s)
+{
+	int ret;
+	ret = strict_strtoul(s, 16, &boot_powerkey_debounce_ms);
+	if (ret != 0)
+		pr_err("%s: boot_powerkey_debounce_ms cannot be parsed from `%s'\r\n", __func__, s);
+	return 1;
+}
+__setup("bpht=", boot_powerkey_debounce_time_init);
+
+int board_get_boot_powerkey_debounce_time(void)
+{
+	return boot_powerkey_debounce_ms;
+}
+EXPORT_SYMBOL(board_get_boot_powerkey_debounce_time);
+
 static int usb_ats;
 int __init board_ats_init(char *s)
 {

@@ -64,7 +64,7 @@ static struct wake_lock vbus_wake_lock;
 static struct poweralg_type poweralg = {0};
 static struct poweralg_config_type config = {0};
 static struct poweralg_config_type debug_config = {0};
-#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_PROTOU) || defined(CONFIG_MACH_PROTODUG) || defined(CONFIG_MACH_MAGNIDS))
+#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
 BOOL is_need_battery_id_detection = FALSE;
 #else
 BOOL is_need_battery_id_detection = TRUE;
@@ -190,7 +190,7 @@ static BOOL is_charging_avaiable(void)
 	if (charger_control)
 		chg_avalible = FALSE;
 
-#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_PROTOU) || defined(CONFIG_MACH_PROTODUG) || defined(CONFIG_MACH_MAGNIDS))
+#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
 	set_smem_chg_avalible(chg_avalible);
 #endif
 	return chg_avalible; 
@@ -889,7 +889,7 @@ void power_alg_init(struct poweralg_config_type *debug_config)
 	else
 		poweralg_config_init(&config);
 
-#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_PROTOU) || defined(CONFIG_MACH_PROTODUG) || defined(CONFIG_MACH_MAGNIDS))
+#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY))
 	 
 	if (poweralg.battery.id_index!=BATTERY_ID_TWS_SDI_1650MAH &&
 		poweralg.battery.id_index!=BATTERY_ID_FORMOSA_SANYO) {
@@ -1278,7 +1278,7 @@ static int max17050_battery_probe(struct platform_device *pdev)
 	poweralg.pdata = pdev->dev.platform_data;
 	poweralg.battery.thermal_id = pdata->func_get_thermal_id();
 	if ((pdata->func_get_battery_id != NULL) && (0 < pdata->func_get_battery_id())) {
-#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_PROTOU) || defined(CONFIG_MACH_PROTODUG) || defined(CONFIG_MACH_MAGNIDS) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_Z4U))
+#if (defined(CONFIG_MACH_PRIMODS) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_Z4U))
 		poweralg.battery.id_index = get_batt_id();
 #else
 		poweralg.battery.id_index = pdata->func_get_battery_id();

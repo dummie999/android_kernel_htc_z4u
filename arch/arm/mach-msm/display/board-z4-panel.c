@@ -31,6 +31,9 @@
 #ifdef CONFIG_MACH_DUMMY
 #include "../board-z4dug.h"
 #endif
+#ifdef CONFIG_MACH_DUMMY
+#include "../board-z4dcg.h"
+#endif
 #ifdef CONFIG_MACH_Z4U
 #include "../board-z4u.h"
 #endif

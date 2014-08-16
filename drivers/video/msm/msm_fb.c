@@ -56,7 +56,7 @@
 #define LCD_INIT_MDDI	2
 #define LCD_INIT_LCDC	3
 
-#if ((defined CONFIG_MACH_PROTOU) || (defined CONFIG_MACH_PROTODUG) || (defined CONFIG_MACH_PROTODCG))
+#if ((defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY))
 #define PROTOU_ESD_WORKAROUND 1
 #endif
 
@@ -772,7 +772,7 @@ static int msm_fb_remove(struct platform_device *pdev)
 }
 
 DEFINE_MUTEX(suspend_mutex);
-#if ((defined CONFIG_MACH_PROTOU) || (defined CONFIG_MACH_PROTODUG) || (defined CONFIG_MACH_PROTODCG))
+#if ((defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY))
 static bool in_reboot = TRUE;
 #endif
 static bool in_late_resume = TRUE;
@@ -809,7 +809,7 @@ static int msm_fb_suspend(struct platform_device *pdev, pm_message_t state)
 #define msm_fb_suspend NULL
 #endif
 
-#if ((defined CONFIG_MACH_PROTOU) || (defined CONFIG_MACH_PROTODUG) || (defined CONFIG_MACH_PROTODCG))
+#if ((defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY))
 void msm_fb_shutdown2(struct platform_device *pdev) {
 	struct msm_fb_panel_data *pdata = NULL;
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)platform_get_drvdata(pdev);
@@ -1068,7 +1068,7 @@ static struct platform_driver msm_fb_driver = {
 	.suspend = msm_fb_suspend,
 	.resume = msm_fb_resume,
 #endif
-#if ((defined CONFIG_MACH_PROTOU) || (defined CONFIG_MACH_PROTODUG) || (defined CONFIG_MACH_PROTODCG))
+#if ((defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY))
 	.shutdown = msm_fb_shutdown2,
 #else
 	.shutdown = NULL,
@@ -2240,7 +2240,7 @@ static int msm_fb_pan_display(struct fb_var_screeninfo *var,
 	}
 	
 	mutex_lock(&suspend_mutex);
-#if ((defined CONFIG_MACH_PROTOU) || (defined CONFIG_MACH_PROTODUG) || (defined CONFIG_MACH_PROTODCG))
+#if ((defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY) || (defined CONFIG_MACH_DUMMY))
 	if (in_late_resume || in_onchg_resume || in_reboot) {
 #else
 	if (in_late_resume || in_onchg_resume) {
