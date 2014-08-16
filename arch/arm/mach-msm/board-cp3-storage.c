@@ -125,6 +125,7 @@ static struct msm_gpio sdc3_cfg_data[] = {
 	{GPIO_CFG(93, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_8MA),
 								"sdc3_dat_0"},
 #ifdef CONFIG_MMC_MSM_SDC3_8_BIT_SUPPORT
+#if defined(CONFIG_MACH_CP3DUG)
 	{GPIO_CFG(19, 3, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_12MA),
 								"sdc3_dat_7"},
 	{GPIO_CFG(20, 3, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_12MA),
@@ -133,6 +134,17 @@ static struct msm_gpio sdc3_cfg_data[] = {
 								"sdc3_dat_5"},
 	{GPIO_CFG(108, 3, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_12MA),
 								"sdc3_dat_4"},
+#endif
+#if defined(CONFIG_MACH_Z4U)
+	{GPIO_CFG(19, 3, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_8MA),
+								"sdc3_dat_7"},
+	{GPIO_CFG(20, 3, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_8MA),
+								"sdc3_dat_6"},
+	{GPIO_CFG(21, 3, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_8MA),
+								"sdc3_dat_5"},
+	{GPIO_CFG(108, 3, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_8MA),
+								"sdc3_dat_4"},
+#endif
 #endif
 };
 
@@ -172,7 +184,12 @@ static struct sdcc_gpio sdcc_cfg_data[] = {
 	},
 };
 
+#if defined(CONFIG_MACH_CP3DUG)
 static int gpio_sdc1_hw_det = 94;
+#endif
+#if defined(CONFIG_MACH_Z4U)
+static int gpio_sdc1_hw_det = 27;
+#endif
 static void gpio_sdc1_config(void)
 {
 	if (machine_is_msm7627a_qrd1() || machine_is_msm7627a_evb()
@@ -271,13 +288,14 @@ out:
 static unsigned int msm7627a_sdcc_slot_status(struct device *dev)
 {
 	int status;
-
+#if defined(CONFIG_MACH_CP3DUG)
 	status = gpio_tlmm_config(GPIO_CFG(gpio_sdc1_hw_det, 2, GPIO_CFG_INPUT,
 				GPIO_CFG_PULL_UP, GPIO_CFG_6MA),
 				GPIO_CFG_ENABLE);
 	if (status)
 		pr_err("%s:Failed to configure tlmm for GPIO %d\n", __func__,
 				gpio_sdc1_hw_det);
+#endif
 
 	status = gpio_request(gpio_sdc1_hw_det, "SD_HW_Detect");
 	if (status) {
@@ -381,9 +399,10 @@ int bcm4330_wifi_set_carddetect(int val)
 }
 #endif
 
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) \
+#if (defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3DCG) \
     || defined(CONFIG_MACH_CP3DUG) \
-    || defined(CONFIG_MACH_DUMMY))
+    || defined(CONFIG_MACH_CP3U) \
+    || defined(CONFIG_MACH_Z4U))
 static unsigned int atheros_wifislot_type = MMC_TYPE_SDIO_WIFI;
 static struct mmc_platform_data sdc2_plat_data = {
 	.ocr_mask       = MMC_VDD_28_29 | MMC_VDD_165_195,
@@ -469,7 +488,7 @@ out:
 	return rc;
 }
 #ifdef QCT_original
-void __init cp3dug_init_mmc(void)
+void __init cp3_init_mmc(void)
 {
 	
 #ifdef CONFIG_MMC_MSM_SDC3_SUPPORT
@@ -507,7 +526,7 @@ void __init cp3dug_init_mmc(void)
 #endif
 }
 #else
-void __init cp3dug_init_mmc(void)
+void __init cp3_init_mmc(void)
 {
 	printk(KERN_ERR "%s: HTC 0\n", __func__);
 	
@@ -535,9 +554,10 @@ void __init cp3dug_init_mmc(void)
     || defined(CONFIG_MACH_PROTODUG) || defined(CONFIG_MACH_PROTOU))
 	msm_add_sdcc(2, &bcm4330_wifi_data); 
 #endif
-#if (defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY) \
+#if (defined(CONFIG_MACH_CP3DTG) || defined(CONFIG_MACH_CP3DCG) \
     || defined(CONFIG_MACH_CP3DUG) \
-    || defined(CONFIG_MACH_DUMMY))
+    || defined(CONFIG_MACH_CP3U) \
+    || defined(CONFIG_MACH_Z4U))
 	msm_add_sdcc(2, &sdc2_plat_data);  
 #endif
 #endif

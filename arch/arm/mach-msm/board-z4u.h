@@ -16,7 +16,7 @@
 #include "pm.h"
 #include <linux/i2c/cpld.h>
 
-void __init z4u_init_mmc(void);
+void __init cp3_init_mmc(void);
 
 void __init msm_msm7627a_allocate_memory_regions(void);
 void __init msm_fb_add_devices(void);
