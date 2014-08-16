@@ -387,7 +387,10 @@ static void hci_ibs_wake_retrans_timeout(unsigned long arg)
 	struct ibs_struct *ibs = hu->priv;
 	unsigned long flags;
 	unsigned long retransmit = 0;
-
+        if (!ibs) {
+		BT_INFO("IBS device already closed");
+		return;
+        }
 	BT_DBG("hu %p wake retransmit timeout in %lu state",
 		hu, ibs->tx_ibs_state);
 
@@ -541,9 +544,9 @@ static int ibs_close(struct hci_uart *hu)
 
 	skb_queue_purge(&ibs->tx_wait_q);
 	skb_queue_purge(&ibs->txq);
-	del_timer(&ibs->tx_idle_timer);
+	del_timer_sync(&ibs->tx_idle_timer);
 	del_timer(&ibs->rx_idle_timer);
-	del_timer(&ibs->wake_retrans_timer);
+	del_timer_sync(&ibs->wake_retrans_timer);
 	destroy_workqueue(ibs->workqueue);
 	ibs->ibs_hu = NULL;
 
