@@ -876,7 +876,7 @@ static void z4u_camera_vreg_config_imx175(int vreg_en)
 			return;
 		}
 		udelay(50);
-		
+
 		pr_info("[CAM]%s: CPLD_EXT_GPIO_CAMIO_1V8_EN\n", __func__);
 		rc = cpld_gpio_write(CPLD_EXT_GPIO_CAMIO_1V8_EN, 1);
 		if(rc < 0){

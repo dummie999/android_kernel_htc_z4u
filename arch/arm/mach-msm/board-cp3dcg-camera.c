@@ -9,8 +9,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
- 
-#include <asm/htc_version.h>
+
 #include <linux/i2c.h>
 #include <linux/i2c/sx150x.h>
 #include <linux/gpio.h>
@@ -25,6 +24,7 @@
 #include "board-cp3dcg.h"
 #include <mach/vreg.h>
 #include <media/msm_camera.h>
+#include <asm/htc_version.h>
 
 #ifdef CONFIG_MSM_CAMERA_FLASH
 #include <linux/htc_flashlight.h>
@@ -859,8 +859,7 @@ static void cp3dcg_camera_vreg_config_ov5693(int vreg_en)
 			return;
 		}
 		udelay(50);
-		 
-		
+
 		pr_info("[CAM]%s: CPLD_EXT_GPIO_CAMIO_1V8_EN\n", __func__);
 		rc = cpld_gpio_write(CPLD_EXT_GPIO_CAMIO_1V8_EN, 1);
 		if(rc < 0){
@@ -1159,7 +1158,6 @@ static struct i2c_board_info i2c_camera_devices[] = {
 		.platform_data = &msm_camera_sensor_s5k3h2yx_data,
 	},
 #endif
-
 #ifdef CONFIG_S5K6A2YA
 	{
 		I2C_BOARD_INFO("s5k6a2ya", 0x6C >> 1),
