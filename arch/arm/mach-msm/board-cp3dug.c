@@ -3184,7 +3184,7 @@ static void __init msm_cp3dug_init(void)
 
 #ifdef CONFIG_MMC_MSM
 	printk(KERN_ERR "%s: start init mmc\n", __func__);
-	cp3dug_init_mmc();
+	cp3_init_mmc();
 	printk(KERN_ERR "%s: msm7627a_init_mmc()\n", __func__);
 	entry = create_proc_read_entry("emmc", 0, NULL, emmc_partition_read_proc, NULL);
 	printk(KERN_ERR "%s: create_proc_read_entry()\n", __func__);

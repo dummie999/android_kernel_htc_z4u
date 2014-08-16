@@ -52,6 +52,7 @@ struct sdcc_gpio {
 };
 
 static struct msm_gpio sdc1_cfg_data[] = {
+#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_Z4U)
 	{GPIO_CFG(51, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_8MA),
 								"sdc1_dat_3"},
 	{GPIO_CFG(52, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_8MA),
@@ -64,6 +65,21 @@ static struct msm_gpio sdc1_cfg_data[] = {
 								"sdc1_cmd"},
 	{GPIO_CFG(56, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_16MA),
 								"sdc1_clk"},
+#endif
+#if defined(CONFIG_MACH_CP3DCG)
+	{GPIO_CFG(51, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_10MA),
+								"sdc1_dat_3"},
+	{GPIO_CFG(52, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_10MA),
+								"sdc1_dat_2"},
+	{GPIO_CFG(53, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_10MA),
+								"sdc1_dat_1"},
+	{GPIO_CFG(54, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_10MA),
+								"sdc1_dat_0"},
+	{GPIO_CFG(55, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_10MA),
+								"sdc1_cmd"},
+	{GPIO_CFG(56, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_12MA),
+								"sdc1_clk"},
+#endif
 };
 
 static struct msm_gpio sdc1_sleep_cfg_data[] = {
@@ -125,7 +141,7 @@ static struct msm_gpio sdc3_cfg_data[] = {
 	{GPIO_CFG(93, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_8MA),
 								"sdc3_dat_0"},
 #ifdef CONFIG_MMC_MSM_SDC3_8_BIT_SUPPORT
-#if defined(CONFIG_MACH_CP3DUG)
+#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DCG)
 	{GPIO_CFG(19, 3, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_12MA),
 								"sdc3_dat_7"},
 	{GPIO_CFG(20, 3, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_12MA),
@@ -190,13 +206,22 @@ static int gpio_sdc1_hw_det = 94;
 #if defined(CONFIG_MACH_Z4U)
 static int gpio_sdc1_hw_det = 27;
 #endif
+#if defined(CONFIG_MACH_CP3DCG)
+static int gpio_sdc1_hw_det = 86;
+#endif
 static void gpio_sdc1_config(void)
 {
 	if (machine_is_msm7627a_qrd1() || machine_is_msm7627a_evb()
 					|| machine_is_msm8625_evb()
 					|| machine_is_msm7627a_qrd3()
 					|| machine_is_msm8625_qrd7())
+#if defined(CONFIG_MACH_CP3DCG)
+		gpio_sdc1_hw_det = 86;
+#endif
+#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_Z4U)
 		gpio_sdc1_hw_det = 94;
+#endif
+
 }
 
 static struct regulator *sdcc_vreg_data[MAX_SDCC_CONTROLLER];
@@ -288,7 +313,7 @@ out:
 static unsigned int msm7627a_sdcc_slot_status(struct device *dev)
 {
 	int status;
-#if defined(CONFIG_MACH_CP3DUG)
+#if defined(CONFIG_MACH_CP3DUG) || defined(CONFIG_MACH_CP3DCG)
 	status = gpio_tlmm_config(GPIO_CFG(gpio_sdc1_hw_det, 2, GPIO_CFG_INPUT,
 				GPIO_CFG_PULL_UP, GPIO_CFG_6MA),
 				GPIO_CFG_ENABLE);
