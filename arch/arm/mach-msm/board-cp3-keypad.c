@@ -20,21 +20,44 @@
 #include <asm/mach-types.h>
 
 #include <mach/board_htc.h>
-
+#if defined(CONFIG_MACH_CP3DCG)
+#include "board-cp3dcg.h"
+#endif
+#if defined(CONFIG_MACH_CP3DUG)
 #include "board-cp3dug.h"
+#endif
+#if defined(CONFIG_MACH_Z4U)
+#include "board-z4u.h"
+#endif
 #include <linux/module.h>
 #include <mach/proc_comm.h>
 
 
 static char *keycaps = "--qwerty";
 #undef MODULE_PARAM_PREFIX
+#if defined(CONFIG_MACH_CP3DCG)
+#define MODULE_PARAM_PREFIX "board_cp3dcg."
+#endif
+#if defined(CONFIG_MACH_CP3DUG)
 #define MODULE_PARAM_PREFIX "board_cp3dug."
+#endif
+#if defined(CONFIG_MACH_Z4U)
+#define MODULE_PARAM_PREFIX "board_z4u."
+#endif
 
 module_param_named(keycaps, keycaps, charp, 0);
 
 static struct gpio_event_direct_entry msm8625q_keypad_nav_map[] = {
 	{
+		#if defined(CONFIG_MACH_CP3DCG)
+		.gpio = CP3DCG_POWER_KEY,
+		#endif
+		#if defined(CONFIG_MACH_CP3DUG)
 		.gpio = CP3DUG_POWER_KEY,
+		#endif
+		#if defined(CONFIG_MACH_Z4U)
+		.gpio = Z4U_POWER_KEY,
+		#endif
 		.code = KEY_POWER,
 	},
 	{
@@ -50,7 +73,15 @@ static struct gpio_event_direct_entry msm8625q_keypad_nav_map[] = {
 static void msm8625q_direct_inputs_gpio(void)
 {
 	static uint32_t matirx_inputs_gpio_table[] = {
+		#if defined(CONFIG_MACH_CP3DCG)
+		GPIO_CFG(CP3DCG_POWER_KEY, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP,	GPIO_CFG_4MA),
+		#endif
+		#if defined(CONFIG_MACH_CP3DUG)
 		GPIO_CFG(CP3DUG_POWER_KEY, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP,	GPIO_CFG_4MA),
+		#endif
+		#if defined(CONFIG_MACH_Z4U)
+		GPIO_CFG(Z4U_POWER_KEY, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP,	GPIO_CFG_4MA),
+		#endif
 	};
 	gpio_tlmm_config(matirx_inputs_gpio_table[0], GPIO_CFG_ENABLE);
 }
