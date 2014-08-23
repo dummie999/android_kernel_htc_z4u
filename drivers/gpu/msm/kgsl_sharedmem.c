@@ -1,4 +1,4 @@
-/* Copyright (c) 2002,2007-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2002,2007-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -24,6 +24,7 @@
 #include "kgsl_cffdump.h"
 #include "kgsl_device.h"
 
+/* An attribute for showing per-process memory statistics */
 struct kgsl_mem_entry_attribute {
 	struct attribute attr;
 	int memtype;
@@ -41,6 +42,13 @@ container_of(a, struct kgsl_mem_entry_attribute, attr)
 	.show = _show, \
 }
 
+/*
+ * A structure to hold the attributes for a particular memory type.
+ * For each memory type in each process we store the current and maximum
+ * memory usage and display the counts in sysfs.  This structure and
+ * the following macro allow us to simplify the definition for those
+ * adding new memory types
+ */
 
 struct mem_entry_stats {
 	int memtype;
@@ -58,9 +66,16 @@ struct mem_entry_stats {
 }
 
 
+/*
+ * One page allocation for a guard region to protect against over-zealous
+ * GPU pre-fetch
+ */
 
 static struct page *kgsl_guard_page;
 
+/**
+ * Given a kobj, find the process structure attached to it
+ */
 
 static struct kgsl_process_private *
 _get_priv_from_kobj(struct kobject *kobj)
@@ -82,6 +97,9 @@ _get_priv_from_kobj(struct kobject *kobj)
 	return NULL;
 }
 
+/**
+ * Show the current amount of memory allocated for the given memtype
+ */
 
 static ssize_t
 mem_entry_show(struct kgsl_process_private *priv, int type, char *buf)
@@ -89,6 +107,10 @@ mem_entry_show(struct kgsl_process_private *priv, int type, char *buf)
 	return snprintf(buf, PAGE_SIZE, "%d\n", priv->stats[type].cur);
 }
 
+/**
+ * Show the maximum memory allocated for the given memtype through the life of
+ * the process
+ */
 
 static ssize_t
 mem_entry_max_show(struct kgsl_process_private *priv, int type, char *buf)
@@ -171,6 +193,8 @@ kgsl_process_init_sysfs(struct kgsl_process_private *private)
 		return;
 
 	for (i = 0; i < ARRAY_SIZE(mem_stats); i++) {
+		/* We need to check the value of sysfs_create_file, but we
+		 * don't really care if it passed or not */
 
 		ret = sysfs_create_file(&private->kobj,
 			&mem_stats[i].attr.attr);
@@ -321,7 +345,7 @@ static void kgsl_page_alloc_free(struct kgsl_memdesc *memdesc)
 	struct scatterlist *sg;
 	int sglen = memdesc->sglen;
 
-	
+	/* Don't free the guard page if it was used */
 	if (memdesc->flags & KGSL_MEMDESC_GUARD_PAGE)
 		sglen--;
 
@@ -341,6 +365,14 @@ static int kgsl_contiguous_vmflags(struct kgsl_memdesc *memdesc)
 	return VM_RESERVED | VM_IO | VM_PFNMAP | VM_DONTEXPAND;
 }
 
+/*
+ * kgsl_page_alloc_map_kernel - Map the memory in memdesc to kernel address
+ * space
+ *
+ * @memdesc - The memory descriptor which contains information about the memory
+ *
+ * Return: 0 on success else error code
+ */
 static int kgsl_page_alloc_map_kernel(struct kgsl_memdesc *memdesc)
 {
 	if (!memdesc->hostptr) {
@@ -350,11 +382,11 @@ static int kgsl_page_alloc_map_kernel(struct kgsl_memdesc *memdesc)
 		int sglen = memdesc->sglen;
 		int i;
 
-		
+		/* Don't map the guard page if it exists */
 		if (memdesc->flags & KGSL_MEMDESC_GUARD_PAGE)
 			sglen--;
 
-		
+		/* create a list of pages to call vmap */
 		pages = vmalloc(sglen * sizeof(struct page *));
 		if (!pages) {
 			KGSL_CORE_ERR("vmalloc(%d) failed\n",
@@ -413,6 +445,7 @@ static void kgsl_coherent_free(struct kgsl_memdesc *memdesc)
 			  memdesc->hostptr, memdesc->physaddr);
 }
 
+/* Global - also used by kgsl_drm.c */
 struct kgsl_memdesc_ops kgsl_page_alloc_ops = {
 	.free = kgsl_page_alloc_free,
 	.vmflags = kgsl_page_alloc_vmflags,
@@ -463,6 +496,10 @@ _kgsl_sharedmem_page_alloc(struct kgsl_memdesc *memdesc,
 	pgprot_t page_prot = pgprot_writecombine(PAGE_KERNEL);
 	void *ptr;
 
+	/*
+	 * Add guard page to the end of the allocation when the
+	 * IOMMU is in use.
+	 */
 
 	if (kgsl_mmu_get_mmutype() == KGSL_MMU_TYPE_IOMMU)
 		sglen++;
@@ -481,6 +518,12 @@ _kgsl_sharedmem_page_alloc(struct kgsl_memdesc *memdesc,
 		goto done;
 	}
 
+	/*
+	 * Allocate space to store the list of pages to send to vmap.
+	 * This is an array of pointers so we can track 1024 pages per page of
+	 * allocation which means we can handle up to a 8MB buffer request with
+	 * two pages; well within the acceptable limits for using kmalloc.
+	 */
 
 	pages = kmalloc(sglen * sizeof(struct page *), GFP_KERNEL);
 
@@ -498,6 +541,10 @@ _kgsl_sharedmem_page_alloc(struct kgsl_memdesc *memdesc,
 
 	for (i = 0; i < PAGE_ALIGN(size) / PAGE_SIZE; i++) {
 
+		/*
+		 * Don't use GFP_ZERO here because it is faster to memset the
+		 * range ourselves (see below)
+		 */
 
 		pages[i] = alloc_page(GFP_KERNEL | __GFP_HIGHMEM);
 		if (pages[i] == NULL) {
@@ -509,9 +556,14 @@ _kgsl_sharedmem_page_alloc(struct kgsl_memdesc *memdesc,
 		sg_set_page(&memdesc->sg[i], pages[i], PAGE_SIZE, 0);
 	}
 
-	
+	/* ADd the guard page to the end of the sglist */
 
 	if (kgsl_mmu_get_mmutype() == KGSL_MMU_TYPE_IOMMU) {
+		/*
+		 * It doesn't matter if we use GFP_ZERO here, this never
+		 * gets mapped, and we only allocate it once in the life
+		 * of the system
+		 */
 
 		if (kgsl_guard_page == NULL)
 			kgsl_guard_page = alloc_page(GFP_KERNEL | __GFP_ZERO |
@@ -525,6 +577,24 @@ _kgsl_sharedmem_page_alloc(struct kgsl_memdesc *memdesc,
 			memdesc->sglen--;
 	}
 
+	/*
+	 * All memory that goes to the user has to be zeroed out before it gets
+	 * exposed to userspace. This means that the memory has to be mapped in
+	 * the kernel, zeroed (memset) and then unmapped.  This also means that
+	 * the dcache has to be flushed to ensure coherency between the kernel
+	 * and user pages. We used to pass __GFP_ZERO to alloc_page which mapped
+	 * zeroed and unmaped each individual page, and then we had to turn
+	 * around and call flush_dcache_page() on that page to clear the caches.
+	 * This was killing us for performance. Instead, we found it is much
+	 * faster to allocate the pages without GFP_ZERO, map the entire range,
+	 * memset it, flush the range and then unmap - this results in a factor
+	 * of 4 improvement for speed for large buffers.  There is a small
+	 * increase in speed for small buffers, but only on the order of a few
+	 * microseconds at best.  The only downside is that there needs to be
+	 * enough temporary space in vmalloc to accomodate the map. This
+	 * shouldn't be a problem, but if it happens, fall back to a much slower
+	 * path
+	 */
 
 	ptr = vmap(pages, i, VM_IOREMAP, page_prot);
 
@@ -535,7 +605,7 @@ _kgsl_sharedmem_page_alloc(struct kgsl_memdesc *memdesc,
 	} else {
 		int j;
 
-		
+		/* Very, very, very slow path */
 
 		for (j = 0; j < i; j++) {
 			ptr = kmap_atomic(pages[j]);
@@ -630,7 +700,7 @@ kgsl_sharedmem_alloc_coherent(struct kgsl_memdesc *memdesc, size_t size)
 	if (result)
 		goto err;
 
-	
+	/* Record statistics */
 
 	KGSL_STATS_ADD(size, kgsl_driver.stats.coherent,
 		       kgsl_driver.stats.coherent_max);
@@ -787,6 +857,15 @@ kgsl_sharedmem_set(const struct kgsl_memdesc *memdesc, unsigned int offsetbytes,
 }
 EXPORT_SYMBOL(kgsl_sharedmem_set);
 
+/*
+ * kgsl_sharedmem_map_vma - Map a user vma to physical memory
+ *
+ * @vma - The user vma to map
+ * @memdesc - The memory descriptor which contains information about the
+ * physical memory
+ *
+ * Return: 0 on success else error code
+ */
 int
 kgsl_sharedmem_map_vma(struct vm_area_struct *vma,
 			const struct kgsl_memdesc *memdesc)

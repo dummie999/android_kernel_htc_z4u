@@ -79,6 +79,14 @@ static inline void notify_other_proc_comm(void)
 static DEFINE_SPINLOCK(proc_comm_lock);
 static int msm_proc_comm_disable;
 
+/* Poll for a state change, checking for possible
+ * modem crashes along the way (so we don't wait
+ * forever while the ARM9 is blowing up).
+ *
+ * Return an error in the event of a modem crash and
+ * restart so the msm_proc_comm() routine can restart
+ * the operation from the beginning.
+ */
 static int proc_comm_wait_for(unsigned addr, unsigned value)
 {
 	while (1) {

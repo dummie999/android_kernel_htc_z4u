@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -263,6 +263,7 @@ static int __msm_pmem_table_del(struct hlist_head *ptype,
 	return rc;
 }
 
+/* return of 0 means failure */
 uint8_t msm_pmem_region_lookup(struct hlist_head *ptype,
 	int pmem_type, struct msm_pmem_region *reg, uint8_t maxcount)
 {
@@ -376,6 +377,8 @@ unsigned long msm_pmem_stats_ptov_lookup(
 	hlist_for_each_entry_safe(region, node, n,
 	&mctl->stats_info.pmem_stats_list, list) {
 		if (addr == region->paddr && region->info.active) {
+			/* offset since we could pass vaddr inside a
+			 * registered pmem buffer */
 			*fd = region->info.fd;
 			region->info.active = 0;
 			return (unsigned long)(region->info.vaddr);

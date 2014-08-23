@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -189,7 +189,7 @@ static void diag_smd_cntl_send_req(int proc_num)
 	}
 	kfree(pkt_params);
 	if (flag) {
-		
+		/* Poll SMD CNTL channels to check for data */
 		if (proc_num == MODEM_PROC)
 			diag_smd_cntl_notify(NULL, SMD_EVENT_DATA);
 		else if (proc_num == QDSP_PROC)
@@ -218,7 +218,7 @@ static int diag_smd_cntl_probe(struct platform_device *pdev)
 {
 	int r = 0;
 
-	
+	/* open control ports only on 8960 & newer targets */
 	if (chk_apps_only()) {
 		if (pdev->id == SMD_APPS_MODEM)
 			r = smd_open("DIAG_CNTL", &driver->ch_cntl, driver,
@@ -457,7 +457,7 @@ static ssize_t diag_dbgfs_read_table(struct file *file, char __user *ubuf,
 	int buf_size = (DEBUG_BUF_SIZE < count) ? DEBUG_BUF_SIZE : count;
 
 	if (diag_dbgfs_table_index >= diag_max_reg) {
-		
+		/* Done. Reset to prepare for future requests */
 		diag_dbgfs_table_index = 0;
 		return 0;
 	}
@@ -470,7 +470,7 @@ static ssize_t diag_dbgfs_read_table(struct file *file, char __user *ubuf,
 
 	bytes_remaining = buf_size;
 	for (i = diag_dbgfs_table_index; i < diag_max_reg; i++) {
-		
+		/* Do not process empty entries in the table */
 		if (driver->table[i].process_id == 0)
 			continue;
 
@@ -488,7 +488,7 @@ static ssize_t diag_dbgfs_read_table(struct file *file, char __user *ubuf,
 
 		bytes_in_buffer += bytes_written;
 
-		
+		/* Check if there is room to add another table entry */
 		bytes_remaining = buf_size - bytes_in_buffer;
 		if (bytes_remaining < bytes_written)
 			break;

@@ -26,6 +26,7 @@ static struct dsi_buf hx8389b_rx_buf;
 static int mipi_hx8389b_bl_ctrl;
 
 
+/* common setting */
 static char exit_sleep[2] = {0x11, 0x00};
 static char display_on[2] = {0x29, 0x00};
 static char display_off[2] = {0x28, 0x00};
@@ -296,6 +297,9 @@ static void mipi_hx8389b_set_backlight(struct msm_fb_data_type *mfd)
 
 	if (mipi_hx8389b_pdata->bl_lock) {
 		if (!mipi_hx8389b_bl_ctrl) {
+			/* Level received is of range 1 to bl_max,
+			   We need to convert the levels to 1
+			   to 31 */
 			bl_level = (2 * bl_level * 31 + mfd->panel_info.bl_max)
 					/(2 * mfd->panel_info.bl_max);
 			if (bl_level == old_bl_level)

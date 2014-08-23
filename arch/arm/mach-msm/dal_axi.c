@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -12,6 +12,7 @@
 
 #include <mach/dal_axi.h>
 
+/* The AXI device ID */
 #define DALDEVICEID_AXI   0x02000053
 #define DALRPC_PORT_NAME  "DAL00"
 
@@ -34,7 +35,7 @@ enum {
 	DAL_AXI_BRIDGE_CFG_CGR_SS_3DGRP_ISOSYNC_MODE,
 	DAL_AXI_BRIDGE_CFG_CGR_SS_3DGRP_DEBUG_EN,
 	DAL_AXI_BRIDGE_CFG_CGR_SS_3DGRP_DEBUG_DIS,
-	
+	/* 7x27(A) Graphics Subsystem Bridge Configuration */
 	DAL_AXI_BRIDGE_CFG_GRPSS_XBAR_SYNC_MODE = 58,
 	DAL_AXI_BRIDGE_CFG_GRPSS_XBAR_ASYNC_MODE = 59,
 	DAL_AXI_BRIDGE_CFG_GRPSS_XBAR_ISOSYNC_MODE = 60
@@ -56,7 +57,7 @@ static int __axi_free(int mode)
 		goto fail_dal_fcn_0;
 	}
 
-	
+	/* close device handle */
 	rc = daldevice_detach(cam_dev_handle);
 	if (rc) {
 		printk(KERN_ERR "%s: failed to detach AXI bus device (%d)\n",
@@ -77,7 +78,7 @@ static int __axi_allocate(int mode)
 {
 	int rc;
 
-	
+	/* get device handle */
 	rc = daldevice_attach(DALDEVICEID_AXI, DALRPC_PORT_NAME,
 				DALRPC_DEST_MODEM, &cam_dev_handle);
 	if (rc) {
@@ -108,7 +109,7 @@ static int __axi_halt(int port)
 {
         int rc = 0;
 
-        
+        /* get device handle */
         rc = daldevice_attach(
                 DALDEVICEID_AXI, DALRPC_PORT_NAME,
                 DALRPC_DEST_MODEM, &halt_dev_handle
@@ -145,7 +146,7 @@ static int axi_configure_bridge_grfx_sync_mode(int bridge_mode)
 	int rc;
 	void *dev_handle;
 
-	
+	/* get device handle */
 	rc = daldevice_attach(
 		DALDEVICEID_AXI, DALRPC_PORT_NAME,
 		DALRPC_DEST_MODEM, &dev_handle
@@ -156,7 +157,7 @@ static int axi_configure_bridge_grfx_sync_mode(int bridge_mode)
 		goto fail_dal_attach_detach;
 	}
 
-	
+	/* call ConfigureBridge */
 	rc = dalrpc_fcn_0(
 		DALRPC_AXI_CONFIGURE_BRIDGE, dev_handle,
 		bridge_mode
@@ -167,7 +168,7 @@ static int axi_configure_bridge_grfx_sync_mode(int bridge_mode)
 		goto fail_dal_fcn_0;
 	}
 
-	
+	/* close device handle */
 	rc = daldevice_detach(dev_handle);
 	if (rc) {
 		printk(KERN_ERR "%s: failed to detach AXI bus device (%d)\n",

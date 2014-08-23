@@ -520,6 +520,10 @@ void __init msm_clock_init(struct clock_init_data *data)
 	pr_info("%s done!\n", __func__);
 }
 
+/* The bootloader and/or AMSS may have left various clocks enabled.
+ * Disable any clocks that belong to us (CLKFLAG_AUTO_OFF) but have
+ * not been explicitly enabled by a clk_enable() call.
+ */
 static int __init clock_late_init(void)
 {
 	struct handoff_clk *h, *h_temp;

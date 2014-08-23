@@ -2,7 +2,7 @@
  * drivers/gpu/ion/ion_cp_heap.c
  *
  * Copyright (C) 2011 Google, Inc.
- * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -42,6 +42,39 @@
 #include <asm/cacheflush.h>
 
 #include "msm/ion_cp_common.h"
+/**
+ * struct ion_cp_heap - container for the heap and shared heap data
+
+ * @heap:	the heap information structure
+ * @pool:	memory pool to allocate from.
+ * @base:	the base address of the memory pool.
+ * @permission_type:	Identifier for the memory used by SCM for protecting
+ *			and unprotecting memory.
+ * @secure_base:	Base address used when securing a heap that is shared.
+ * @secure_size:	Size used when securing a heap that is shared.
+ * @lock:	mutex to protect shared access.
+ * @heap_protected:	Indicates whether heap has been protected or not.
+ * @allocated_bytes:	the total number of allocated bytes from the pool.
+ * @total_size:	the total size of the memory pool.
+ * @request_region:	function pointer to call when first mapping of memory
+ *			occurs.
+ * @release_region:	function pointer to call when last mapping of memory
+ *			unmapped.
+ * @bus_id: token used with request/release region.
+ * @kmap_cached_count:	the total number of times this heap has been mapped in
+ *			kernel space (cached).
+ * @kmap_uncached_count:the total number of times this heap has been mapped in
+ *			kernel space (un-cached).
+ * @umap_count:	the total number of times this heap has been mapped in
+ *		user space.
+ * @iommu_iova: saved iova when mapping full heap at once.
+ * @iommu_partition: partition used to map full heap.
+ * @reusable: indicates if the memory should be reused via fmem.
+ * @reserved_vrange: reserved virtual address range for use with fmem
+ * @iommu_map_all:	Indicates whether we should map whole heap into IOMMU.
+ * @iommu_2x_map_domain: Indicates the domain to use for overmapping.
+ * @has_outer_cache:    set to 1 if outer cache is used, 0 otherwise.
+*/
 struct ion_cp_heap {
 	struct ion_heap heap;
 	struct gen_pool *pool;
@@ -138,7 +171,7 @@ static void free_heap_memory(struct ion_heap *heap)
 	struct ion_cp_heap *cp_heap =
 		container_of(heap, struct ion_cp_heap, heap);
 
-	
+	/* release memory */
 	dma_free_coherent(dev, cp_heap->heap_size, cp_heap->cpu_addr,
 				cp_heap->handle);
 	gen_pool_destroy(cp_heap->pool);
@@ -148,6 +181,10 @@ static void free_heap_memory(struct ion_heap *heap)
 
 
 
+/**
+ * Get the total number of kernel mappings.
+ * Must be called with heap->lock locked.
+ */
 static unsigned long ion_cp_get_total_kmap_count(
 					const struct ion_cp_heap *cp_heap)
 {
@@ -188,6 +225,11 @@ static void ion_on_last_free(struct ion_heap *heap)
 		free_heap_memory(heap);
 }
 
+/**
+ * Protects memory if heap is unsecured heap. Also ensures that we are in
+ * the correct FMEM state if this heap is a reusable heap.
+ * Must be called with heap->lock locked.
+ */
 static int ion_cp_protect(struct ion_heap *heap, int version, void *data)
 {
 	struct ion_cp_heap *cp_heap =
@@ -195,7 +237,7 @@ static int ion_cp_protect(struct ion_heap *heap, int version, void *data)
 	int ret_value = 0;
 
 	if (atomic_inc_return(&cp_heap->protect_cnt) == 1) {
-		
+		/* Make sure we are in C state when the heap is protected. */
 		if (!cp_heap->allocated_bytes)
 			if (ion_on_first_alloc(heap))
 				goto out;
@@ -224,6 +266,11 @@ out:
 	return ret_value;
 }
 
+/**
+ * Unprotects memory if heap is secure heap. Also ensures that we are in
+ * the correct FMEM state if this heap is a reusable heap.
+ * Must be called with heap->lock locked.
+ */
 static void ion_cp_unprotect(struct ion_heap *heap, int version, void *data)
 {
 	struct ion_cp_heap *cp_heap =
@@ -279,6 +326,10 @@ ion_phys_addr_t ion_cp_allocate(struct ion_heap *heap,
 		return ION_CP_ALLOCATE_FAIL;
 	}
 
+	/*
+	 * if this is the first reusable allocation, transition
+	 * the heap
+	 */
 	if (!cp_heap->allocated_bytes)
 		if (ion_on_first_alloc(heap)) {
 			mutex_unlock(&cp_heap->lock);
@@ -353,7 +404,7 @@ void ion_cp_free(struct ion_heap *heap, ion_phys_addr_t addr,
 		cp_heap->heap_protected == HEAP_NOT_PROTECTED)
 		ion_on_last_free(heap);
 
-	
+	/* Unmap everything if we previously mapped the whole heap at once. */
 	if (!cp_heap->allocated_bytes) {
 		unsigned int i;
 		for (i = 0; i < MAX_DOMAINS; ++i) {
@@ -439,6 +490,9 @@ void ion_cp_heap_unmap_dma(struct ion_heap *heap,
 	buffer->sg_table = 0;
 }
 
+/**
+ * Call request region for SMI memory of this is the first mapping.
+ */
 static int ion_cp_request_region(struct ion_cp_heap *cp_heap)
 {
 	int ret_value = 0;
@@ -450,6 +504,9 @@ static int ion_cp_request_region(struct ion_cp_heap *cp_heap)
 	return ret_value;
 }
 
+/**
+ * Call release region for SMI memory of this is the last un-mapping.
+ */
 static int ion_cp_release_region(struct ion_cp_heap *cp_heap)
 {
 	int ret_value = 0;
@@ -735,6 +792,9 @@ static int iommu_map_all(unsigned long domain_num, struct ion_cp_heap *cp_heap,
 	unsigned long virt_addr_len = cp_heap->total_size;
 	struct iommu_domain *domain = msm_get_iommu_domain(domain_num);
 
+	/* If we are mapping into the video domain we need to map twice the
+	 * size of the heap to account for prefetch issue in video core.
+	 */
 	if (domain_num == cp_heap->iommu_2x_map_domain)
 		virt_addr_len <<= 1;
 
@@ -817,7 +877,7 @@ static int ion_cp_heap_map_iommu(struct ion_buffer *buffer,
 	}
 
 	if (cp_heap->iommu_iova[domain_num]) {
-		
+		/* Already mapped. */
 		unsigned long offset = buffer->priv_phys - cp_heap->base;
 		data->iova_addr = cp_heap->iommu_iova[domain_num] + offset;
 		return 0;
@@ -829,6 +889,10 @@ static int ion_cp_heap_map_iommu(struct ion_buffer *buffer,
 			data->iova_addr =
 				cp_heap->iommu_iova[domain_num] + offset;
 			cp_heap->iommu_partition[domain_num] = partition_num;
+			/*
+			clear delayed map flag so that we don't interfere
+			with this feature (we are already delaying).
+			*/
 			data->flags &= ~ION_IOMMU_UNMAP_DELAYED;
 			return 0;
 		} else {
@@ -894,6 +958,8 @@ static void ion_cp_heap_unmap_iommu(struct ion_iommu_map *data)
 
 	domain_num = iommu_map_domain(data);
 
+	/* If we are mapping everything we'll wait to unmap until everything
+	   is freed. */
 	if (cp_heap->iommu_iova[domain_num])
 		return;
 
@@ -1028,6 +1094,7 @@ void ion_cp_heap_get_base(struct ion_heap *heap, unsigned long *base,
 	*size = cp_heap->total_size;
 }
 
+/*  SCM related code for locking down memory for content protection */
 
 #define SCM_CP_LOCK_CMD_ID	0x1
 #define SCM_CP_PROTECT		0x1

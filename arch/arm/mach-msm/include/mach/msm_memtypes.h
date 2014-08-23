@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -10,6 +10,9 @@
  * GNU General Public License for more details.
 */
 
+/* The MSM Hardware supports multiple flavors of physical memory.
+ * This file captures hardware specific information of these types.
+*/
 
 #ifndef __ASM_ARCH_MSM_MEMTYPES_H
 #define __ASM_ARCH_MSM_MEMTYPES_H
@@ -18,6 +21,7 @@
 #include <linux/init.h>
 
 int __init meminfo_init(unsigned int, unsigned int);
+/* Redundant check to prevent this from being included outside of 7x30 */
 #if defined(CONFIG_ARCH_MSM7X30)
 unsigned int get_num_populated_chipselects(void);
 #endif
