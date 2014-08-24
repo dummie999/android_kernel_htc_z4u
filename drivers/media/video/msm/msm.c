@@ -71,8 +71,12 @@ extern void s5k4e5yx_check_frame_count(void);
 
 static void dump_info(void)
 {
+
+#ifdef CONFIG_RAWCHIP
 	Yushan_Debug_Reg_Dump(REG_DUMP_TX_FRAME_COUNT);
 	Yushan_Debug_Reg_Dump(REG_DUMP_RX_FRAME_COUNT);
+#endif
+
 #if defined(CONFIG_S5K3H2YX)
 	s5k3h2yx_check_frame_count();
 #endif
@@ -83,8 +87,11 @@ static void dump_info(void)
 
 	msleep(200);
 
+#ifdef CONFIG_RAWCHIP
 	Yushan_Debug_Reg_Dump(REG_DUMP_TX_FRAME_COUNT);
 	Yushan_Debug_Reg_Dump(REG_DUMP_RX_FRAME_COUNT);
+#endif
+
 #if defined(CONFIG_S5K3H2YX)
 	s5k3h2yx_check_frame_count();
 #endif
@@ -3590,8 +3597,8 @@ int msm_cam_register_subdev_node(struct v4l2_subdev *sd,
 	if (err < 0)
 		return err;
 #if defined(CONFIG_MEDIA_CONTROLLER)
-	sd->entity.v4l.major = VIDEO_MAJOR;
-	sd->entity.v4l.minor = vdev->minor;
+	sd->entity.info.v4l.major = VIDEO_MAJOR;
+	sd->entity.info.v4l.minor = vdev->minor;
 #endif
 	return 0;
 }
