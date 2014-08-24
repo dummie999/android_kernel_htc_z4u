@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -13,6 +13,9 @@
 #include <linux/export.h>
 #include <linux/qcomwlan_secif.h>
 
+/*
+ * APIs for calling crypto routines from kernel
+ */
 struct crypto_ahash *wcnss_wlan_crypto_alloc_ahash(const char *alg_name,
 							 u32 type, u32 mask)
 {

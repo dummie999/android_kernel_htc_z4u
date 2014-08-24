@@ -77,10 +77,10 @@ struct adsp_module_info {
 
 struct adsp_event {
 	struct list_head list;
-	uint32_t size; 
+	uint32_t size; /* always in bytes */
 	uint16_t msg_id;
-	uint16_t type; 
-	int is16; 
+	uint16_t type; /* 0 for msgs (from aDSP), -1 for events (from ARM9) */
+	int is16; /* always 0 (msg is 32-bit) when the event type is 1(ARM9) */
 	union {
 		uint16_t msg16[ADSP_EVENT_MAX_SIZE / 2];
 		uint32_t msg32[ADSP_EVENT_MAX_SIZE / 4];
@@ -100,30 +100,30 @@ struct adsp_info {
 	uint32_t max_queue_id;
 	uint32_t max_image_id;
 
-	
+	/* for each image id, a map of queue id to offset */
 	uint32_t **queue_offset;
 
-	
+	/* for each image id, a map of task id to module id */
 	uint32_t **task_to_module;
 
-	
+	/* for each module id, map of module id to module */
 	struct msm_adsp_module **id_to_module;
 
 	uint32_t module_count;
 	struct adsp_module_info *module;
 
-	
+	/* stats */
 	uint32_t events_received;
 	uint32_t event_backlog_max;
 
-	
+	/* rpc_client for init_info */
 	struct msm_rpc_endpoint	*init_info_rpc_client;
 	struct adsp_rtos_mp_mtoa_init_info_type	*init_info_ptr;
 	wait_queue_head_t	init_info_wait;
 	unsigned 		init_info_state;
 	struct mutex lock;
 
-	
+	/* Interrupt value */
 	int int_adsp;
 };
 
@@ -166,10 +166,10 @@ enum rpc_adsp_rtos_mod_status_type {
 
 struct rpc_adsp_rtos_app_to_modem_args_t {
 	struct rpc_request_hdr hdr;
-	uint32_t gotit; 
-	uint32_t cmd; 
-	uint32_t proc_id; 
-	uint32_t module; 
+	uint32_t gotit; /* if 1, the next elements are present */
+	uint32_t cmd; /* e.g., RPC_ADSP_RTOS_CMD_REGISTER_APP */
+	uint32_t proc_id; /* e.g., RPC_ADSP_RTOS_PROC_APPS */
+	uint32_t module; /* e.g., QDSP_MODULE_AUDPPTASK */
 };
 
 enum qdsp_image_type {
@@ -177,7 +177,7 @@ enum qdsp_image_type {
 	QDSP_IMAGE_GAUDIO,
 	QDSP_IMAGE_QTV_LP,
 	QDSP_IMAGE_MAX,
-	
+	/* DO NOT USE: Force this enum to be a 32bit type to improve speed */
 	QDSP_IMAGE_32BIT_DUMMY = 0x10000
 };
 
@@ -186,12 +186,14 @@ struct adsp_rtos_mp_mtoa_header_type {
 	enum rpc_adsp_rtos_proc_type        proc_id;
 };
 
+/* ADSP RTOS MP Communications - Modem to APP's  Event Info*/
 struct adsp_rtos_mp_mtoa_type {
 	uint32_t	module;
 	uint32_t	image;
 	uint32_t	apps_okts;
 };
 
+/* ADSP RTOS MP Communications - Modem to APP's Init Info  */
 #if CONFIG_ADSP_RPC_VER > 0x30001
 #define IMG_MAX         2
 #define ENTRIES_MAX     36
@@ -228,6 +230,9 @@ struct adsp_rtos_mp_mtoa_init_info_type {
 #endif
 	uint32_t	mod_to_q_entries;
 	struct mod_to_queue_offsets	mod_to_q_tbl[ENTRIES_MAX];
+	/*
+	 * queue_offsets[] is to store only queue_offsets
+	 */
 	uint32_t	queue_offsets[IMG_MAX][QUEUES_MAX];
 };
 
@@ -244,7 +249,7 @@ struct adsp_rtos_mp_mtoa_s_type {
 
 struct rpc_adsp_rtos_modem_to_app_args_t {
 	struct rpc_request_hdr hdr;
-	uint32_t gotit; 
+	uint32_t gotit; /* if 1, the next elements are present */
 	struct adsp_rtos_mp_mtoa_s_type mtoa_pkt;
 };
 
@@ -264,7 +269,7 @@ struct msm_adsp_module {
 	struct msm_adsp_ops *ops;
 	void *driver_data;
 
-	
+	/* statistics */
 	unsigned num_commands;
 	unsigned num_events;
 
@@ -286,8 +291,12 @@ extern void msm_adsp_publish_cdevs(struct msm_adsp_module *, unsigned);
 extern int adsp_init_info(struct adsp_info *info);
 extern void rmtask_init(void);
 
+/* Value to indicate that a queue is not defined for a particular image */
 #define QDSP_RTOS_NO_QUEUE  0xfffffffe
 
+/*
+ * Constants used to communicate with the ADSP RTOS
+ */
 #define ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_M            0x80000000U
 #define ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_NAVAIL_V     0x80000000U
 #define ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_AVAIL_V      0x00000000U
@@ -308,9 +317,11 @@ extern void rmtask_init(void);
 #define ADSP_RTOS_WRITE_CTRL_WORD_DSP_ADDR_M         0x00FFFFFFU
 #define ADSP_RTOS_WRITE_CTRL_WORD_HTOD_CMD_ID_M      0x00FFFFFFU
 
+/* Combination of MUTEX and CMD bits to check if the DSP is busy */
 #define ADSP_RTOS_WRITE_CTRL_WORD_READY_M            0xF0000000U
 #define ADSP_RTOS_WRITE_CTRL_WORD_READY_V            0x70000000U
 
+/* RTOS to Host processor command mask values */
 #define ADSP_RTOS_READ_CTRL_WORD_FLAG_M              0x80000000U
 #define ADSP_RTOS_READ_CTRL_WORD_FLAG_UP_WAIT_V      0x00000000U
 #define ADSP_RTOS_READ_CTRL_WORD_FLAG_UP_CONT_V      0x80000000U
@@ -320,6 +331,7 @@ extern void rmtask_init(void);
 #define ADSP_RTOS_READ_CTRL_WORD_READ_REQ_V          0x20000000U
 #define ADSP_RTOS_READ_CTRL_WORD_NO_CMD_V            0x60000000U
 
+/* Combination of FLAG and COMMAND bits to check if MSG ready */
 #define ADSP_RTOS_READ_CTRL_WORD_READY_M             0xE0000000U
 #define ADSP_RTOS_READ_CTRL_WORD_READY_V             0xA0000000U
 #define ADSP_RTOS_READ_CTRL_WORD_CONT_V              0xC0000000U
@@ -342,6 +354,7 @@ extern void rmtask_init(void);
 #define ADSP_RTOS_READ_CTRL_WORD_MSG_ID_M            0x000000FFU
 #define ADSP_RTOS_READ_CTRL_WORD_TASK_ID_M           0x0000FF00U
 
+/* Base address of DSP and DSP hardware registers */
 #define QDSP_RAMC_OFFSET  0x400000
 
 #endif

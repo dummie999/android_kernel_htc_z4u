@@ -15,7 +15,7 @@
 * EXTERNALIZED FUNCTIONS
 *   None
 *
-* Copyright (c) 1992-2009, 2012 Code Aurora Forum. All rights reserved.
+* Copyright (c) 1992-2009, 2012 The Linux Foundation. All rights reserved.
 *
 * This software is licensed under the terms of the GNU General Public
 * License version 2, as published by the Free Software Foundation, and
@@ -27,8 +27,27 @@
 * GNU General Public License for more details.
 *
 *====*====*====*====*====*====*====*====*====*====*====*====*====*====*====*/
+/*===========================================================================
 
+                      EDIT HISTORY FOR FILE
 
+This section contains comments describing changes made to this file.
+Notice that changes are listed in reverse chronological order.
+   
+ $Header: //source/qcom/qct/multimedia2/Audio/drivers/QDSP5Driver/QDSP5Interface/main/latest/qdsp5audpreprocmsg.h#3 $
+  
+===========================================================================*/
+
+/*
+ * ADSPREPROCTASK Messages
+ * AUDPREPROCTASK uses audPreProcUpRlist to communicate with ARM
+ * Location	: MEMA
+ * Message Length  : 2
+ */
+
+/*
+ * Message to indicate particular feature has been enabled or disabled
+ */
 
 
 #define	AUDPREPROC_MSG_CMD_CFG_DONE_MSG	0x0001
@@ -49,6 +68,9 @@ typedef struct {
 } __attribute__((packed)) audpreproc_msg_cmd_cfg_done_msg;
 
 
+/*
+ * Message to indicate particular feature has selected for wrong samp freq
+ */
 
 #define	AUDPREPROC_MSG_ERROR_MSG_ID		0x0002
 #define	AUDPREPROC_MSG_ERROR_MSG_ID_LEN	\

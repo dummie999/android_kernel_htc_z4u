@@ -1,4 +1,4 @@
-/* Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2009-2010, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -8,6 +8,11 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
+ */
+/*
+ * Bluetooth Power Switch Module
+ * controls power to external Bluetooth device
+ * with interface to power management device
  */
 
 #include <linux/init.h>
@@ -49,7 +54,7 @@ static int bluetooth_power_rfkill_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	
+	/* force Bluetooth off during init to allow for user control */
 	rfkill_init_sw_state(rfkill, 1);
 	previous = 1;
 

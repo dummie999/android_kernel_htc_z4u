@@ -64,6 +64,9 @@
 #include <asm/hardware/gic.h>
 #include <mach/msm_iomap.h>
 
+#include <linux/fs.h>
+#include <mach/board.h>
+
 #define DRIVER_NAME "msm-sdcc"
 
 #define DBG(host, fmt, args...)	\
@@ -4804,6 +4807,71 @@ static int msmsdcc_proc_speed_class(char *page, char **start, off_t off,
 	return sprintf(page, "%d", host->card->speed_class);
 }
 
+#define HTC_SECURE_MESSAGE_LEN     128
+static int msmsdcc_proc_cam_control_read(char *page, char **start, off_t off,
+		int count, int *eof, void *data)
+{
+	mm_segment_t oldfs;
+	struct file *filp = NULL;
+	char mbuffer[HTC_SECURE_MESSAGE_LEN];
+	ssize_t nread;
+	char filename[32] = "";
+	int pnum = get_partition_num_by_name("control");
+
+	if (pnum < 0) {
+		pr_info("unknown partition number for misc partition\n");
+		return count;
+	}
+
+	sprintf(filename, "/dev/block/mmcblk0p%d", pnum);
+	filp = filp_open(filename, O_RDWR, 0);
+	if (IS_ERR(filp)) {
+		pr_info("unable to open file: %s\n", filename);
+		return PTR_ERR(filp);
+	}
+
+	filp->f_pos = 8;
+	oldfs = get_fs();
+	set_fs(get_ds());
+	nread = vfs_read(filp, mbuffer, HTC_SECURE_MESSAGE_LEN, &filp->f_pos);
+	set_fs(get_ds());
+
+	return sprintf(page, "%s", mbuffer);
+}
+
+static int msmsdcc_proc_cam_control_set(struct file *file, const char __user *buffer,
+		unsigned long count, void *dat)
+{
+	mm_segment_t oldfs;
+	char filename[32] = "";
+	int pnum = get_partition_num_by_name("control");
+	struct file *filp = NULL;
+	ssize_t nread;
+
+	if (pnum < 0) {
+		pr_info("unknown partition number for misc partition\n");
+		return count;
+	}
+
+	sprintf(filename, "/dev/block/mmcblk0p%d", pnum);
+
+	filp = filp_open(filename, O_RDWR, 0);
+	if (IS_ERR(filp)) {
+		pr_info("unable to open file: %s\n", filename);
+		return PTR_ERR(filp);
+	}
+
+	filp->f_pos = 8;
+	oldfs = get_fs();
+	set_fs(get_ds());
+	nread = vfs_write(filp, buffer, count, &filp->f_pos);
+	set_fs(oldfs);
+
+	if (filp)
+		filp_close(filp, NULL);
+	return count;
+}
+
 static int
 msmsdcc_probe(struct platform_device *pdev)
 {
@@ -5318,6 +5386,15 @@ msmsdcc_probe(struct platform_device *pdev)
 		} else
 			pr_warning("%s: Failed to create emmc_burst entry\n",
 				mmc_hostname(host->mmc));
+
+		host->cam_control = create_proc_entry("write_to_control", 0660, NULL);
+		if (host->cam_control) {
+			host->cam_control->read_proc = msmsdcc_proc_cam_control_read;
+			host->cam_control->write_proc = msmsdcc_proc_cam_control_set;
+			host->cam_control->data = (void *) host->mmc;
+		} else
+			pr_warning("%s: Failed to create write_to_control entry\n",
+					mmc_hostname(host->mmc));
 	}
 	if(is_sd_platform(host->plat)) {
 	       host->speed_class = create_proc_entry("sd_speed_class", 0444, NULL);

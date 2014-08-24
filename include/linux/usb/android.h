@@ -24,4 +24,4 @@ struct android_usb_platform_data {
 	bool cdrom;
 };
 
-#endif	
+#endif	/* __LINUX_USB_ANDROID_H */

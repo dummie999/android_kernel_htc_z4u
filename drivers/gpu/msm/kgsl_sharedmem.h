@@ -1,4 +1,4 @@
-/* Copyright (c) 2002,2007-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2002,2007-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -27,7 +27,9 @@ struct kgsl_process_private;
 #define KGSL_CACHE_OP_FLUSH     0x02
 #define KGSL_CACHE_OP_CLEAN     0x03
 
+/** Set if the memdesc describes cached memory */
 #define KGSL_MEMFLAGS_CACHED    0x00000001
+/** Set if the memdesc is mapped into all pagetables */
 #define KGSL_MEMFLAGS_GLOBAL    0x00000002
 
 extern struct kgsl_memdesc_ops kgsl_page_alloc_ops;
@@ -73,6 +75,10 @@ void kgsl_sharedmem_uninit_sysfs(void);
 
 static inline unsigned int kgsl_get_sg_pa(struct scatterlist *sg)
 {
+	/*
+	 * Try sg_dma_address first to support ion carveout
+	 * regions which do not work with sg_phys().
+	 */
 	unsigned int pa = sg_dma_address(sg);
 	if (pa == 0)
 		pa = sg_phys(sg);
@@ -83,6 +89,12 @@ int
 kgsl_sharedmem_map_vma(struct vm_area_struct *vma,
 			const struct kgsl_memdesc *memdesc);
 
+/*
+ * For relatively small sglists, it is preferable to use kzalloc
+ * rather than going down the vmalloc rat hole.  If the size of
+ * the sglist is < PAGE_SIZE use kzalloc otherwise fallback to
+ * vmalloc
+ */
 
 static inline void *kgsl_sg_alloc(unsigned int sglen)
 {
@@ -156,4 +168,4 @@ static inline int kgsl_sg_size(struct scatterlist *sg, int sglen)
 
 	return size;
 }
-#endif 
+#endif /* __KGSL_SHAREDMEM_H */

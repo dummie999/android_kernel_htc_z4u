@@ -11,6 +11,7 @@
  * (at your option) any later version.
  */
 
+/* #define VERBOSE_DEBUG */
 
 #include <linux/kernel.h>
 #include <linux/gfp.h>
@@ -22,19 +23,42 @@
 #include "u_ether.h"
 
 
+/*
+ * This component encapsulates the Ethernet link glue needed to provide
+ * one (!) network link through the USB gadget stack, normally "usb0".
+ *
+ * The control and data models are handled by the function driver which
+ * connects to this code; such as CDC Ethernet (ECM or EEM),
+ * "CDC Subset", or RNDIS.  That includes all descriptor and endpoint
+ * management.
+ *
+ * Link level addressing is handled by this component using module
+ * parameters; if no such parameters are provided, random link level
+ * addresses are used.  Each end of the link uses one address.  The
+ * host end address is exported in various ways, and is often recorded
+ * in configuration databases.
+ *
+ * The driver which assembles each configuration using such a link is
+ * responsible for ensuring that each configuration includes at most one
+ * instance of is network link.  (The network layer provides ways for
+ * this single "physical" link to be used by multiple virtual links.)
+ */
 
 #define UETH__VERSION	"29-May-2008"
 
 static struct workqueue_struct	*uether_wq;
 
 struct eth_dev {
+	/* lock is held while accessing port_usb
+	 * or updating its backlink port_usb->ioport
+	 */
 	spinlock_t		lock;
 	struct gether		*port_usb;
 
 	struct net_device	*net;
 	struct usb_gadget	*gadget;
 
-	spinlock_t		req_lock;	
+	spinlock_t		req_lock;	/* guard {rx,tx}_reqs */
 	struct list_head	tx_reqs, rx_reqs;
 	unsigned		tx_qlen;
 
@@ -56,10 +80,12 @@ struct eth_dev {
 	u8			host_mac[ETH_ALEN];
 };
 
+/*-------------------------------------------------------------------------*/
 
-#define RX_EXTRA	20	
+#define RX_EXTRA	20	/* bytes guarding against rx overflows */
 
-#define DEFAULT_QLEN	2	
+#define DEFAULT_QLEN	2	/* double buffering by default */
+
 
 #ifdef CONFIG_USB_GADGET_DUALSPEED
 
@@ -67,10 +93,11 @@ static unsigned qmult = 5;
 module_param(qmult, uint, S_IRUGO|S_IWUSR);
 MODULE_PARM_DESC(qmult, "queue length multiplier at high/super speed");
 
-#else	
+#else	/* full speed (low speed doesn't do bulk) */
 #define qmult		1
 #endif
 
+/* for dual-speed hardware, use deeper queues at high/super speed */
 static inline int qlen(struct usb_gadget *gadget)
 {
 	if (gadget_is_dualspeed(gadget) && (gadget->speed == USB_SPEED_HIGH ||
@@ -80,7 +107,11 @@ static inline int qlen(struct usb_gadget *gadget)
 		return DEFAULT_QLEN;
 }
 
+/*-------------------------------------------------------------------------*/
 
+/* REVISIT there must be a better way than having two sets
+ * of debug calls ...
+ */
 
 #undef DBG
 #undef VDBG
@@ -97,21 +128,23 @@ static inline int qlen(struct usb_gadget *gadget)
 #else
 #define DBG(dev, fmt, args...) \
 	do { } while (0)
-#endif 
+#endif /* DEBUG */
 
 #ifdef VERBOSE_DEBUG
 #define VDBG	DBG
 #else
 #define VDBG(dev, fmt, args...) \
 	do { } while (0)
-#endif 
+#endif /* DEBUG */
 
 #define ERROR(dev, fmt, args...) \
 	xprintk(dev , KERN_ERR , fmt , ## args)
 #define INFO(dev, fmt, args...) \
 	xprintk(dev , KERN_INFO , fmt , ## args)
 
+/*-------------------------------------------------------------------------*/
 
+/* NETWORK DRIVER HOOKUP (to the layer above this driver) */
 
 static int ueth_change_mtu(struct net_device *net, int new_mtu)
 {
@@ -119,7 +152,7 @@ static int ueth_change_mtu(struct net_device *net, int new_mtu)
 	unsigned long	flags;
 	int		status = 0;
 
-	
+	/* don't change MTU on "live" link (peer won't know) */
 	spin_lock_irqsave(&dev->lock, flags);
 	if (dev->port_usb)
 		status = -EBUSY;
@@ -142,6 +175,11 @@ static void eth_get_drvinfo(struct net_device *net, struct ethtool_drvinfo *p)
 	strlcpy(p->bus_info, dev_name(&dev->gadget->dev), sizeof p->bus_info);
 }
 
+/* REVISIT can also support:
+ *   - WOL (by tracking suspends and issuing remote wakeup)
+ *   - msglevel (implies updated messaging)
+ *   - ... probably more ethtool ops
+ */
 
 static const struct ethtool_ops ops = {
 	.get_drvinfo = eth_get_drvinfo,
@@ -180,6 +218,18 @@ rx_submit(struct eth_dev *dev, struct usb_request *req, gfp_t gfp_flags)
 		return -ENOTCONN;
 
 
+	/* Padding up to RX_EXTRA handles minor disagreements with host.
+	 * Normally we use the USB "terminate on short read" convention;
+	 * so allow up to (N*maxpacket), since that memory is normally
+	 * already allocated.  Some hardware doesn't deal well with short
+	 * reads (e.g. DMA must be N*maxpacket), so for now don't trim a
+	 * byte off the end (to force hardware errors on overflow).
+	 *
+	 * RNDIS uses internal framing, and explicitly allows senders to
+	 * pad to end-of-packet.  That's potentially nice for speed, but
+	 * means receivers can't recover lost synch on their own (because
+	 * new packets don't only start after a short RX).
+	 */
 	size += sizeof(struct ethhdr) + dev->net->mtu + RX_EXTRA;
 	size += dev->port_usb->header_len;
 	size += out->maxpacket - 1;
@@ -194,6 +244,10 @@ rx_submit(struct eth_dev *dev, struct usb_request *req, gfp_t gfp_flags)
 		goto enomem;
 	}
 
+	/* Some platforms perform better when IP packets are aligned,
+	 * but on at least one, checksumming fails otherwise.  Note:
+	 * RNDIS headers involve variable numbers of LE32 values.
+	 */
 	skb_reserve(skb, NET_IP_ALIGN);
 
 	req->buf = skb->data;
@@ -222,7 +276,7 @@ static void rx_complete(struct usb_ep *ep, struct usb_request *req)
 
 	switch (status) {
 
-	
+	/* normal completion */
 	case 0:
 		skb_put(skb, req->actual);
 
@@ -247,24 +301,24 @@ static void rx_complete(struct usb_ep *ep, struct usb_request *req)
 			queue = 1;
 		break;
 
-	
-	case -ECONNRESET:		
-	case -ESHUTDOWN:		
+	/* software-driven interface shutdown */
+	case -ECONNRESET:		/* unlink */
+	case -ESHUTDOWN:		/* disconnect etc */
 		VDBG(dev, "rx shutdown, code %d\n", status);
 		goto quiesce;
 
-	
-	case -ECONNABORTED:		
+	/* for hardware automagic (such as pxa) */
+	case -ECONNABORTED:		/* endpoint reset */
 		DBG(dev, "rx %s reset\n", ep->name);
 		defer_kevent(dev, WORK_RX_MEMORY);
 quiesce:
 		dev_kfree_skb_any(skb);
 		goto clean;
 
-	
+	/* data overrun */
 	case -EOVERFLOW:
 		dev->net->stats.rx_over_errors++;
-		
+		/* FALLTHROUGH */
 
 	default:
 		queue = 1;
@@ -291,7 +345,7 @@ static int prealloc(struct list_head *list, struct usb_ep *ep, unsigned n)
 	if (!n)
 		return -ENOMEM;
 
-	
+	/* queue/recycle up to N requests */
 	i = n;
 	list_for_each_entry(req, list, list) {
 		if (i-- == 0)
@@ -306,7 +360,7 @@ static int prealloc(struct list_head *list, struct usb_ep *ep, unsigned n)
 	return 0;
 
 extra:
-	
+	/* free extras */
 	for (;;) {
 		struct list_head	*next;
 
@@ -347,7 +401,7 @@ static void rx_fill(struct eth_dev *dev, gfp_t gfp_flags)
 	unsigned long		flags;
 	int			req_cnt = 0;
 
-	
+	/* fill unused rxq slots with some skb */
 	spin_lock_irqsave(&dev->req_lock, flags);
 	while (!list_empty(&dev->rx_reqs)) {
 		
@@ -436,9 +490,9 @@ static void tx_complete(struct usb_ep *ep, struct usb_request *req)
 	default:
 		dev->net->stats.tx_errors++;
 		VDBG(dev, "tx err %d\n", req->status);
-		
-	case -ECONNRESET:		
-	case -ESHUTDOWN:		
+		/* FALLTHROUGH */
+	case -ECONNRESET:		/* unlink */
+	case -ESHUTDOWN:		/* disconnect etc */
 		break;
 	case 0:
 		dev->net->stats.tx_bytes += skb->len;
@@ -497,13 +551,16 @@ static netdev_tx_t eth_start_xmit(struct sk_buff *skb,
 		return NETDEV_TX_OK;
 	}
 
-	
+	/* apply outgoing CDC or RNDIS filters */
 	if (!is_promisc(cdc_filter)) {
 		u8		*dest = skb->data;
 
 		if (is_multicast_ether_addr(dest)) {
 			u16	type;
 
+			/* ignores USB_CDC_PACKET_TYPE_MULTICAST and host
+			 * SET_ETHERNET_MULTICAST_FILTERS requests
+			 */
 			if (is_broadcast_ether_addr(dest))
 				type = USB_CDC_PACKET_TYPE_BROADCAST;
 			else
@@ -513,10 +570,15 @@ static netdev_tx_t eth_start_xmit(struct sk_buff *skb,
 				return NETDEV_TX_OK;
 			}
 		}
-		
+		/* ignores USB_CDC_PACKET_TYPE_DIRECTED */
 	}
 
 	spin_lock_irqsave(&dev->req_lock, flags);
+	/*
+	 * this freelist can be empty if an interrupt triggered disconnect()
+	 * and reconfigured the gadget (shutting down this queue) after the
+	 * network stack decided to xmit but before we got the spinlock.
+	 */
 	if (list_empty(&dev->tx_reqs)) {
 		spin_unlock_irqrestore(&dev->req_lock, flags);
 		return NETDEV_TX_BUSY;
@@ -525,11 +587,15 @@ static netdev_tx_t eth_start_xmit(struct sk_buff *skb,
 	req = container_of(dev->tx_reqs.next, struct usb_request, list);
 	list_del(&req->list);
 
-	
+	/* temporarily stop TX queue when the freelist empties */
 	if (list_empty(&dev->tx_reqs))
 		netif_stop_queue(net);
 	spin_unlock_irqrestore(&dev->req_lock, flags);
 
+	/* no buffer copies needed, unless the network stack did it
+	 * or the hardware can't use skb buffers.
+	 * or there's not enough space for extra headers we need
+	 */
 	if (dev->wrap) {
 		unsigned long	flags;
 
@@ -546,7 +612,7 @@ static netdev_tx_t eth_start_xmit(struct sk_buff *skb,
 	req->context = skb;
 	req->complete = tx_complete;
 
-	
+	/* NCM requires no zlp if transfer is dwNtbInMaxSize */
 	if (dev->port_usb->is_fixed &&
 	    length == dev->port_usb->fixed_in_len &&
 	    (length % in->maxpacket) == 0)
@@ -554,12 +620,16 @@ static netdev_tx_t eth_start_xmit(struct sk_buff *skb,
 	else
 		req->zero = 1;
 
+	/* use zlp framing on tx for strict CDC-Ether conformance,
+	 * though any robust network rx path ignores extra padding.
+	 * and some hardware doesn't like to write zlps.
+	 */
 	if (req->zero && !dev->zlp && (length % in->maxpacket) == 0)
 		length++;
 
 	req->length = length;
 
-	
+	/* throttle high/super speed IRQ rate back slightly */
 	if (gadget_is_dualspeed(dev->gadget) &&
 			 (dev->gadget->speed == USB_SPEED_HIGH)) {
 		dev->tx_qlen++;
@@ -595,15 +665,16 @@ drop:
 	return NETDEV_TX_OK;
 }
 
+/*-------------------------------------------------------------------------*/
 
 static void eth_start(struct eth_dev *dev, gfp_t gfp_flags)
 {
 	DBG(dev, "%s\n", __func__);
 
-	
+	/* fill the rx queue */
 	rx_fill(dev, gfp_flags);
 
-	
+	/* and open the tx floodgates */
 	dev->tx_qlen = 0;
 	netif_wake_queue(dev->net);
 }
@@ -639,7 +710,7 @@ static int eth_stop(struct net_device *net)
 		dev->net->stats.rx_errors, dev->net->stats.tx_errors
 		);
 
-	
+	/* ensure there are no more active requests */
 	spin_lock_irqsave(&dev->lock, flags);
 	if (dev->port_usb) {
 		struct gether	*link = dev->port_usb;
@@ -647,6 +718,15 @@ static int eth_stop(struct net_device *net)
 		if (link->close)
 			link->close(link);
 
+		/* NOTE:  we have no abort-queue primitive we could use
+		 * to cancel all pending I/O.  Instead, we disable then
+		 * reenable the endpoints ... this idiom may leave toggle
+		 * wrong, but that's a self-correcting error.
+		 *
+		 * REVISIT:  we *COULD* just let the transfers complete at
+		 * their own pace; the network stack can handle old packets.
+		 * For the moment we leave this here, since it works.
+		 */
 		usb_ep_disable(link->in_ep);
 		usb_ep_disable(link->out_ep);
 		if (netif_carrier_ok(net)) {
@@ -668,11 +748,14 @@ static int eth_stop(struct net_device *net)
 	return 0;
 }
 
+/*-------------------------------------------------------------------------*/
 
+/* initial value, changed by "ifconfig usb0 hw ether xx:xx:xx:xx:xx:xx" */
 static char *dev_addr;
 module_param(dev_addr, charp, S_IRUGO);
 MODULE_PARM_DESC(dev_addr, "Device Ethernet Address");
 
+/* this address is invisible to ifconfig */
 static char *host_addr;
 module_param(host_addr, charp, S_IRUGO);
 MODULE_PARM_DESC(host_addr, "Host Ethernet Address");
@@ -713,6 +796,19 @@ static struct device_type gadget_type = {
 	.name	= "gadget",
 };
 
+/**
+ * gether_setup - initialize one ethernet-over-usb link
+ * @g: gadget to associated with these links
+ * @ethaddr: NULL, or a buffer in which the ethernet address of the
+ *	host side of the link is recorded
+ * Context: may sleep
+ *
+ * This sets up the single network link that may be exported by a
+ * gadget driver using this framework.  The link layer addresses are
+ * set up using module parameters.
+ *
+ * Returns negative errno, or zero on success
+ */
 int gether_setup(struct usb_gadget *g, u8 ethaddr[ETH_ALEN])
 {
 	return gether_setup_name(g, ethaddr, "usb");
@@ -742,7 +838,7 @@ int gether_setup_name(struct usb_gadget *g, u8 ethaddr[ETH_ALEN],
 
 	skb_queue_head_init(&dev->rx_frames);
 
-	
+	/* network device setup */
 	dev->net = net;
 	snprintf(net->name, sizeof(net->name), "%s%%d", netname);
 
@@ -760,6 +856,10 @@ int gether_setup_name(struct usb_gadget *g, u8 ethaddr[ETH_ALEN],
 
 	SET_ETHTOOL_OPS(net, &ops);
 
+	/* two kinds of host-initiated state changes:
+	 *  - iff DATA transfer is active, carrier is "on"
+	 *  - tx queueing enabled if open *and* carrier is "on"
+	 */
 	netif_carrier_off(net);
 
 	dev->gadget = g;
@@ -780,6 +880,12 @@ int gether_setup_name(struct usb_gadget *g, u8 ethaddr[ETH_ALEN],
 	return status;
 }
 
+/**
+ * gether_cleanup - remove Ethernet-over-USB device
+ * Context: may sleep
+ *
+ * This is called to free all resources allocated by @gether_setup().
+ */
 void gether_cleanup(void)
 {
 	if (!the_dev)
@@ -860,19 +966,31 @@ struct net_device *gether_connect(struct gether *link)
 		if (netif_running(dev->net))
 			eth_start(dev, GFP_ATOMIC);
 
-	
+	/* on error, disable any endpoints  */
 	} else {
 		(void) usb_ep_disable(link->out_ep);
 fail1:
 		(void) usb_ep_disable(link->in_ep);
 	}
 fail0:
-	
+	/* caller is responsible for cleanup on error */
 	if (result < 0)
 		return ERR_PTR(result);
 	return dev->net;
 }
 
+/**
+ * gether_disconnect - notify network layer that USB link is inactive
+ * @link: the USB link, on which gether_connect() was called
+ * Context: irqs blocked
+ *
+ * This is called to deactivate endpoints and let the network layer know
+ * the connection went inactive ("no carrier").
+ *
+ * On return, the state is as if gether_connect() had never been called.
+ * The endpoints are inactive, and accordingly without active USB I/O.
+ * Pointers to endpoint descriptors and endpoint private data are nulled.
+ */
 void gether_disconnect(struct gether *link)
 {
 	struct eth_dev		*dev = link->ioport;
@@ -887,6 +1005,10 @@ void gether_disconnect(struct gether *link)
 	netif_stop_queue(dev->net);
 	netif_carrier_off(dev->net);
 
+	/* disable endpoints, forcing (synchronous) completion
+	 * of all pending i/o.  then free the request objects
+	 * and forget about the endpoints.
+	 */
 	usb_ep_disable(link->in_ep);
 	spin_lock(&dev->req_lock);
 	while (!list_empty(&dev->tx_reqs)) {
@@ -923,7 +1045,7 @@ void gether_disconnect(struct gether *link)
 	link->out_ep->driver_data = NULL;
 	link->out_ep->desc = NULL;
 
-	
+	/* finish forgetting about this USB link episode */
 	dev->header_len = 0;
 	dev->unwrap = NULL;
 	dev->wrap = NULL;

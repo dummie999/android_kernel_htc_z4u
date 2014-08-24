@@ -1041,6 +1041,7 @@ static void update_packet_state(struct smd_channel *ch)
 	}
 }
 
+/* provide a pointer and length to next free space in the fifo */
 static unsigned ch_write_buffer(struct smd_channel *ch, void **ptr)
 {
 	unsigned head = ch->half_ch->get_head(ch->send);
@@ -1057,6 +1058,9 @@ static unsigned ch_write_buffer(struct smd_channel *ch, void **ptr)
 	}
 }
 
+/* advace the fifo write pointer after freespace
+ * from ch_write_buffer is filled
+ */
 static void ch_write_done(struct smd_channel *ch, unsigned count)
 {
 	BUG_ON(count > smd_stream_write_avail(ch));

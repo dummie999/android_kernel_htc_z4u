@@ -1,6 +1,6 @@
 /*
    BlueZ - Bluetooth protocol stack for Linux
-   Copyright (c) 2000-2001, 2010-2012 Code Aurora Forum.  All rights reserved.
+   Copyright (c) 2000-2001, 2010, Code Aurora Forum. All rights reserved.
 
    Written 2000,2001 by Maxim Krasnyansky <maxk@qualcomm.com>
 
@@ -22,6 +22,7 @@
    SOFTWARE IS DISCLAIMED.
 */
 
+/* Bluetooth HCI connection handling. */
 
 #include <linux/module.h>
 
@@ -283,6 +284,7 @@ void hci_le_ltk_neg_reply(struct hci_conn *conn)
 	hci_send_cmd(hdev, HCI_OP_LE_LTK_NEG_REPLY, sizeof(cp), &cp);
 }
 
+/* Device _must_ be locked */
 void hci_sco_setup(struct hci_conn *conn, __u8 status)
 {
 	struct hci_conn *sco = conn->link;
@@ -645,6 +647,8 @@ struct hci_dev *hci_dev_get_amp(bdaddr_t *dst)
 }
 EXPORT_SYMBOL(hci_dev_get_amp);
 
+/* Create SCO, ACL or LE connection.
+ * Device _must_ be locked */
 struct hci_conn *hci_connect(struct hci_dev *hdev, int type,
 					__u16 pkt_type, bdaddr_t *dst,
 					__u8 sec_level, __u8 auth_type)
@@ -780,6 +784,7 @@ int hci_conn_check_link_mode(struct hci_conn *conn)
 }
 EXPORT_SYMBOL(hci_conn_check_link_mode);
 
+/* Authenticate remote device */
 static int hci_conn_auth(struct hci_conn *conn, __u8 sec_level, __u8 auth_type)
 {
 	BT_DBG("conn %p", conn);
@@ -792,7 +797,7 @@ static int hci_conn_auth(struct hci_conn *conn, __u8 sec_level, __u8 auth_type)
 	else if (conn->link_mode & HCI_LM_AUTH)
 		return 1;
 
-	
+	/* Make sure we preserve an existing MITM requirement*/
 	auth_type |= (conn->auth_type & 0x01);
 	conn->auth_type = auth_type;
 	conn->auth_initiator = 1;
@@ -800,7 +805,7 @@ static int hci_conn_auth(struct hci_conn *conn, __u8 sec_level, __u8 auth_type)
 	if (!test_and_set_bit(HCI_CONN_AUTH_PEND, &conn->pend)) {
 		struct hci_cp_auth_requested cp;
 
-		
+		/* encrypt must be pending if auth is also pending */
 		set_bit(HCI_CONN_ENCRYPT_PEND, &conn->pend);
 
 		cp.handle = cpu_to_le16(conn->handle);
@@ -811,6 +816,7 @@ static int hci_conn_auth(struct hci_conn *conn, __u8 sec_level, __u8 auth_type)
 	return 0;
 }
 
+/* Enable security */
 int hci_conn_security(struct hci_conn *conn, __u8 sec_level, __u8 auth_type)
 {
 	BT_DBG("conn %p %d %d", conn, sec_level, auth_type);
@@ -863,6 +869,7 @@ int hci_conn_change_link_key(struct hci_conn *conn)
 }
 EXPORT_SYMBOL(hci_conn_change_link_key);
 
+/* Switch role */
 int hci_conn_switch_role(struct hci_conn *conn, __u8 role)
 {
 	BT_DBG("conn %p", conn);
@@ -881,6 +888,7 @@ int hci_conn_switch_role(struct hci_conn *conn, __u8 role)
 }
 EXPORT_SYMBOL(hci_conn_switch_role);
 
+/* Enter active mode */
 void hci_conn_enter_active_mode(struct hci_conn *conn, __u8 force_active)
 {
 	struct hci_dev *hdev = conn->hdev;
@@ -1058,6 +1066,7 @@ void hci_conn_hash_flush(struct hci_dev *hdev, u8 is_process)
 	}
 }
 
+/* Check pending connect attempts */
 void hci_conn_check_pending(struct hci_dev *hdev)
 {
 	struct hci_conn *conn;
