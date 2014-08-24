@@ -1,6 +1,7 @@
 GCC_VERSION      := $(shell $(CONFIG_SHELL) $(PWD)/scripts/gcc-version.sh $(CROSS_COMPILE)gcc)
 EXTRA_CFLAGS += -Idrivers/media/video/msm
 EXTRA_CFLAGS += -Idrivers/media/video/msm/io
+EXTRA_CFLAGS += -Idrivers/media/video/msm/eeprom
 EXTRA_CFLAGS += -Idrivers/media/video/msm/csi
 EXTRA_CFLAGS += -Idrivers/media/video/msm/yushanII
 obj-$(CONFIG_MSM_CAMERA_SENSOR) += msm_sensor.o
@@ -19,6 +20,8 @@ obj-$(CONFIG_IMX175) += imx175_v4l2.o
 obj-$(CONFIG_S5K6A2YA) += s5k6a2ya_v4l2.o
 obj-$(CONFIG_MT9E013) += mt9e013_v4l2.o
 obj-$(CONFIG_WEBCAM_OV9726) += ov9726_v4l2.o
+obj-$(CONFIG_OV5648) += ov5648_v4l2.o
 obj-$(CONFIG_OV7692) += ov7692_v4l2.o
+obj-$(CONFIG_OV7695) += ov7695_v4l2.o
+obj-$(CONFIG_OV7695_RAW) += ov7695_raw_v4l2.o
 obj-$(CONFIG_VX6953) += vx6953.o
-

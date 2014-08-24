@@ -949,7 +949,7 @@ static struct mipi_dsi_platform_data mipi_dsi_pdata = {
 	.lcd_pre_off = uranus_mipi_orise_lcd_pre_off,
 };
 
-#define BRI_SETTING_MIN                 30
+#define BRI_SETTING_MIN                 1
 #define BRI_SETTING_DEF                 142
 #define BRI_SETTING_MAX                 255
 
