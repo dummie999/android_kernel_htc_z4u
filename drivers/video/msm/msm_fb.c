@@ -3767,7 +3767,9 @@ static int msm_fb_ioctl(struct fb_info *info, unsigned int cmd,
 	struct msmfb_mdp_pp mdp_pp;
 	int ret = 0;
 
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
 	struct msmfb_usb_projector_info tmp_info;
+#endif
 
 	switch (cmd) {
 #ifdef CONFIG_FB_MSM_OVERLAY
@@ -4044,6 +4046,7 @@ static int msm_fb_ioctl(struct fb_info *info, unsigned int cmd,
 		ret = msmfb_handle_pp_ioctl(mfd, &mdp_pp);
 		break;
 
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
 	case MSMFB_GET_USB_PROJECTOR_INFO:
 		printk(KERN_DEBUG "MSMFB_GET_USB_PROJECTOR_INFO!\n");
 		ret = copy_to_user(argp, &usb_pjt_info, sizeof(usb_pjt_info));
@@ -4128,6 +4131,7 @@ static int msm_fb_ioctl(struct fb_info *info, unsigned int cmd,
 			return ret;
 		break;
 	}
+#endif
 
 	default:
 		MSM_FB_INFO("MDP: unknown ioctl (cmd=%x) received!\n", cmd);

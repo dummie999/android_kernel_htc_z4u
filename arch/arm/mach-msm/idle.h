@@ -1,4 +1,4 @@
-/* Copyright (c) 2007-2009,2012 Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2007-2009,2012 The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -15,8 +15,10 @@
 #define _ARCH_ARM_MACH_MSM_IDLE_H_
 
 #ifdef CONFIG_MSM_CPU_AVS
+/* 11 general purpose registers (r4-r14), 10 cp15 registers, 3 AVS registers */
 #define CPU_SAVED_STATE_SIZE (4 * 11 + 4 * 10 + 4 * 3)
 #else
+/* 11 general purpose registers (r4-r14), 10 cp15 registers */
 #define CPU_SAVED_STATE_SIZE (4 * 11 + 4 * 10)
 #endif
 
@@ -42,20 +44,22 @@ extern unsigned long msm_pm_boot_vector[NR_CPUS];
 extern uint32_t target_type;
 extern uint32_t apps_power_collapse;
 extern uint32_t *l2x0_base_addr;
+/* test code */
 extern uint32_t *idle_v7_start_ptr;
+/* test code */
 #else
 static inline void msm_pm_set_l2_flush_flag(unsigned int flag)
 {
-	
+	/* empty */
 }
 static inline void msm_pm_boot_entry(void)
 {
-	
+	/* empty */
 }
 static inline void msm_pm_write_boot_vector(unsigned int cpu,
 						unsigned long address)
 {
-	
+	/* empty */
 }
 #endif
 #endif

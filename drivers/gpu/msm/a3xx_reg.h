@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -14,6 +14,7 @@
 #ifndef _A300_REG_H
 #define _A300_REG_H
 
+/* Interrupt bit positions within RBBM_INT_0 */
 
 #define A3XX_INT_RBBM_GPU_IDLE 0
 #define A3XX_INT_RBBM_AHB_ERROR 1
@@ -40,6 +41,7 @@
 #define A3XX_INT_MISC_HANG_DETECT 24
 #define A3XX_INT_UCHE_OOB_ACCESS 25
 
+/* Register definitions */
 
 #define A3XX_RBBM_HW_VERSION 0x000
 #define A3XX_RBBM_HW_RELEASE 0x001
@@ -52,6 +54,7 @@
 #define A3XX_RBBM_AHB_CMD 0x022
 #define A3XX_RBBM_AHB_ERROR_STATUS 0x027
 #define A3XX_RBBM_GPR0_CTL 0x02E
+/* This the same register as on A2XX, just in a different place */
 #define A3XX_RBBM_STATUS 0x030
 #define A3XX_RBBM_WAIT_IDLE_CLOCKS_CTL 0x33
 #define A3XX_RBBM_INTERFACE_HANG_INT_CTL 0x50
@@ -69,6 +72,7 @@
 #define A3XX_RBBM_PERFCTR_PWR_1_HI 0x0ED
 #define A3XX_RBBM_DEBUG_BUS_CTL             0x111
 #define A3XX_RBBM_DEBUG_BUS_DATA_STATUS     0x112
+/* Following two are same as on A2XX, just in a different place */
 #define A3XX_CP_PFP_UCODE_ADDR 0x1C9
 #define A3XX_CP_PFP_UCODE_DATA 0x1CA
 #define A3XX_CP_ROQ_ADDR 0x1CC
@@ -247,9 +251,11 @@
 #define A3XX_VBIF_OUT_AXI_AOOO_EN 0x305E
 #define A3XX_VBIF_OUT_AXI_AOOO 0x305F
 
+/* Bit flags for RBBM_CTL */
 #define RBBM_RBBM_CTL_RESET_PWR_CTR1  (1 << 1)
 #define RBBM_RBBM_CTL_ENABLE_PWR_CTR1  (1 << 17)
 
+/* Various flags used by the context switch code */
 
 #define SP_MULTI 0
 #define SP_BUFFER_MODE 1
@@ -302,6 +308,11 @@
 #define UCHE_ENTIRE_CACHE 1
 #define UCHE_OP_INVALIDATE 1
 
+/*
+ * The following are bit field shifts within some of the registers defined
+ * above. These are used in the context switch code in conjunction with the
+ * _SET macro
+ */
 
 #define GRAS_CL_CLIP_CNTL_CLIP_DISABLE 16
 #define GRAS_CL_CLIP_CNTL_IJ_PERSP_CENTER 12
@@ -476,6 +487,7 @@
 #define VPC_VPCVARPSREPLMODE_COMPONENT16 28
 #define VPC_VPCVARPSREPLMODE_COMPONENT17 30
 
+/* RBBM Debug bus block IDs */
 #define RBBM_BLOCK_ID_NONE             0x0
 #define RBBM_BLOCK_ID_CP               0x1
 #define RBBM_BLOCK_ID_RBBM             0x2
@@ -505,6 +517,7 @@
 #define RBBM_BLOCK_ID_MARB_2           0x2a
 #define RBBM_BLOCK_ID_MARB_3           0x2b
 
+/* RBBM_CLOCK_CTL default value */
 #define A3XX_RBBM_CLOCK_CTL_DEFAULT 0xBFFFFFFF
 
 #endif

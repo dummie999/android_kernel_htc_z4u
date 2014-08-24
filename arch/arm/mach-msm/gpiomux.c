@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -116,6 +116,9 @@ int msm_gpiomux_init(size_t ngpio)
 	if (!msm_gpiomux_recs)
 		return -ENOMEM;
 
+	/* There is no need to zero this memory, as clients will be blindly
+	 * installing settings on top of it.
+	 */
 	msm_gpiomux_sets = kmalloc(sizeof(struct gpiomux_setting) * ngpio *
 		GPIOMUX_NSETTINGS, GFP_KERNEL);
 	if (!msm_gpiomux_sets) {

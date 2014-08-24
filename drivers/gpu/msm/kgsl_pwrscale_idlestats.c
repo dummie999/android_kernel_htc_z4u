@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -70,6 +70,8 @@ static void idlestats_get_sample(struct msm_idle_stats_device *idledev,
 	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
 
 	mutex_lock(&device->mutex);
+	/* If the GPU is asleep, don't wake it up - assume that we
+	   are idle */
 
 	if (device->state == KGSL_STATE_ACTIVE) {
 		device->ftbl->power_stats(device, &stats);
@@ -92,7 +94,7 @@ static void idlestats_busy(struct kgsl_device *device,
 
 	if (priv->pulse.busy_start_time != 0) {
 		priv->pulse.wait_interval = 0;
-		
+		/* Calculate the total CPU busy time for this GPU pulse */
 		for (i = 0; i < num_possible_cpus(); i++) {
 			spin_lock(&priv->cpu_info.lock);
 			if (cpu_online(i)) {
@@ -101,7 +103,7 @@ static void idlestats_busy(struct kgsl_device *device,
 						get_cpu_idle_time_us(i, NULL);
 				busy = priv->cpu_info.end[i] -
 						priv->cpu_info.start[i];
-				
+				/* Normalize the busy time by frequency */
 				busy = priv->cpu_info.curr_freq[i] *
 					(busy / priv->cpu_info.max_freq[i]);
 				priv->pulse.wait_interval += busy;
@@ -111,8 +113,12 @@ static void idlestats_busy(struct kgsl_device *device,
 		}
 		priv->pulse.wait_interval /= nr_cpu;
 
+		/* This is called from within a mutex protected function, so
+		   no additional locking required */
 		device->ftbl->power_stats(device, &stats);
 
+		/* If total_time is zero, then we don't have
+		   any interesting statistics to store */
 		if (stats.total_time == 0) {
 			priv->pulse.busy_start_time = 0;
 			return;
@@ -151,6 +157,8 @@ static void idlestats_sleep(struct kgsl_device *device,
 static void idlestats_wake(struct kgsl_device *device,
 			struct kgsl_pwrscale *pwrscale)
 {
+	/* Use highest perf level on wake-up from
+	   sleep for better performance */
 	kgsl_pwrctrl_pwrlevel_change(device, KGSL_PWRLEVEL_TURBO);
 }
 

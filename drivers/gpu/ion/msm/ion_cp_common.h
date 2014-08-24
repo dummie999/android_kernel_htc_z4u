@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -21,6 +21,18 @@
 #define ION_CP_V2	2
 
 #if defined(CONFIG_ION_MSM)
+/*
+ * ion_cp2_protect_mem - secures memory via trustzone
+ *
+ * @chunks - physical address of the array containing the chunks to
+ *		be locked down
+ * @nchunks - number of entries in the array
+ * @chunk_size - size of each memory chunk
+ * @usage - usage hint
+ * @lock - 1 for lock, 0 for unlock
+ *
+ * return value is the result of the scm call
+ */
 int ion_cp_change_chunks_state(unsigned long chunks, unsigned int nchunks,
 			unsigned int chunk_size, enum cp_mem_usage usage,
 			int lock);

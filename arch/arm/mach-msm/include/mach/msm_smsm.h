@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -110,6 +110,20 @@ void *smem_get_entry(unsigned id, unsigned *size);
 int smsm_change_state(uint32_t smsm_entry,
 		      uint32_t clear_mask, uint32_t set_mask);
 
+/*
+ * Changes the global interrupt mask.  The set and clear masks are re-applied
+ * every time the global interrupt mask is updated for callback registration
+ * and de-registration.
+ *
+ * The clear mask is applied first, so if a bit is set to 1 in both the clear
+ * mask and the set mask, the result will be that the interrupt is set.
+ *
+ * @smsm_entry  SMSM entry to change
+ * @clear_mask  1 = clear bit, 0 = no-op
+ * @set_mask    1 = set bit, 0 = no-op
+ *
+ * @returns 0 for success, < 0 for error
+ */
 int smsm_change_intr_mask(uint32_t smsm_entry,
 			  uint32_t clear_mask, uint32_t set_mask);
 int smsm_get_intr_mask(uint32_t smsm_entry, uint32_t *intr_mask);
@@ -131,7 +145,7 @@ void smd_sleep_exit(void);
 #define SMEM_NUM_SMD_BLOCK_CHANNELS         64
 
 enum {
-	
+	/* fixed items */
 	SMEM_PROC_COMM = 0,
 	SMEM_HEAP_INFO,
 	SMEM_ALLOCATION_TABLE,
@@ -143,7 +157,7 @@ enum {
 	SMEM_MEMORY_BARRIER_LOCATION,
 	SMEM_FIXED_ITEM_LAST = SMEM_MEMORY_BARRIER_LOCATION,
 
-	
+	/* dynamic items */
 	SMEM_AARM_PARTITION_TABLE,
 	SMEM_AARM_BAD_BLOCK_TABLE,
 	SMEM_RESERVE_BAD_BLOCKS,

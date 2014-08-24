@@ -1,4 +1,4 @@
-/* Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2009-2010, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -16,7 +16,7 @@
 
 struct msm_handset_platform_data {
 	const char *hs_name;
-	uint32_t pwr_key_delay_ms; 
+	uint32_t pwr_key_delay_ms; /* default 500ms */
 	bool ignore_end_key;
 };
 

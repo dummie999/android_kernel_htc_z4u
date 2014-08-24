@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -43,6 +43,7 @@ enum {
 	MSM_RPM_CTX_REJECTED = 31,
 };
 
+/* RPM control message RAM enums */
 enum {
 	MSM_RPM_CTRL_VERSION_MAJOR,
 	MSM_RPM_CTRL_VERSION_MINOR,
@@ -75,7 +76,7 @@ enum {
 
 	MSM_RPM_ID_RPM_CTL,
 
-	
+	/* TRIGGER_CLEAR/SET deprecated in these 24 RESERVED bytes */
 	MSM_RPM_ID_RESERVED_0,
 	MSM_RPM_ID_RESERVED_5 =
 		MSM_RPM_ID_RESERVED_0 + 5,
@@ -227,7 +228,7 @@ enum {
 	MSM_RPM_ID_DDR_DMM_1,
 	MSM_RPM_ID_QDSS_CLK,
 
-	
+	/* 8660 specific ids */
 	MSM_RPM_ID_TRIGGER_SET_FROM,
 	MSM_RPM_ID_TRIGGER_SET_TO,
 	MSM_RPM_ID_TRIGGER_SET_TRIGGER,
@@ -239,7 +240,7 @@ enum {
 	MSM_RPM_ID_SMI_CLK,
 	MSM_RPM_ID_APPS_L2_CACHE_CTL,
 
-	
+	/* pmic 8901 */
 	MSM_RPM_ID_SMPS0B_0,
 	MSM_RPM_ID_SMPS0B_1,
 	MSM_RPM_ID_SMPS1B_0,
@@ -270,7 +271,7 @@ enum {
 	MSM_RPM_ID_LVS3B,
 	MSM_RPM_ID_MVS,
 
-	
+	/* pmic 8058 */
 	MSM_RPM_ID_SMPS0_0,
 	MSM_RPM_ID_SMPS0_1,
 	MSM_RPM_ID_SMPS1_0,
@@ -336,7 +337,7 @@ enum {
 	MSM_RPM_ID_LVS0,
 	MSM_RPM_ID_LVS1,
 
-	
+	/* 9615 specific */
 	MSM_RPM_ID_PM8018_S1_0,
 	MSM_RPM_ID_PM8018_S1_1,
 	MSM_RPM_ID_PM8018_S2_0,
@@ -377,7 +378,7 @@ enum {
 	MSM_RPM_ID_PM8018_L14_1,
 	MSM_RPM_ID_PM8018_LVS1,
 
-	
+	/* 8930 specific */
 	MSM_RPM_ID_PM8038_S1_0,
 	MSM_RPM_ID_PM8038_S1_1,
 	MSM_RPM_ID_PM8038_S2_0,
@@ -452,7 +453,7 @@ enum {
 	MSM_RPM_ID_PM8038_LVS2,
 	MSM_RPM_ID_VOLTAGE_CORNER,
 
-	
+	/* 8064 specific */
 	MSM_RPM_ID_PM8821_S1_0,
 	MSM_RPM_ID_PM8821_S1_1,
 	MSM_RPM_ID_PM8821_S2_0,
@@ -604,7 +605,7 @@ enum {
 	MSM_RPM_STATUS_ID_EBI1_CH1_RANGE,
 	MSM_RPM_STATUS_ID_QDSS_CLK,
 
-	
+	/* 8660 Specific */
 	MSM_RPM_STATUS_ID_PLL_4,
 	MSM_RPM_STATUS_ID_SMI_CLK,
 	MSM_RPM_STATUS_ID_APPS_L2_CACHE_CTL,
@@ -702,7 +703,7 @@ enum {
 	MSM_RPM_STATUS_ID_LVS0,
 	MSM_RPM_STATUS_ID_LVS1,
 
-	
+	/* 9615 Specific */
 	MSM_RPM_STATUS_ID_PM8018_S1_0,
 	MSM_RPM_STATUS_ID_PM8018_S1_1,
 	MSM_RPM_STATUS_ID_PM8018_S2_0,
@@ -743,7 +744,7 @@ enum {
 	MSM_RPM_STATUS_ID_PM8018_L14_1,
 	MSM_RPM_STATUS_ID_PM8018_LVS1,
 
-	
+	/* 8930 specific */
 	MSM_RPM_STATUS_ID_PM8038_S1_0,
 	MSM_RPM_STATUS_ID_PM8038_S1_1,
 	MSM_RPM_STATUS_ID_PM8038_S2_0,
@@ -818,7 +819,7 @@ enum {
 	MSM_RPM_STATUS_ID_PM8038_LVS2,
 	MSM_RPM_STATUS_ID_VOLTAGE_CORNER,
 
-	
+	/* 8064 specific */
 	MSM_RPM_STATUS_ID_PM8821_S1_0,
 	MSM_RPM_STATUS_ID_PM8821_S1_1,
 	MSM_RPM_STATUS_ID_PM8821_S2_0,
@@ -851,9 +852,9 @@ struct msm_rpm_iv_pair {
 };
 
 struct msm_rpm_notification {
-	struct list_head list;  
+	struct list_head list;  /* reserved for RPM use */
 	struct semaphore sem;
-	uint32_t sel_masks[SEL_MASK_SIZE];  
+	uint32_t sel_masks[SEL_MASK_SIZE];  /* reserved for RPM use */
 };
 
 struct msm_rpm_map_data {
@@ -1005,6 +1006,6 @@ static inline int msm_rpm_init(struct msm_rpm_platform_data *data)
 	return -ENODEV;
 }
 
-#endif 
+#endif /* CONFIG_RPM */
 
-#endif 
+#endif /* __ARCH_ARM_MACH_MSM_RPM_H */

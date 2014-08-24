@@ -29,6 +29,7 @@ DEFINE_MUTEX(pm_mutex);
 
 #ifdef CONFIG_PM_SLEEP
 
+/* Routines for PM-transition notifications */
 
 static BLOCKING_NOTIFIER_HEAD(pm_chain_head);
 
@@ -58,6 +59,7 @@ int pm_notifier_call_chain(unsigned long val)
 	return notifier_to_errno(ret);
 }
 
+/* If set, devices may be suspended and resumed asynchronously. */
 int pm_async_enabled = 1;
 
 static ssize_t pm_async_show(struct kobject *kobj, struct kobj_attribute *attr,
@@ -182,7 +184,7 @@ static ssize_t pm_test_show(struct kobject *kobj, struct kobj_attribute *attr,
 		}
 
 	if (s != buf)
-		
+		/* convert the last space to a newline */
 		*(s-1) = '\n';
 
 	return (s - buf);
@@ -216,7 +218,7 @@ static ssize_t pm_test_store(struct kobject *kobj, struct kobj_attribute *attr,
 }
 
 power_attr(pm_test);
-#endif 
+#endif /* CONFIG_PM_DEBUG */
 
 #ifdef CONFIG_DEBUG_FS
 static char *suspend_step_name(enum suspend_stat_step step)
@@ -315,12 +317,22 @@ static int __init pm_debugfs_init(void)
 }
 
 late_initcall(pm_debugfs_init);
-#endif 
+#endif /* CONFIG_DEBUG_FS */
 
-#endif 
+#endif /* CONFIG_PM_SLEEP */
 
 struct kobject *power_kobj;
 
+/**
+ *	state - control system power state.
+ *
+ *	show() returns what states are supported, which is hard-coded to
+ *	'standby' (Power-On Suspend), 'mem' (Suspend-to-RAM), and
+ *	'disk' (Suspend-to-Disk).
+ *
+ *	store() accepts one of those strings, translates it into the
+ *	proper enumerated value, and initiates a suspend transition.
+ */
 static ssize_t state_show(struct kobject *kobj, struct kobj_attribute *attr,
 			  char *buf)
 {
@@ -337,7 +349,7 @@ static ssize_t state_show(struct kobject *kobj, struct kobj_attribute *attr,
 	s += sprintf(s, "%s\n", "disk");
 #else
 	if (s != buf)
-		
+		/* convert the last space to a newline */
 		*(s-1) = '\n';
 #endif
 	return (s - buf);
@@ -361,7 +373,7 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
 	p = memchr(buf, '\n', n);
 	len = p ? p - buf : n;
 
-	
+	/* First, check if we are requested to hibernate */
 	if (len == 4 && !strncmp(buf, "disk", len)) {
 		error = hibernate();
 		goto Exit;
@@ -441,7 +453,7 @@ static ssize_t wakeup_count_store(struct kobject *kobj,
 }
 
 power_attr(wakeup_count);
-#endif 
+#endif /* CONFIG_PM_SLEEP */
 
 #ifdef CONFIG_PM_TRACE
 int pm_trace_enabled;
@@ -483,7 +495,7 @@ pm_trace_dev_match_store(struct kobject *kobj, struct kobj_attribute *attr,
 
 power_attr(pm_trace_dev_match);
 
-#endif 
+#endif /* CONFIG_PM_TRACE */
 
 #ifdef CONFIG_USER_WAKELOCK
 power_attr(wake_lock);

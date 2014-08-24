@@ -9,6 +9,10 @@
 #include <linux/ppp_defs.h>
 #include <net/flow_keys.h>
 
+/* copy saddr & daddr, possibly using 64bit load/store
+ * Equivalent to :	flow->src = iph->saddr;
+ *			flow->dst = iph->daddr;
+ */
 static void iph_to_flow_copy_addrs(struct flow_keys *flow, const struct iphdr *iph)
 {
 	BUILD_BUG_ON(offsetof(typeof(*flow), dst) !=
@@ -31,6 +35,8 @@ again:
 		struct iphdr _iph;
 ip:
 		iph = skb_header_pointer(skb, nhoff, sizeof(_iph), &_iph);
+
+		/* CVE-2013-4348 issue : make sure iph->ihl is not zero ... */
 		if (!iph || iph->ihl < 5)
 			return false;
 
@@ -101,6 +107,10 @@ ipv6:
 		hdr = skb_header_pointer(skb, nhoff, sizeof(_hdr), &_hdr);
 		if (!hdr)
 			return false;
+		/*
+		 * Only look inside GRE if version zero and no
+		 * routing
+		 */
 		if (!(hdr->flags & (GRE_VERSION|GRE_ROUTING))) {
 			proto = hdr->proto;
 			nhoff += 4;

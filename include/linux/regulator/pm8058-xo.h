@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -17,6 +17,7 @@
 
 #define PM8058_XO_BUFFER_DEV_NAME	"pm8058-xo-buffer"
 
+/* XO buffer control ids */
 #define PM8058_XO_ID_A0		0
 #define PM8058_XO_ID_A1		1
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -11,6 +11,9 @@
  *
  */
 
+/*
+ * PING APPS SERVER Driver
+ */
 
 #include <linux/slab.h>
 #include <linux/module.h>
@@ -21,6 +24,7 @@
 #include <linux/workqueue.h>
 #include <mach/msm_rpcrouter.h>
 
+/* ping server definitions */
 
 #define PING_APPS_PROG 0x30000082
 #define PING_APPS_VERS 0x00010001

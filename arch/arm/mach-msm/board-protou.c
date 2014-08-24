@@ -324,7 +324,7 @@ static int msm_hsusb_ldo_init(int init)
 
 		return 0;
 	}
-
+	/* else fall through */
 reg_free:
 	regulator_put(reg_hsusb);
 out:
@@ -392,10 +392,10 @@ FIXME
 	android_usb_pdata.products[0].product_id =
 		android_usb_pdata.product_id;
 
-
+	/* diag bit set */
 	if (get_radio_flag() & 0x20000)
 		android_usb_pdata.diag_init = 1;
-
+	/* add cdrom support in normal mode */
 	if (board_mfg_mode() == 0) {
 		android_usb_pdata.nluns = 1;
 		android_usb_pdata.cdrom_lun = 0x1;
@@ -469,21 +469,21 @@ static void protou_poweralg_config_init(struct poweralg_config_type *config)
 	pr_info("[BATT] %s() is used\n",__func__);
 	config->full_charging_mv = 4250;
 	config->full_charging_ma = 50;
-	config->full_pending_ma = 0;
+	config->full_pending_ma = 0;		/* disabled*/
 	config->full_charging_timeout_sec = 60 * 60;
 	config->voltage_recharge_mv = 4250;
 	config->voltage_exit_full_mv = 4200;
-	config->min_taper_current_mv = 0;
-	config->min_taper_current_ma = 0;
+	config->min_taper_current_mv = 0;	/* disabled */
+	config->min_taper_current_ma = 0;	/* disabled */
 	config->wait_votlage_statble_sec = 1 * 60;
 	config->predict_timeout_sec = 10;
 	config->polling_time_in_charging_sec = 30;
 
 	config->enable_full_calibration = TRUE;
 	config->enable_weight_percentage = TRUE;
-	config->software_charger_timeout_sec = 57600;
-	config->superchg_software_charger_timeout_sec = 0;
-	config->charger_hw_safety_timer_watchdog_sec =  0;
+	config->software_charger_timeout_sec = 57600; /* 16hr */
+	config->superchg_software_charger_timeout_sec = 0;	/* disabled */
+	config->charger_hw_safety_timer_watchdog_sec =  0;	/* disabled */
 
 	config->debug_disable_shutdown = FALSE;
 	config->debug_fake_room_temp = FALSE;
@@ -498,6 +498,14 @@ static int protou_update_charging_protect_flag(int ibat_ma, int vbat_mv, int tem
 {
 	static int pState = 0;
 	int old_pState = pState;
+	/* pStates:
+		0: initial (temp detection)
+		1: temp < 0 degree c
+		2: 0 <= temp <= 45 degree c
+		3: 45 < temp <= 48 degree c
+		4: 48 < temp <= 60 degree c
+		5: 60 < temp
+	*/
 	enum {
 		PSTAT_DETECT = 0,
 		PSTAT_LOW_STOP,
@@ -506,8 +514,10 @@ static int protou_update_charging_protect_flag(int ibat_ma, int vbat_mv, int tem
 		PSTAT_LIMITED,
 		PSTAT_HIGH_STOP
 	};
+	/* generally we assumed that pState implies last temp.
+		it won't hold if temp changes faster than sample rate */
 
-
+	// step 1. check if change state condition is hit
 	pr_debug("[BATT] %s(i=%d, v=%d, t=%d, %d, %d)\n",__func__, ibat_ma, vbat_mv, temp_01c, *chg_allowed, *hchg_allowed);
 	switch(pState) {
 		default:
@@ -527,14 +537,14 @@ static int protou_update_charging_protect_flag(int ibat_ma, int vbat_mv, int tem
 		case PSTAT_LOW_STOP:
 			if (30 <= temp_01c)
 				pState = PSTAT_NORMAL;
-
+			/* suppose never jump to LIMITED/HIGH_STOP from here */
 			break;
 		case PSTAT_NORMAL:
 			if (temp_01c < 0)
 				pState = PSTAT_LOW_STOP;
 			else if (600 < temp_01c)
 				pState = PSTAT_HIGH_STOP;
-			else if (480 < temp_01c)
+			else if (480 < temp_01c) /* also implies t <= 550 */
 				pState = PSTAT_LIMITED;
 			else if (450 < temp_01c)
 				pState = PSTAT_SLOW;
@@ -566,13 +576,15 @@ static int protou_update_charging_protect_flag(int ibat_ma, int vbat_mv, int tem
 				pState = PSTAT_SLOW;
 			else if ((temp_01c <= 570) && (vbat_mv <= 3800))
 				pState = PSTAT_LIMITED;
-
+			/* suppose never jump to LOW_STOP from here */
 			break;
 	}
 	if (old_pState != pState)
 		pr_info("[BATT] Protect pState changed from %d to %d\n", old_pState, pState);
 
-
+	/* step 2. check state protect condition */
+	/* chg_allowed = TRUE:only means it's allowed no matter it has charger.
+		same as hchg_allowed. */
 	switch(pState) {
 		default:
 		case PSTAT_DETECT:
@@ -586,14 +598,14 @@ static int protou_update_charging_protect_flag(int ibat_ma, int vbat_mv, int tem
 			*chg_allowed = TRUE;
 			*hchg_allowed = TRUE;
 			break;
-		case PSTAT_SLOW:
+		case PSTAT_SLOW:	/* 4.2V Charge Full, 4.15V recharge */
 			if (4200 < vbat_mv)
 				*chg_allowed = FALSE;
 			else if (vbat_mv <= 4150)
 				*chg_allowed = TRUE;
 			*hchg_allowed = FALSE;
 			break;
-		case PSTAT_LIMITED:
+		case PSTAT_LIMITED:	/* 4.1V Charge Full, 3.8V recharge */
 			if (PSTAT_LIMITED != old_pState)
 				*chg_allowed = TRUE;
 			if (4100 < vbat_mv)
@@ -608,7 +620,7 @@ static int protou_update_charging_protect_flag(int ibat_ma, int vbat_mv, int tem
 			break;
 	}
 
-
+	/* update temp_fault */
 	if (PSTAT_NORMAL == pState)
 		*temp_fault = FALSE;
 	else
@@ -635,13 +647,14 @@ static struct platform_device htc_battery_pdev = {
 	},
 };
 
+/* battery parameters */
 UINT32 m_parameter_TWS_SDI_1650mah[] = {
-
+	/* capacity (in 0.01%) -> voltage (in mV)*/
 	10000, 4250, 8100, 4101, 5100, 3846,
 	2000, 3700, 900, 3641, 0, 3411,
 };
 UINT32 m_parameter_Formosa_Sanyo_1650mah[] = {
-
+	/* capacity (in 0.01%) -> voltage (in mV)*/
 	10000, 4250, 8200, 4145, 5000, 3845,
 	1800, 3735, 500, 3625, 0, 3405,
 };
@@ -695,7 +708,7 @@ static ds2746_platform_data ds2746_pdev_data = {
 	.func_get_battery_id = get_battery_id,
 	.func_poweralg_config_init = protou_poweralg_config_init,
 	.func_update_charging_protect_flag = protou_update_charging_protect_flag,
-	.r2_kohm = 0,
+	.r2_kohm = 0,	/* use get_battery_id, doesn't need this */
 	.batt_param = &protou_battery_parameter,
 #ifdef CONFIG_TPS65200
 	.func_kick_charger_ic = tps65200_kick_charger_ic,
@@ -779,7 +792,7 @@ static struct msm_serial_hs_platform_data msm_uart_dm1_pdata = {
 	.inject_rx_on_wakeup = 0,
 	.cpu_lock_supported = 1,
 
-
+	/* for bcm BT */
 	.bt_wakeup_pin_supported = 1,
 	.bt_wakeup_pin = PROTOU_GPIO_BT_WAKE,
 	.host_wakeup_pin = PROTOU_GPIO_BT_HOST_WAKE_XC,
@@ -848,8 +861,9 @@ static struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
 	.p_addr = 0,
 };
 
+/* 8625 PM platform data */
 static struct msm_pm_platform_data msm8625_pm_data[MSM_PM_SLEEP_MODE_NR * 2] = {
-
+	/* CORE0 entries */
 	[MSM_PM_MODE(0, MSM_PM_SLEEP_MODE_POWER_COLLAPSE)] = {
 					.idle_supported = 1,
 					.suspend_supported = 1,
@@ -868,7 +882,7 @@ static struct msm_pm_platform_data msm8625_pm_data[MSM_PM_SLEEP_MODE_NR * 2] = {
 					.residency = 20000,
 	},
 
-
+	/* picked latency & redisdency values from 7x30 */
 	[MSM_PM_MODE(0, MSM_PM_SLEEP_MODE_POWER_COLLAPSE_STANDALONE)] = {
 					.idle_supported = 0,
 					.suspend_supported = 0,
@@ -887,7 +901,7 @@ static struct msm_pm_platform_data msm8625_pm_data[MSM_PM_SLEEP_MODE_NR * 2] = {
 					.residency = 10,
 	},
 
-
+	/* picked latency & redisdency values from 7x30 */
 	[MSM_PM_MODE(1, MSM_PM_SLEEP_MODE_POWER_COLLAPSE_STANDALONE)] = {
 					.idle_supported = 1,
 					.suspend_supported = 1,
@@ -1260,6 +1274,8 @@ static struct platform_device pm8029_leds = {
                 .platform_data  = &pm8029_leds_data,
         },
 };
+
+/* HTC_HEADSET_GPIO Driver */
 static struct htc_headset_gpio_platform_data htc_headset_gpio_data = {
 	.hpin_gpio		= PROTOU_AUD_HP_INz,
 	.key_enable_gpio	= 0,
@@ -1274,6 +1290,7 @@ static struct platform_device htc_headset_gpio = {
 	},
 };
 
+/* HTC_HEADSET_PMIC Driver */
 static struct htc_headset_pmic_platform_data htc_headset_pmic_data = {
 	.driver_flag		= DRIVER_HS_PMIC_RPC_KEY,
 	.hpin_gpio		= 0,
@@ -1311,11 +1328,12 @@ static struct platform_device htc_headset_one_wire = {
        },
 };
 
+/* HTC_HEADSET_MGR Driver */
 static struct platform_device *headset_devices[] = {
 	&htc_headset_pmic,
 	&htc_headset_gpio,
 	&htc_headset_one_wire,
-
+	/* Please put the headset detection driver on the last */
 };
 
 static struct headset_adc_config htc_headset_mgr_config[] = {
@@ -1335,7 +1353,7 @@ static struct headset_adc_config htc_headset_mgr_config[] = {
 		.adc_min = 21582,
 	},
 	{
-		.type = HEADSET_NO_MIC,
+		.type = HEADSET_NO_MIC, /* HEADSET_INDICATOR */
 		.adc_max = 21581,
 		.adc_min = 9045,
 	},
@@ -1394,7 +1412,7 @@ static void headset_init(void)
 		ret = gpio_tlmm_config(headset_cpu_gpio[i], GPIO_CFG_ENABLE);
 		pr_info("[HS_BOARD]Config gpio[%d], ret = %d\n", (headset_cpu_gpio[i] & 0x3FF0) >> 4, ret);
 	}
-	gpio_set_value(PROTOU_AUD_UART_OEz, 1);
+	gpio_set_value(PROTOU_AUD_UART_OEz, 1); /*Disable 1-wire level shift by default*/
 	gpio_set_value(PROTOU_AUD_2V85_EN, 0);
 	gpio_set_value(PROTOU_AUD_UART_SEL, 0);
 }
@@ -1425,13 +1443,14 @@ static struct platform_device htc_headset_mgr = {
 	},
 };
 
+/* HEADSET DRIVER END */
 
 
 static struct platform_device *msm7627a_surf_ffa_devices[] __initdata = {
 	&msm_device_dmov,
 	&msm_device_smd,
 	&msm_device_uart1,
-#if 0
+#if 0//config by BT
 	&msm_device_uart_dm1,
 #endif
 	&msm_device_uart_dm2,
@@ -1477,7 +1496,7 @@ static struct platform_device *msm8625_surf_devices[] __initdata = {
 	&ram_console_device,
 	&msm8625_device_dmov,
 	&msm8625_device_uart1,
-#if 0
+#if 0//config by BT
 	&msm8625_device_uart_dm1,
 #endif
 	&msm8625_device_uart_dm2,
@@ -1722,6 +1741,7 @@ static void __init msm8625_device_i2c_init(void)
 		&msm_gsbi1_qup_i2c_pdata;
 }
 
+/* Touch Panel */
 #define PROTOU_GPIO_TP_ATT_N            (18)
 #define PROTOU_V_TP_3V3_EN              (31)
 #define PROTOU_GPIO_TP_RST_N            (120)
@@ -2046,7 +2066,7 @@ int msm8625_init_keypad(void);
 int flashlight_control(int mode)
 {
 	int	rc;
-
+	/* Andrew_Cheng Turn off backlight when flash on */
 	static int	backlight_off = 0;
 
 	if (mode != FL_MODE_PRE_FLASH && mode != FL_MODE_OFF) {
@@ -2109,12 +2129,12 @@ static void __init msm7x27a_init_ebi2(void)
 	ebi2_cfg = readl(ebi2_cfg_ptr);
 	if (machine_is_msm7x27a_rumi3() || machine_is_msm7x27a_surf() ||
 		machine_is_msm7625a_surf() || machine_is_msm8625_surf() || machine_is_protou() || machine_is_protodug() || machine_is_magnids() || machine_is_protodcg())
-		ebi2_cfg |= (1 << 4);
+		ebi2_cfg |= (1 << 4); /* CS2 */
 
 	writel(ebi2_cfg, ebi2_cfg_ptr);
 	iounmap(ebi2_cfg_ptr);
 
-
+	/* Enable A/D MUX[bit 31] from EBI2_XMEM_CS2_CFG1 */
 	ebi2_cfg_ptr = ioremap_nocache(MSM_EBI2_XMEM_CS2_CFG1,
 							 sizeof(uint32_t));
 	if (!ebi2_cfg_ptr)
@@ -2162,7 +2182,7 @@ static void msm_adsp_add_pdev(void)
 #if 0
 #define UART1DM_RX_GPIO		45
 #endif
-#if 0
+#if 0//defined(CONFIG_BT) && defined(CONFIG_MARIMBA_CORE)
 static int __init msm7x27a_init_ar6000pm(void)
 {
 	msm_wlan_ar6000_pm_device.dev.platform_data = &ar600x_wlan_power;
@@ -2203,7 +2223,7 @@ static void __init msm7x27a_add_platform_devices(void)
 static void __init msm7x27a_uartdm_config(void)
 {
 	msm7x27a_cfg_uart2dm_serial();
-#if 0
+#if 0//UART1DM config by BT
 	msm_uart_dm1_pdata.wakeup_irq = gpio_to_irq(UART1DM_RX_GPIO);
 	if (cpu_is_msm8625())
 		msm8625_device_uart_dm1.dev.platform_data =
@@ -2267,12 +2287,11 @@ static void __init msm7x2x_init(void)
 
 	msm7x2x_misc_init();
 
-
+	/* Initialize regulators first so that other devices can use them */
 	msm7x27a_init_regulators();
 	msm_adsp_add_pdev();
 	msm8625_device_i2c_init();
 	msm7x27a_init_ebi2();
-
 
 	msm7x27a_otg_gadget();
 
@@ -2311,7 +2330,7 @@ static void __init msm7x2x_init(void)
 	perflock_screen_policy_init(&msm7x27a_screen_off_policy);
 #endif
 
-
+	/* Ensure ar6000pm device is registered before MMC/SDC */
 	msm7x27a_init_ar6000pm();
 
 #ifdef CONFIG_MMC_MSM
@@ -2329,7 +2348,7 @@ static void __init msm7x2x_init(void)
 
 #endif
 
-
+	/* display initializations*/
 	protou_init_panel();
 	printk(KERN_ERR "%s: protou_init_panel\n", __func__);
 
@@ -2387,6 +2406,7 @@ static void __init msm7x2x_init(void)
 				i2c_tps61310_flashlight,
 				ARRAY_SIZE(i2c_tps61310_flashlight));
 
+	/*register gpio expander here*/
 	i2c_register_board_info(MSM_GSBI1_QUP_I2C_BUS_ID,
 			i2c_bma250_devices, ARRAY_SIZE(i2c_bma250_devices));
 	properties_kobj = kobject_create_and_add("board_properties", NULL);
@@ -2421,7 +2441,7 @@ static void __init protou_fixup(struct tag *tags, char **cmdline, struct meminfo
 	mi->bank[0].size = 0x0CE00000;
 	mi->bank[1].start = 0x10000000;
 
-
+	/*reserve 20MB for QXDM log if radio sm log enable is ture*/
 		mi->bank[1].size = 0x1FB00000;
 }
 

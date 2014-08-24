@@ -1,4 +1,4 @@
-/* Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2009, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -53,7 +53,7 @@ static int msm_fsusb_rpc_arg(struct msm_rpc_client *client,
 			buf += sizeof(uint32_t);
 		}
 
-		
+		/* sleep_assert callback fucntion will be registered locally*/
 		*((uint32_t *)buf) = cpu_to_be32(0xffffffff);
 		size += sizeof(uint32_t);
 		break;

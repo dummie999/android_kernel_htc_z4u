@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2008-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -78,7 +78,7 @@ static char dispV_timing[5] = {0xc1, 0x00, 0x10, 0x00, 0x01};
 static char dispCtrl[3] = {0xc3, 0x00, 0x19};
 static char test_mode_c4[2] = {0xc4, 0x03};
 static char dispH_timing[15] = {
-	
+	/* TYPE_DCS_LWRITE */
 	0xc5, 0x00, 0x01, 0x05,
 	0x04, 0x5e, 0x00, 0x00,
 	0x00, 0x00, 0x0b, 0x17,

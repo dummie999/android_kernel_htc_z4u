@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -160,8 +160,12 @@ int chip_power_qrf6285(bool on)
 				}
 			}
 
-			
+			/*At this point CLK_PWR_REQ is high*/
 			if (WLAN_VREG_L6 == index) {
+				/*
+				 * Configure A0 clock to be slave to
+				 * WLAN_CLK_PWR_REQ
+`				 */
 				rc = pmapp_clock_vote(id, PMAPP_CLOCK_ID_A0,
 						PMAPP_CLOCK_VOTE_PIN_CTRL);
 				if (rc) {

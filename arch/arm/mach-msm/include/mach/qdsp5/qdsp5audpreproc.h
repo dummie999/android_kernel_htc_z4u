@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -25,6 +25,7 @@
 #define MSM_ADSP_ENC_MODE_TUNNEL 24
 #define MSM_ADSP_ENC_MODE_NON_TUNNEL 25
 
+/* event callback routine prototype*/
 typedef void (*audpreproc_event_func)(void *private, unsigned id, void *msg);
 
 struct audpreproc_event_callback {
@@ -32,11 +33,13 @@ struct audpreproc_event_callback {
 	void *private;
 };
 
+/*holds audrec information*/
 struct audrec_session_info {
 	int session_id;
 	int sampling_freq;
 };
 
+/* Exported common api's from audpreproc layer */
 int audpreproc_aenc_alloc(unsigned enc_type, const char **module_name,
 		unsigned *queue_id);
 void audpreproc_aenc_free(int enc_id);
@@ -67,4 +70,4 @@ void audrectask_disable(unsigned enc_type, void *private);
 int audrectask_send_cmdqueue(void *cmd, unsigned len);
 int audrectask_send_bitstreamqueue(void *cmd, unsigned len);
 
-#endif 
+#endif /* QDSP5AUDPREPROC_H */
