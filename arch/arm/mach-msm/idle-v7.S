@@ -2,7 +2,7 @@
  * Idle processing for ARMv7-based Qualcomm SoCs.
  *
  * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2007-2009, 2011-2012 Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2007-2009, 2011-2012 The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -48,7 +48,6 @@ ENTRY(msm_arch_idle)
 	isb
 
 go_wfi:
-	dsb
 	wfi
 	bne	wfi_done
 	mcr	p15, 7, r1, c15, c0, 5
@@ -136,7 +135,6 @@ skip:
 	ldr	r1, =SCM_CMD_TERMINATE_PC
 	ldr	r2, =msm_pm_flush_l2_flag
 	ldr	r2, [r2]
-	dsb
 	bl	scm_call_atomic1
 #else
 	mrc     p15, 0, r4, c1, c0, 0    /* read current CR    */
@@ -148,9 +146,11 @@ skip:
 	SUSPEND_8x25_L2
 	SET_SMP_COHERENCY OFF
 
+	DUMP_SPM_REG idle_v7_start_ptr
+	WRITE_SMEM pm_write_smem_data 0xAA
 	MARKER	idle_v7_start_ptr 0x4 0x7 0x1
+	dsb
 
-	dsb								/* sync from hTC main line */
 	wfi
 	DELAY_8x25 300
 
@@ -341,6 +341,29 @@ l2x0_base_addr:
 idle_v7_start_ptr:
 	.long	0x0
 
+	.globl spm0_base_addr
+spm0_base_addr:
+	.long 0x0
+
+	.globl spm1_base_addr
+spm1_base_addr:
+	.long 0x0
+
+	.globl spm2_base_addr
+spm2_base_addr:
+	.long 0x0
+
+	.globl spm3_base_addr
+spm3_base_addr:
+	.long 0x0
+
+	.globl  apps_pwr_dwn
+apps_pwr_dwn:
+	.long   0x0
+
+	.globl pm_write_smem_data
+pm_write_smem_data:
+	.long	0x0
 /*
  * Default the l2 flush flag to 1 so that caches are flushed during power
  * collapse unless the  L2 driver decides to flush them only during L2

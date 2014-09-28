@@ -85,6 +85,7 @@ static uint32_t cpld_off_gpio_table[] = {
 #endif
 };
 int camera_on = 0;
+
 static void cpld_power(int on)
 {
 	pr_info("[CAM]%s: %d\n", __func__, on);

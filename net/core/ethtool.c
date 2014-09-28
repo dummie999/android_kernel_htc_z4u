@@ -1286,12 +1286,7 @@ int dev_ethtool(struct net *net, struct ifreq *ifr)
 	void __user *useraddr = ifr->ifr_data;
 	u32 ethcmd;
 	int rc;
-	u32 old_features;
-	
-	if (IS_ERR(net) || (!net)) {
-		printk("[NET] net is NULL in %s\n", __func__);
-		return -ENODEV;
-	}
+	netdev_features_t old_features;
 
 	if (!dev || !netif_device_present(dev))
 		return -ENODEV;

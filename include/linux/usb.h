@@ -372,15 +372,6 @@ struct usb_bus {
 
 /* ----------------------------------------------------------------------- */
 
-
-#if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
-#define USB_OTG_SUSPEND		0x1
-#define USB_OTG_ENUMERATE	0x2
-#define USB_OTG_DISCONNECT	0x4
-#define USB_OTG_RESUME		0x8
-#define USB_OTG_REMOTEWAKEUP	0x10
-#define USB_OTG_WAKEUP_ALL	0x20
-#endif
 /* This is arbitrary.
  * From USB 2.0 spec Table 11-13, offset 7, a hub can
  * have up to 255 ports. The most yet reported is 10.
@@ -390,6 +381,16 @@ struct usb_bus {
  * limit. Because the arrays need to add a bit for hub status data, we
  * do 31, so plus one evens out to four bytes.
  */
+
+#if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
+#define USB_OTG_SUSPEND		0x1
+#define USB_OTG_ENUMERATE	0x2
+#define USB_OTG_DISCONNECT	0x4
+#define USB_OTG_RESUME		0x8
+#define USB_OTG_REMOTEWAKEUP	0x10
+#define USB_OTG_WAKEUP_ALL	0x20
+#endif
+
 #define USB_MAXCHILDREN		(31)
 
 struct usb_tt;
@@ -743,6 +744,22 @@ static inline int usb_make_path(struct usb_device *dev, char *buf, size_t size)
 	.idProduct = (prod), \
 	.bcdDevice_lo = (lo), \
 	.bcdDevice_hi = (hi)
+
+/**
+ * USB_DEVICE_INTERFACE_CLASS - describe a usb device with a specific interface class
+ * @vend: the 16 bit USB Vendor ID
+ * @prod: the 16 bit USB Product ID
+ * @cl: bInterfaceClass value
+ *
+ * This macro is used to create a struct usb_device_id that matches a
+ * specific interface class of devices.
+ */
+#define USB_DEVICE_INTERFACE_CLASS(vend, prod, cl) \
+	.match_flags = USB_DEVICE_ID_MATCH_DEVICE | \
+		       USB_DEVICE_ID_MATCH_INT_CLASS, \
+	.idVendor = (vend), \
+	.idProduct = (prod), \
+	.bInterfaceClass = (cl)
 
 /**
  * USB_DEVICE_INTERFACE_PROTOCOL - describe a usb device with a specific interface protocol

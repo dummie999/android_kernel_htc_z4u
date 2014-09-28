@@ -48,6 +48,7 @@ static struct hrtimer vibe_timer;
 static int pmic_vibrator_level;
 struct wake_lock vib_wake_lock;
 
+
 #ifdef CONFIG_RPC_VIBRATOR
 static void set_pmic_vibrator(int on)
 {

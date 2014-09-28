@@ -21,11 +21,9 @@
 #define DEFAULT_VCM_MIN 8
 #endif
 
-#define DEBUG_FRAME_COUNT
-
 #define CONFIG_MIPI_798MBPS
 
-#ifdef DEBUG_FRAME_COUNT
+#ifdef CONFIG_DEBUG_FRAME_COUNT
 struct msm_camera_i2c_client *s5k3h2yx_msm_camera_i2c_client_checkstatus = NULL;
 #endif
 
@@ -1741,7 +1739,7 @@ static struct msm_sensor_ctrl_t s5k3h2yx_s_ctrl = {
 	.sensor_first_mutex = &s5k3h2yx_sensor_init_mut,
 };
 
-#ifdef DEBUG_FRAME_COUNT
+#ifdef CONFIG_DEBUG_FRAME_COUNT
 void s5k3h2yx_check_frame_count(void)
 {
 

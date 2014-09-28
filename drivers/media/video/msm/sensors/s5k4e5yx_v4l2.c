@@ -14,9 +14,7 @@
 #define S5K4E5YX_READ_FLIP 0x0002
 #define S5K4E5YX_READ_MIRROR_FLIP 0x0003
 
-#define DEBUG_FRAME_COUNT
-
-#ifdef DEBUG_FRAME_COUNT
+#ifdef CONFIG_DEBUG_FRAME_COUNT
 struct msm_camera_i2c_client *s5k4e5yx_msm_camera_i2c_client_checkstatus = NULL;
 #endif
 
@@ -1326,7 +1324,7 @@ static struct msm_sensor_ctrl_t s5k4e5yx_s_ctrl = {
 	.clk_rate = MSM_SENSOR_MCLK_24HZ,
 };
 
-#ifdef DEBUG_FRAME_COUNT
+#ifdef CONFIG_DEBUG_FRAME_COUNT
 void s5k4e5yx_check_frame_count(void)
 {
 

@@ -106,9 +106,6 @@ static int cfg80211_conn_scan(struct wireless_dev *wdev)
 	if (!request)
 		return -ENOMEM;
 
-	
-	request->magic = SCAN_REQUEST_MAGIC;
-
 	if (wdev->conn->params.channel)
 		request->channels[0] = wdev->conn->params.channel;
 	else {
@@ -150,9 +147,6 @@ static int cfg80211_conn_scan(struct wireless_dev *wdev)
 		nl80211_send_scan_start(rdev, wdev->netdev);
 		dev_hold(wdev->netdev);
 	} else {
-		
-		rdev->scan_req->magic = 0;
-
 		rdev->scan_req = NULL;
 		kfree(request);
 	}
@@ -228,6 +222,9 @@ void cfg80211_conn_work(struct work_struct *work)
 	mutex_lock(&rdev->devlist_mtx);
 
 	list_for_each_entry(wdev, &rdev->netdev_list, list) {
+		if (!wdev->netdev)
+			continue;
+
 		wdev_lock(wdev);
 		if (!netif_running(wdev->netdev)) {
 			wdev_unlock(wdev);
@@ -776,10 +773,8 @@ int __cfg80211_connect(struct cfg80211_registered_device *rdev,
 	ASSERT_WDEV_LOCK(wdev);
 
 #ifndef CONFIG_CFG80211_ALLOW_RECONNECT
-	if (wdev->sme_state != CFG80211_SME_IDLE){
-        printk("[WLAN] sme_state = %d \n", wdev->sme_state);
+	if (wdev->sme_state != CFG80211_SME_IDLE)
 		return -EALREADY;
-    }
 
 	if (WARN_ON(wdev->connect_keys)) {
 #else
@@ -820,15 +815,11 @@ int __cfg80211_connect(struct cfg80211_registered_device *rdev,
 	}
 
 	if (!rdev->ops->connect) {
-		if (!rdev->ops->auth || !rdev->ops->assoc){
-            printk("[WLAN] EOPNOTSUPP \n");
+		if (!rdev->ops->auth || !rdev->ops->assoc)
 			return -EOPNOTSUPP;
-        }
 
-		if (WARN_ON(wdev->conn)){
-            printk("[WLAN] wdev->conn \n");
-            return -EINPROGRESS;
-        }
+		if (WARN_ON(wdev->conn))
+			return -EINPROGRESS;
 
 		wdev->conn = kzalloc(sizeof(*wdev->conn), GFP_KERNEL);
 		if (!wdev->conn)
@@ -914,7 +905,6 @@ int __cfg80211_connect(struct cfg80211_registered_device *rdev,
 		if (err) {
 			wdev->connect_keys = NULL;
 			wdev->sme_state = CFG80211_SME_IDLE;
-			printk("[WLAN] connect err =%d \n", err);
 			return err;
 		}
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -43,15 +43,18 @@
 #include "msm_cpr.h"
 #include "msm_smem_iface.h"
 
+/* Address of GSBI blocks */
 #define MSM_GSBI0_PHYS		0xA1200000
 #define MSM_GSBI1_PHYS		0xA1300000
 
+/* GSBI QUPe devices */
 #define MSM_GSBI0_QUP_PHYS	(MSM_GSBI0_PHYS + 0x80000)
 #define MSM_GSBI1_QUP_PHYS	(MSM_GSBI1_PHYS + 0x80000)
 
 #define A11S_TEST_BUS_SEL_ADDR (MSM_CSR_BASE + 0x518)
 #define RBCPR_CLK_MUX_SEL (1 << 13)
 
+/* Reset Address of RBCPR (Active Low)*/
 #define RBCPR_SW_RESET_N       (MSM_CSR_BASE + 0x64)
 #define RBCPR_SW_RESET_N_8625Q	(MSM_CSR_BASE + 0x28)
 
@@ -90,6 +93,7 @@ static struct resource gsbi0_qup_i2c_resources[] = {
 
 };
 
+/* Use GSBI0 QUP for /dev/i2c-0 */
 struct platform_device msm_gsbi0_qup_i2c_device = {
 	.name		= "qup_i2c",
 	.id		= MSM_GSBI0_QUP_I2C_BUS_ID,
@@ -132,6 +136,7 @@ static struct resource gsbi1_qup_i2c_resources[] = {
 
 };
 
+/* Use GSBI1 QUP for /dev/i2c-1 */
 struct platform_device msm_gsbi1_qup_i2c_device = {
 	.name		= "qup_i2c",
 	.id		= MSM_GSBI1_QUP_I2C_BUS_ID,
@@ -280,7 +285,7 @@ struct platform_device msm8625q_device_acpuclk = {
 };
 
 static struct acpuclk_pdata msm8625_acpuclk_pdata = {
-	
+	/* TODO: Need to update speed delta from H/w Team */
 	.max_speed_delta_khz = 604800,
 };
 
@@ -389,6 +394,7 @@ static struct resource resources_uart1[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 };
+
 #ifdef CONFIG_MSM_DEBUG_UART
 static struct resource resources_uart3[] = {
 	{
@@ -409,6 +415,7 @@ struct platform_device msm_device_uart1 = {
 	.num_resources	= ARRAY_SIZE(resources_uart1),
 	.resource	= resources_uart1,
 };
+
 #ifdef CONFIG_MSM_DEBUG_UART
 struct platform_device msm_device_uart3 = {
 	.name   = "msm_serial",
@@ -558,7 +565,6 @@ static struct msm_pm_irq_calls msm8625_pm_irq_calls = {
 	.exit_sleep1 = msm_gic_irq_exit_sleep1,
 	.exit_sleep2 = msm_gic_irq_exit_sleep2,
 	.exit_sleep3 = msm_gic_irq_exit_sleep3,
-	.read_active_irq = read_active_irq,
 };
 
 void msm_clk_dump_debug_info(void)
@@ -589,7 +595,7 @@ static struct msm_pm_cpr_ops msm8625_pm_cpr_ops = {
 
 void __init msm_pm_register_cpr_ops(void)
 {
-	
+	/* CPR presents on revision >= v2.0 chipsets */
 	if ((cpu_is_msm8625() &&
 			SOCINFO_VERSION_MAJOR(socinfo_get_version()) >= 2)
 			|| cpu_is_msm8625q())
@@ -818,10 +824,12 @@ struct platform_device msm7x27a_device_vfe = {
 
 #endif
 
+/* Command sequence for simple WFI */
 static uint8_t spm_wfi_cmd_sequence[] __initdata = {
 	0x04, 0x03, 0x04, 0x0f,
 };
 
+/* Command sequence for GDFS, this won't send any interrupt to the modem */
 static uint8_t spm_pc_without_modem[] __initdata = {
 	0x20, 0x00, 0x30, 0x10,
 	0x03, 0x1e, 0x0e, 0x3e,
@@ -1008,7 +1016,7 @@ void __init msm8x25_kgsl_3d0_init(void)
 
 	if (cpu_is_msm8625()) {
 		if (SOCINFO_VERSION_MAJOR(socinfo_get_version()) >= 2)
-			
+			/* 8x25 v2.0 & above supports a higher GPU frequency */
 			kgsl_3d0_pdata.pwrlevel[0].gpu_freq = 320000000;
 		else
 			kgsl_3d0_pdata.pwrlevel[0].gpu_freq = 300000000;
@@ -1066,7 +1074,7 @@ static struct led_info msm_kpbl_pdm_led_pdata = {
 
 struct platform_device led_pdev = {
 	.name	= "leds-msm-pdm",
-	
+	/* use pdev id to represent pdm id */
 	.id	= 0,
 	.num_resources	= ARRAY_SIZE(resources_led),
 	.resource	= resources_led,
@@ -1113,6 +1121,7 @@ struct platform_device *msm_footswitch_devices[] = {
 };
 unsigned msm_num_footswitch_devices = ARRAY_SIZE(msm_footswitch_devices);
 
+/* MSM8625 Devices */
 
 static struct resource msm8625_resources_uart1[] = {
 	{
@@ -1331,6 +1340,7 @@ static struct resource gsbi0_msm8625_qup_resources[] = {
 
 };
 
+/* Use GSBI0 QUP for /dev/i2c-0 */
 struct platform_device msm8625_gsbi0_qup_i2c_device = {
 	.name		= "qup_i2c",
 	.id		= MSM_GSBI0_QUP_I2C_BUS_ID,
@@ -1372,6 +1382,7 @@ static struct resource gsbi1_msm8625_qup_i2c_resources[] = {
 
 };
 
+/* Use GSBI1 QUP for /dev/i2c-1 */
 struct platform_device msm8625_gsbi1_qup_i2c_device = {
 	.name		= "qup_i2c",
 	.id		= MSM_GSBI1_QUP_I2C_BUS_ID,
@@ -1819,16 +1830,16 @@ static int __init msm8625_cpu_id(void)
 
 	raw_id = socinfo_get_raw_id();
 	switch (raw_id) {
-	
+	/* Part number for 1GHz part */
 	case 0x770:
 	case 0x771:
 	case 0x77C:
 	case 0x780:
-	case 0x785: 
+	case 0x785: /* Edge-only MSM8125-0 */
 	case 0x8D0:
 		cpu = MSM8625;
 		break;
-	
+	/* Part number for 1.2GHz part */
 	case 0x773:
 	case 0x774:
 	case 0x781:
@@ -1864,6 +1875,9 @@ static struct resource cpr_resources[] = {
 	},
 };
 
+/**
+ * These are various Vdd levels supported by PMIC
+ */
 static uint32_t msm_c2_pmic_mv[] __initdata = {
 	1350000, 1337500, 1325000, 1312500, 1300000,
 	1287500, 1275000, 1262500, 1250000, 1237500,
@@ -1874,6 +1888,9 @@ static uint32_t msm_c2_pmic_mv[] __initdata = {
 	0, 1050000,
 };
 
+/**
+ * This data will be based on CPR mode of operation
+ */
 static struct msm_cpr_mode msm_cpr_mode_data = {
 	.ring_osc_data = {
 			{0, },
@@ -1901,7 +1918,7 @@ msm_cpr_get_quot(uint32_t max_quot, uint32_t max_freq, uint32_t new_freq)
 {
 	uint32_t quot;
 
-	
+	/* This formula is as per chip characterization data */
 	quot = max_quot - (((max_freq - new_freq) * 7) / 10);
 
 	return quot;
@@ -1911,12 +1928,12 @@ static void msm_cpr_clk_enable(void)
 {
 	uint32_t reg_val;
 
-	
+	/* Select TCXO (19.2MHz) as clock source */
 	reg_val = readl_relaxed(A11S_TEST_BUS_SEL_ADDR);
 	reg_val |= RBCPR_CLK_MUX_SEL;
 	writel_relaxed(reg_val, A11S_TEST_BUS_SEL_ADDR);
 
-	
+	/* Get CPR out of reset */
 	if(cpu_is_msm8625q()) {
 		writel_relaxed(0x1, RBCPR_SW_RESET_N_8625Q);
 	} else {
@@ -1926,7 +1943,7 @@ static void msm_cpr_clk_enable(void)
 
 static void msm_cpr_reset(void)
 {
-	
+	/* Put CPR in reset */
 	if(cpu_is_msm8625q()) {
 		writel_relaxed(0x0, RBCPR_SW_RESET_N_8625Q);
 	} else {
@@ -1987,6 +2004,11 @@ static void __init msm_cpr_init(void)
 	msm_cpr_pdata.disable_cpr = cpr_info->disable_cpr;
 	msm_cpr_pdata.pvs_fuse = cpr_info->pvs_fuse;
 
+	/**
+	 * Set the ring_osc based on efuse BIT(0)
+	 * CPR_fuse[0] = 0 selects 2nd RO (010)
+	 * CPR_fuse[0] = 1 select  3rd RO (011)
+	 */
 	if (cpr_info->ring_osc == 0x0)
 		ring_osc = 0x2;
 	else if (cpr_info->ring_osc == 0x1)
@@ -1994,10 +2016,22 @@ static void __init msm_cpr_init(void)
 
 	msm_cpr_mode_data.ring_osc = ring_osc;
 
-	
+	/* GCNT = 1000 nsec/52nsec (@TCX0=19.2Mhz) = 19.2 */
 	msm_cpr_mode_data.ring_osc_data[ring_osc].gcnt = 19;
 
+	/**
+	 * The scaling factor and offset are as per chip characterization data
+	 * This formula is used since available fuse bits in the chip are not
+	 * enough to represent the value of maximum quot
+	 */
 	msm_cpr_pdata.max_quot = cpr_info->turbo_quot * 10 + 600;
+	/**
+	 * Fused Quot value for 1.2GHz on a 1.2GHz part is lower than
+	 * the quot value calculated using the scaling factor formula for
+	 * 1.2GHz when running on a 1.4GHz part. So, prop up the Quot for
+	 * a 1.2GHz part by a chip characterization recommended value.
+	 * Ditto for a 1.0GHz part.
+	 */
 	if ((msm8625_cpu_id() == MSM8625A) && !cpu_is_msm8625q()) {
 		msm_cpr_pdata.max_quot += 30;
 		if (msm_cpr_pdata.max_quot > 1400)
@@ -2008,6 +2042,10 @@ static void __init msm_cpr_init(void)
 			msm_cpr_pdata.max_quot = 1350;
 	}
 
+	/**
+	 * Bits 4:0 of pvs_fuse provide mapping to the safe boot up voltage.
+	 * Boot up mode is by default Turbo.
+	 */
 	msm_cpr_mode_data.calibrated_uV =
 				msm_c2_pmic_mv[cpr_info->pvs_fuse & 0x1F];
 
@@ -2047,8 +2085,6 @@ static void __init msm_cpr_init(void)
 	pr_info("%s: cpr: nom_Vmax: %d, turbo_Vmax: %d\n", __func__,
 		msm_cpr_mode_data.nom_Vmax,
 		msm_cpr_mode_data.turbo_Vmax);
-
-	msm_cpr_clk_enable();
 
 	if (cpu_is_msm8625())
 		platform_device_register(&msm8625_vp_device);
@@ -2162,8 +2198,11 @@ static int __init msm_gpio_config_gps(void)
 	unsigned int gps_gpio = 7;
 	int ret = 0;
 
-	if (!machine_is_msm8625_evb())
+	if (!machine_is_msm8625_evb() && !machine_is_msm8625q_evbd())
 		return ret;
+
+	if (machine_is_msm8625q_evbd())
+		gps_gpio = 49;
 
 	ret = gpio_tlmm_config(GPIO_CFG(gps_gpio, 0, GPIO_CFG_OUTPUT,
 			GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
@@ -2219,14 +2258,14 @@ int __init msm7x2x_misc_init(void)
 	msm_clock_init(&msm7x27a_clock_init_data);
 	if (cpu_is_msm7x27aa() || cpu_is_msm7x25ab())
 		platform_device_register(&msm7x27aa_device_acpuclk);
-		
 	else if (cpu_is_msm8625q()) {
 		msm_acpuclock_init(1);
 		platform_device_register(&msm8625q_device_acpuclk);
 	} else if (cpu_is_msm8625()) {
+
 		if (machine_is_qrd_skud_prime()) {
-			msm_acpuclock_init(0);			
-			platform_device_register(&msm8625q_device_acpuclk);			
+			msm_acpuclock_init(0);
+			platform_device_register(&msm8625q_device_acpuclk);
 		} else if (msm8625_cpu_id() == MSM8625)
 			platform_device_register(&msm7x27aa_device_acpuclk);
 		else if (msm8625_cpu_id() == MSM8625A)
@@ -2237,6 +2276,9 @@ int __init msm7x2x_misc_init(void)
 		platform_device_register(&msm7x27a_device_acpuclk);
 	}
 
+	/*
+	 * Remove the memory block @ 0xFC00000 to log debug information
+	 */
 	msm_pm_memory_reserve();
 
 	if (cpu_is_msm8625q() || (cpu_is_msm8625() &&
@@ -2261,19 +2303,19 @@ static int __init msm7x27x_cache_init(void)
 	int aux_ctrl = 0;
 	int pctrl = 0;
 
-	
+	/* Way Size 010(0x2) 32KB */
 	aux_ctrl = (0x1 << L2X0_AUX_CTRL_SHARE_OVERRIDE_SHIFT) | \
 		   (0x2 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT) | \
 		   (0x1 << L2X0_AUX_CTRL_EVNT_MON_BUS_EN_SHIFT);
 
 	if (cpu_is_msm8625() || cpu_is_msm8625q()) {
-		
+		/* Way Size 011(0x3) 64KB */
 		aux_ctrl |= (0x3 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT) | \
 			    (0x1 << L2X0_AUX_CTRL_DATA_PREFETCH_SHIFT) | \
 			    (0X1 << L2X0_AUX_CTRL_INSTR_PREFETCH_SHIFT) | \
 			    (0x1 << L2X0_AUX_CTRL_L2_FORCE_NWA_SHIFT);
 
-		
+		/* Write Prefetch Control settings */
 		pctrl = readl_relaxed(MSM_L2CC_BASE + L2X0_PREFETCH_CTRL);
 		pctrl |= (0x3 << L2X0_PREFETCH_CTRL_OFFSET_SHIFT) | \
 			 (0x1 << L2X0_PREFETCH_CTRL_WRAP8_INC_SHIFT) | \

@@ -7,7 +7,7 @@
  * Copyright (C) 2010 Texas Instruments Inc.
  *
  * Authors: Liam Girdwood <lrg@ti.com>
- *          Mark Brown <broonie@opensource.wolfsonmicro.com>       
+ *          Mark Brown <broonie@opensource.wolfsonmicro.com>
  *
  *  This program is free software; you can redistribute  it and/or modify it
  *  under  the terms of  the GNU General  Public License as published by the
@@ -1337,7 +1337,7 @@ static int soc_dpcm_fe_dai_shutdown(struct snd_pcm_substream *substream)
 
 	mutex_lock(&fe->card->dpcm_mutex);
 	fe->dpcm[stream].runtime_update = SND_SOC_DPCM_UPDATE_FE;
-	
+
 	dev_dbg(fe->dev, "dpcm: close FE %s\n", fe->dai_link->name);
 
 	/* now shutdown the frontend */

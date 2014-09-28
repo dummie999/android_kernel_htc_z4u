@@ -885,7 +885,9 @@ static int is_connected_input_ep(struct snd_soc_dapm_widget *widget,
 	return con;
 }
 
-/* Get the DAPM AIF widget for thie DAI stream */
+/*
+ * Handler for generic register modifier widget.
+ */
 struct snd_soc_dapm_widget *snd_soc_get_codec_widget(struct snd_soc_card *card,
 		struct snd_soc_codec *codec, const char *name)
 {
@@ -1597,7 +1599,15 @@ static int dapm_power_widgets(struct snd_soc_dapm_context *dapm, int event)
 	}
 
 	list_for_each_entry(w, &card->widgets, list) {
-		list_del_init(&w->dirty);
+		switch (w->id) {
+		case snd_soc_dapm_pre:
+		case snd_soc_dapm_post:
+			/* These widgets always need to be powered */
+			break;
+		default:
+			list_del_init(&w->dirty);
+			break;
+		}
 
 		if (w->power) {
 			d = w->dapm;
@@ -1605,7 +1615,9 @@ static int dapm_power_widgets(struct snd_soc_dapm_context *dapm, int event)
 			/* Supplies and micbiases only bring the
 			 * context up to STANDBY as unless something
 			 * else is active and passing audio they
-			 * generally don't require full power.
+			 * generally don't require full power.  Signal
+			 * generators are virtual pins and have no
+			 * power impact themselves.
 			 */
 			switch (w->id) {
 			case snd_soc_dapm_supply:
@@ -1733,7 +1745,7 @@ static ssize_t dapm_widget_power_read_file(struct file *file,
 				w->active ? "active" : "inactive");
 
 	list_for_each_entry(p, &w->sources, list_sink) {
-		if (p->connected && !p->connected(w, p->sink))
+		if (p->connected && !p->connected(w, p->source))
 			continue;
 
 		if (p->connect)
@@ -3106,9 +3118,7 @@ int snd_soc_dapm_stream_event(struct snd_soc_pcm_runtime *rtd,
 void snd_soc_dapm_codec_stream_event(struct snd_soc_codec *codec,
 	const char *stream, int event)
 {
-//	mutex_lock(&codec->card->dapm_mutex);
 	soc_dapm_stream_event(&codec->dapm, stream, event);
-//	mutex_unlock(&codec->card->dapm_mutex);
 }
 EXPORT_SYMBOL(snd_soc_dapm_codec_stream_event);
 
@@ -3364,7 +3374,7 @@ void snd_soc_dapm_shutdown(struct snd_soc_card *card)
 {
 	struct snd_soc_codec *codec;
 
-	list_for_each_entry(codec, &card->codec_dev_list, list) {
+	list_for_each_entry(codec, &card->codec_dev_list, card_list) {
 		soc_dapm_shutdown_codec(&codec->dapm);
 		snd_soc_dapm_set_bias_level(&codec->dapm, SND_SOC_BIAS_OFF);
 	}

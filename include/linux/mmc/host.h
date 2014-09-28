@@ -61,7 +61,7 @@ struct mmc_ios {
 #define MMC_TIMING_UHS_DDR50	5
 #define MMC_TIMING_MMC_HS200	6
 
-	unsigned char	ddr;			
+	unsigned char	ddr;			/* dual data rate used */
 
 #define MMC_SDR_MODE		0
 #define MMC_1_2V_DDR_MODE	1
@@ -245,14 +245,14 @@ struct mmc_host {
 #define MMC_CAP2_BROKEN_VOLTAGE	(1 << 7)	/* Use the broken voltage */
 #define MMC_CAP2_DETECT_ON_ERR	(1 << 8)	/* On I/O err check card removal */
 #define MMC_CAP2_HC_ERASE_SZ	(1 << 9)	/* High-capacity erase size */
-#define MMC_CAP2_PACKED_RD	(1 << 10)	
-#define MMC_CAP2_PACKED_WR	(1 << 11)	
+#define MMC_CAP2_PACKED_RD	(1 << 10)	/* Allow packed read */
+#define MMC_CAP2_PACKED_WR	(1 << 11)	/* Allow packed write */
 #define MMC_CAP2_PACKED_CMD	(MMC_CAP2_PACKED_RD | \
-				 MMC_CAP2_PACKED_WR) 
-#define MMC_CAP2_PACKED_WR_CONTROL (1 << 12) 
-#define MMC_CAP2_SANITIZE	(1 << 13)		
-#define MMC_CAP2_BKOPS		    (1 << 14)	
-#define MMC_CAP2_INIT_BKOPS	    (1 << 15)	
+				 MMC_CAP2_PACKED_WR) /* Allow packed commands */
+#define MMC_CAP2_PACKED_WR_CONTROL (1 << 12) /* Allow write packing control */
+#define MMC_CAP2_SANITIZE	(1 << 13)		/* Support Sanitize */
+#define MMC_CAP2_BKOPS		    (1 << 14)	/* BKOPS supported */
+#define MMC_CAP2_INIT_BKOPS	    (1 << 15)	/* Need to set BKOPS_EN */
 #define MMC_CAP2_POWER_OFF_VCCQ_DURING_SUSPEND	(1 << 16)
 
 	mmc_pm_flag_t		pm_caps;	/* supported pm features */
@@ -351,10 +351,10 @@ struct mmc_host {
 #ifdef CONFIG_MMC_PERF_PROFILING
 	struct {
 
-		unsigned long rbytes_drv;  
-		unsigned long wbytes_drv;  
-		ktime_t rtime_drv;	   
-		ktime_t wtime_drv;	   
+		unsigned long rbytes_drv;  /* Rd bytes MMC Host  */
+		unsigned long wbytes_drv;  /* Wr bytes MMC Host  */
+		ktime_t rtime_drv;	   /* Rd time  MMC Host  */
+		ktime_t wtime_drv;	   /* Wr time  MMC Host  */
 		ktime_t start;
 	} perf;
 	bool perf_enable;

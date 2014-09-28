@@ -294,16 +294,25 @@ static inline void boot_delay_msec(void)
 }
 #endif
 
+/*
+ * Return the number of unread characters in the log buffer.
+ */
 static int log_buf_get_len(void)
 {
 	return logged_chars;
 }
 
+/*
+ * Clears the ring-buffer
+ */
 void log_buf_clear(void)
 {
 	logged_chars = 0;
 }
 
+/*
+ * Copy a range of characters from the log buffer.
+ */
 int log_buf_copy(char *dest, int idx, int len)
 {
 	int ret, max;
@@ -677,8 +686,19 @@ static void call_console_drivers(unsigned start, unsigned end)
 	start_print = start;
 	while (cur_index != end) {
 		if (msg_level < 0 && ((end - cur_index) > 2)) {
+			/*
+			 * prepare buf_prefix, as a contiguous array,
+			 * to be processed by log_prefix function
+			 */
+			char buf_prefix[SYSLOG_PRI_MAX_LENGTH+1];
+			unsigned i;
+			for (i = 0; i < ((end - cur_index)) && (i < SYSLOG_PRI_MAX_LENGTH); i++) {
+				buf_prefix[i] = LOG_BUF(cur_index + i);
+			}
+			buf_prefix[i] = '\0'; /* force '\0' as last string character */
+
 			/* strip log prefix */
-			cur_index += log_prefix(&LOG_BUF(cur_index), &msg_level, NULL);
+			cur_index += log_prefix((const char *)&buf_prefix, &msg_level, NULL);
 			start_print = cur_index;
 		}
 		while (cur_index != end) {
@@ -748,20 +768,6 @@ module_param_named(time, printk_time, bool, S_IRUGO | S_IWUSR);
 
 static bool always_kmsg_dump;
 module_param_named(always_kmsg_dump, always_kmsg_dump, bool, S_IRUGO | S_IWUSR);
-
-#if defined(CONFIG_PRINTK_CPU_ID)
-static int printk_cpu_id = 1;
-#else
-static int printk_cpu_id = 0;
-#endif
-module_param_named(cpu, printk_cpu_id, int, S_IRUGO | S_IWUSR);
-
-#if defined(CONFIG_PRINTK_PID)
-static int printk_pid = 1;
-#else
-static int printk_pid;
-#endif
-module_param_named(pid, printk_pid, int, S_IRUGO | S_IWUSR);
 
 /* Check if we have any console registered that can be called early in boot. */
 static int have_callable_console(void)
@@ -869,9 +875,9 @@ static int console_trylock_for_printk(unsigned int cpu)
 		}
 	}
 	printk_cpu = UINT_MAX;
+	raw_spin_unlock(&logbuf_lock);
 	if (wake)
 		up(&console_sem);
-	raw_spin_unlock(&logbuf_lock);
 	return retval;
 }
 static const char recursion_bug_msg [] =
@@ -942,6 +948,7 @@ asmlinkage int vprintk(const char *fmt, va_list args)
 	printed_len += vscnprintf(printk_buf + printed_len,
 				  sizeof(printk_buf) - printed_len, fmt, args);
 
+
 	p = printk_buf;
 
 	/* Read log level and handle special printk prefix */
@@ -998,30 +1005,6 @@ asmlinkage int vprintk(const char *fmt, va_list args)
 				tlen = sprintf(tbuf, "[%5lu.%06lu] ",
 						(unsigned long) t,
 						nanosec_rem / 1000);
-
-				for (tp = tbuf; tp < tbuf + tlen; tp++)
-					emit_log_char(*tp);
-				printed_len += tlen;
-			}
-
-			if (printk_cpu_id) {
-				
-				char tbuf[10], *tp;
-				unsigned tlen;
-
-				tlen = sprintf(tbuf, "C%u ", printk_cpu);
-
-				for (tp = tbuf; tp < tbuf + tlen; tp++)
-					emit_log_char(*tp);
-				printed_len += tlen;
-			}
-
-			if (printk_pid) {
-				
-				char tbuf[10], *tp;
-				unsigned tlen;
-
-				tlen = sprintf(tbuf, "%6u ", current->pid);
 
 				for (tp = tbuf; tp < tbuf + tlen; tp++)
 					emit_log_char(*tp);
@@ -1244,6 +1227,9 @@ static __cpuinitdata DECLARE_WORK(console_cpu_notify_work, console_flush);
  * will be spooled but will not show up on the console.  This function is
  * called when a new CPU comes online (or fails to come up), and ensures
  * that any such output gets printed.
+ *
+ * Special handling must be done for cases invoked from an atomic context,
+ * as we can't be taking the console semaphore here.
  */
 static int __cpuinit console_cpu_notify(struct notifier_block *self,
 	unsigned long action, void *hcpu)
@@ -1257,7 +1243,7 @@ static int __cpuinit console_cpu_notify(struct notifier_block *self,
 		console_unlock();
 		break;
 	case CPU_DYING:
-		
+		/* invoked with preemption disabled, so defer */
 		if (!console_trylock())
 			schedule_work(&console_cpu_notify_work);
 		else
@@ -1410,8 +1396,6 @@ again:
 	raw_spin_lock(&logbuf_lock);
 	if (con_start != log_end)
 		retry = 1;
-	else
-		retry = 0;
 	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
 
 	if (retry && console_trylock())
@@ -1726,7 +1710,6 @@ EXPORT_SYMBOL(unregister_console);
 static int __init printk_late_init(void)
 {
 	struct console *con;
-	return 0;
 
 	for_each_console(con) {
 		if (!keep_bootcon && con->flags & CON_BOOT) {
@@ -1742,7 +1725,7 @@ late_initcall(printk_late_init);
 
 #if defined CONFIG_PRINTK
 
-int printk_sched(const char *fmt, ...)
+int printk_deferred(const char *fmt, ...)
 {
 	unsigned long flags;
 	va_list args;

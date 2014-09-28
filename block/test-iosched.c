@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -718,8 +718,9 @@ int test_iosched_start_test(struct test_info *t_info)
 		return -EINVAL;
 
 error:
-	post_test(ptd);
 	ptd->test_result = TEST_FAILED;
+	ptd->test_info.testcase = 0;
+	post_test(ptd);
 	return ret;
 }
 EXPORT_SYMBOL(test_iosched_start_test);

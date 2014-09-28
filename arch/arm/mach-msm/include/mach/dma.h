@@ -122,7 +122,6 @@ int msm_dmov_exec_cmd(unsigned id, unsigned int cmdptr);
 /*
  * Format of CRCI numbers: crci number + (muxsel << 4)
  */
-
 #if defined(CONFIG_ARCH_MSM8X60)
 #define DMOV_GP_CHAN           15
 

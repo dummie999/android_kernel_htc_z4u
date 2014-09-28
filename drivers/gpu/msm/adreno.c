@@ -10,7 +10,6 @@
  * GNU General Public License for more details.
  *
  */
-#include <linux/delay.h>
 #include <linux/module.h>
 #include <linux/uaccess.h>
 #include <linux/vmalloc.h>
@@ -1154,13 +1153,6 @@ adreno_dump_and_recover(struct kgsl_device *device)
 			mod_timer(&device->idle_timer, jiffies + FIRST_TIMEOUT);
 		}
 		complete_all(&device->recovery_gate);
-
-		msleep(10000);
-		if (result)
-			panic("GPU Hang");
-		else
-			panic("Recoverable GPU Hang");
-
 	}
 done:
 	return result;
@@ -1214,7 +1206,7 @@ static int adreno_getproperty(struct kgsl_device *device,
 				/*NOTE: with mmu enabled, gpuaddr doesn't mean
 				 * anything to mmap().
 				 */
-				shadowprop.gpuaddr = device->memstore.gpuaddr;
+				shadowprop.gpuaddr = device->memstore.physaddr;
 				shadowprop.size = device->memstore.size;
 				/* GSL needs this to be set, even if it
 				   appears to be meaningless */

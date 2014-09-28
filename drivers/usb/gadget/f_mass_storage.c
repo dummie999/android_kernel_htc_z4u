@@ -521,6 +521,7 @@ static int fsg_set_halt(struct fsg_dev *fsg, struct usb_ep *ep)
 /* Caller must hold fsg->lock */
 static void wakeup_thread(struct fsg_common *common)
 {
+	smp_wmb();	/* ensure the write of bh->state is complete */
 	/* Tell the main thread that something has happened */
 	common->thread_wakeup_needed = 1;
 	if (common->thread_task)
@@ -740,6 +741,7 @@ static int sleep_thread(struct fsg_common *common)
 	}
 	__set_current_state(TASK_RUNNING);
 	common->thread_wakeup_needed = 0;
+	smp_rmb();	/* ensure the latest bh->state is visible */
 	return rc;
 }
 
@@ -912,7 +914,7 @@ static int do_read(struct fsg_common *common)
 		amount_left = common->data_size_from_cmnd;
 	}
 	if (unlikely(amount_left == 0))
-		return -EIO;		
+		return -EIO;		/* No default reply */
 
 	for (;;) {
 		/*
@@ -1325,6 +1327,13 @@ write_error:
 			if ((nwritten == amount) && !csw_hack_sent) {
 				if (write_error_after_csw_sent)
 					break;
+				/*
+				 * Check if any of the buffer is in the
+				 * busy state, if any buffer is in busy state,
+				 * means the complete data is not received
+				 * yet from the host. So there is no point in
+				 * csw right away without the complete data.
+				 */
 				for (i = 0; i < fsg_num_buffers; i++) {
 					if (common->buffhds[i].state ==
 							BUF_STATE_BUSY)
@@ -2024,7 +2033,7 @@ static int do_reserve(struct fsg_common *common, struct fsg_buffhd *bh)
 			schedule_work(&ums_do_reserve_work);
 		break;
 		default:
-			printk(KERN_DEBUG "Unknown hTC specific command..."
+			printk(KERN_DEBUG "Unknown HTC specific command..."
 					"(0x%2.2X)\n", common->cmnd[5]);
 		break;
 		}
@@ -2283,6 +2292,10 @@ static int send_status(struct fsg_common *common)
 	csw->Tag = common->tag;
 	csw->Residue = cpu_to_le32(common->residue);
 #ifdef CONFIG_USB_CSW_HACK
+	/* Since csw is being sent early, before
+	 * writing on to storage media, need to set
+	 * residue to zero,assuming that write will succeed.
+	 */
 	if (write_error_after_csw_sent) {
 		write_error_after_csw_sent = 0;
 		csw->Residue = cpu_to_le32(common->residue);
@@ -3002,7 +3015,7 @@ static int fsg_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 	struct fsg_common *common = fsg->common;
 	int rc;
 
-	
+	/* Enable the endpoints */
 	rc = config_ep_by_speed(common->gadget, &(fsg->function), fsg->bulk_in);
 	if (rc)
 		return rc;
@@ -3037,7 +3050,7 @@ static void fsg_disable(struct usb_function *f)
 {
 	struct fsg_dev *fsg = fsg_from_func(f);
 
-	
+	/* Disable the endpoints */
 	if (fsg->bulk_in_enabled) {
 		usb_ep_disable(fsg->bulk_in);
 		fsg->bulk_in_enabled = 0;
@@ -3255,6 +3268,10 @@ static int fsg_main_thread(void *common_)
 		spin_unlock_irq(&common->lock);
 
 #ifdef CONFIG_USB_CSW_HACK
+		/* Since status is already sent for write scsi command,
+		 * need to skip sending status once again if it is a
+		 * write scsi command.
+		 */
 		if (csw_hack_sent) {
 			csw_hack_sent = 0;
 			continue;

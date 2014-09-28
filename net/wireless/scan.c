@@ -69,11 +69,8 @@ void ___cfg80211_scan_done(struct cfg80211_registered_device *rdev, bool leak)
 	 * the scan request or not ... if it accesses the dev
 	 * in there (it shouldn't anyway) then it may crash.
 	 */
-	if (!leak) {
-		
-		request->magic = 0;
+	if (!leak)
 		kfree(request);
-	}
 }
 
 void __cfg80211_scan_done(struct work_struct *wk)

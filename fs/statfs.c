@@ -67,22 +67,9 @@ int vfs_statfs(struct path *path, struct kstatfs *buf)
 {
 	int error;
 
-	ktime_t statfs_t, statfs_diff;
-	char pathname[256], *statfs_path;
-	if (path) {
-		statfs_path = d_path(path, pathname, sizeof(pathname));
-		if (IS_ERR(statfs_path))
-			statfs_path = "(unknown)";
-	} else
-		statfs_path = "(unknown)";
-
-	statfs_t = ktime_get();
 	error = statfs_by_dentry(path->dentry, buf);
 	if (!error)
 		buf->f_flags = calculate_f_flags(path->mnt);
-	statfs_diff = ktime_sub(ktime_get(), statfs_t);
-	if (ktime_to_ns(statfs_diff) >= 5000000000LL)
-		pr_info("VFS: %s pid:%d(%s)(parent:%d/%s) takes %lld nsec to statfs %s.\n", __func__, current->pid, current->comm, current->parent->pid, current->parent->comm, ktime_to_ns(statfs_diff), statfs_path);
 	return error;
 }
 EXPORT_SYMBOL(vfs_statfs);
@@ -100,7 +87,7 @@ int user_statfs(const char __user *pathname, struct kstatfs *st)
 
 int fd_statfs(int fd, struct kstatfs *st)
 {
-	struct file *file = fget(fd);
+	struct file *file = fget_raw(fd);
 	int error = -EBADF;
 	if (file) {
 		error = vfs_statfs(&file->f_path, st);

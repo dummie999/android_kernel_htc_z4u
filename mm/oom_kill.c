@@ -44,13 +44,6 @@ int sysctl_oom_kill_allocating_task;
 int sysctl_oom_dump_tasks = 1;
 static DEFINE_SPINLOCK(zone_scan_lock);
 
-extern void show_meminfo(void);
-
-
-#ifdef CONFIG_DEBUG_HTC_OOM
-extern void wake_up_kmemeleak(void);
-#endif
-
 /*
  * compare_swap_oom_score_adj() - compare and swap current's oom_score_adj
  * @old_val: old oom_score_adj for compare
@@ -436,12 +429,10 @@ static void dump_header(struct task_struct *p, gfp_t gfp_mask, int order,
 	cpuset_print_task_mems_allowed(current);
 	task_unlock(current);
 	dump_stack();
-	show_meminfo();
 	mem_cgroup_print_oom_info(memcg, p);
 	show_mem(SHOW_MEM_FILTER_NODES);
 	if (sysctl_oom_dump_tasks)
 		dump_tasks(memcg, nodemask);
-
 }
 
 #define K(x) ((x) << (PAGE_SHIFT-10))
@@ -571,11 +562,11 @@ void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
 	struct task_struct *p;
 
 	/*
-	 * If current has a pending SIGKILL, then automatically select it.  The
-	 * goal is to allow it to allocate so that it may quickly exit and free
-	 * its memory.
+	 * If current has a pending SIGKILL or is exiting, then automatically
+	 * select it.  The goal is to allow it to allocate so that it may
+	 * quickly exit and free its memory.
 	 */
-	if (fatal_signal_pending(current)) {
+	if (fatal_signal_pending(current) || current->flags & PF_EXITING) {
 		set_thread_flag(TIF_MEMDIE);
 		return;
 	}
@@ -765,12 +756,6 @@ void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
 	}
 out:
 	read_unlock(&tasklist_lock);
-
-        
-#ifdef CONFIG_DEBUG_HTC_OOM
-        wake_up_kmemeleak();
-#endif
-        
 
 	/*
 	 * Give "p" a good chance of killing itself before we

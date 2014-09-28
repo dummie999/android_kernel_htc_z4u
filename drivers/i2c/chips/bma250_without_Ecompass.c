@@ -20,7 +20,7 @@
 #include <linux/bma250.h>
 #include <linux/gpio.h>
 #include <linux/delay.h>
-#include<linux/earlysuspend.h>
+#include <linux/earlysuspend.h>
 #include <linux/akm8975.h>
 #include <linux/export.h>
 #include <linux/module.h>

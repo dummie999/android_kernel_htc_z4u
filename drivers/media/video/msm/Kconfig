@@ -367,3 +367,22 @@ config OV7692
 	depends on MSM_CAMERA
 	---help---
 	  Omni Vision VGA YUV Sensor
+config OV7695
+	bool "Sensor OV7695 (VGA YUV)"
+	depends on MSM_CAMERA && MSM_CAMERA_V4L2
+	default n
+	---help---
+	  Omni Vision VGA YUV Sensor for QRD Devices
+config OV7695_RAW
+	bool "Sensor OV7695 (RAW)"
+	depends on MSM_CAMERA && MSM_CAMERA_V4L2
+	default n
+	---help---
+	  Omni Vision BAYER Sensor for QRD Devices
+
+config DEBUG_FRAME_COUNT
+	bool "Enable debug frame count"
+	depends on MSM_CAMERA
+	default y
+	---help---
+	  Show debug information

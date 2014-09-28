@@ -399,12 +399,6 @@ ipt_do_table(struct sk_buff *skb,
 					verdict = NF_DROP;
 					break;
 				}
-			if (IS_ERR(stackptr) || (!stackptr) || IS_ERR(e) || (!e) || IS_ERR(jumpstack) || (!jumpstack)) {
-			    printk("[NET] ptr error in %s\n", __func__);
-			    verdict = NF_DROP;
-			    break;
-			}
-
 				jumpstack[(*stackptr)++] = e;
 				pr_debug("Pushed %p into pos %u\n",
 					 e, *stackptr - 1);
@@ -1233,8 +1227,10 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
 
 	xt_free_table_info(oldinfo);
 	if (copy_to_user(counters_ptr, counters,
-			 sizeof(struct xt_counters) * num_counters) != 0)
-		ret = -EFAULT;
+			 sizeof(struct xt_counters) * num_counters) != 0) {
+		/* Silent error, can't fail, new table is already in place */
+		net_warn_ratelimited("iptables: counters copy to user failed while replacing table\n");
+	}
 	vfree(counters);
 	xt_table_unlock(t);
 	return ret;

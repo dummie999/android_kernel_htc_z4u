@@ -33,8 +33,6 @@
 #define UPDATE_BUSY_VAL		1000000
 #define UPDATE_BUSY		50
 
-extern void set_gpu_clk(unsigned int);
-
 struct clk_pair {
 	const char *name;
 	uint map;
@@ -929,7 +927,6 @@ int kgsl_pwrctrl_init(struct kgsl_device *device)
 		pwr->pwrlevels[i].io_fraction =
 			pdata->pwrlevel[i].io_fraction;
 	}
-	set_gpu_clk(pwr->pwrlevels[0].gpu_freq);
 	/* Do not set_rate for targets in sync with AXI */
 	if (pwr->pwrlevels[0].gpu_freq > 0)
 		clk_set_rate(pwr->grp_clks[0], pwr->

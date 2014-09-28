@@ -169,15 +169,8 @@ static inline int unhelp(struct nf_conntrack_tuple_hash *i,
 
 void nf_ct_helper_destroy(struct nf_conn *ct)
 {
-	struct nf_conn_help *help = NULL;
+	struct nf_conn_help *help = nfct_help(ct);
 	struct nf_conntrack_helper *helper;
-	
-	if ((!ct) || (IS_ERR(ct))) {
-		printk("[NET] ct is NULL in %s\n", __func__);
-		return ;
-	}
-	
-	help = nfct_help(ct);
 
 	if (help) {
 		rcu_read_lock();

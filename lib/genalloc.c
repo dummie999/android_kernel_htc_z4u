@@ -177,10 +177,10 @@ int gen_pool_add_virt(struct gen_pool *pool, unsigned long virt, phys_addr_t phy
 	struct gen_pool_chunk *chunk;
 	int nbits = size >> pool->min_alloc_order;
 	int nbytes = sizeof(struct gen_pool_chunk) +
-				(nbits + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
+				BITS_TO_LONGS(nbits) * sizeof(long);
 
 	if (nbytes <= PAGE_SIZE)
-		chunk = kmalloc_node(nbytes, __GFP_ZERO, nid);
+		chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
 	else
 		chunk = vmalloc(nbytes);
 	if (unlikely(chunk == NULL))
@@ -323,6 +323,21 @@ retry:
 	return addr;
 }
 EXPORT_SYMBOL(gen_pool_alloc_aligned);
+
+/**
+ * gen_pool_alloc - allocate special memory from the pool
+ * @pool: pool to allocate from
+ * @size: number of bytes to allocate from the pool
+ *
+ * Allocate the requested number of bytes from the specified pool.
+ * Uses a first-fit algorithm. Can not be used in NMI handler on
+ * architectures without NMI-safe cmpxchg implementation.
+ */
+unsigned long gen_pool_alloc(struct gen_pool *pool, size_t size)
+{
+	return gen_pool_alloc_aligned(pool, size, 0);
+}
+EXPORT_SYMBOL(gen_pool_alloc);
 
 /**
  * gen_pool_free - free allocated special memory back to the pool

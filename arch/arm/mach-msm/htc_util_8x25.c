@@ -16,9 +16,6 @@
 #include <linux/vmalloc.h>
 #include <mach/board.h>
 #include <mach/rpm.h>
-#if 0 
-#include <mach/perflock.h>
-#endif
 #include <mach/rpm-8960.h>
 #include <mach/rpm-8064.h>
 #include <mach/msm_xo.h>
@@ -154,37 +151,28 @@ void htc_idle_stat_show(u32 total_time)
 	printk(KERN_INFO "[K] CPU0 usage: %d\n", ((total_time - (idle_time)) * 100) / total_time);
 }
 
-
-
 void htc_pm_monitor_work(struct work_struct *work)
 {
 	struct timespec ts;
 	struct rtc_time tm;
 
 	if (htc_pm_monitor_wq == NULL){
-		printk(KERN_INFO "[K] hTc PM statistic is NILL.\n");
+		printk(KERN_INFO "[K] HTC PM statistic is NILL.\n");
 		return;
 	}
 
 	getnstimeofday(&ts);
 	rtc_time_to_tm(ts.tv_sec - (sys_tz.tz_minuteswest * 60), &tm);
-	printk(KERN_INFO "[K] [PM] hTC PM Statistic ");
+	printk(KERN_INFO "[K] [PM] HTC PM Statistic ");
 	printk(KERN_INFO "[K] %02d-%02d %02d:%02d:%02d \n", tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-
-	
 
 	htc_idle_stat_show(msm_htc_util_delay_time);
 	htc_idle_stat_clear();
 	htc_timer_stats_OnOff('0');
 	htc_timer_stats_show(300);
 	htc_timer_stats_OnOff('1');
-#if 0 
-	htc_print_active_perf_locks();
-#endif
-	
 	
 	htc_print_active_wake_locks(WAKE_LOCK_SUSPEND);
-
 
 	queue_delayed_work(htc_pm_monitor_wq, &htc_pm_delayed_work, msecs_to_jiffies(msm_htc_util_delay_time));
 	htc_kernel_top();
@@ -362,8 +350,6 @@ void htc_PM_monitor_init(void)
 	get_all_cpu_stat(&old_cpu_stat);
 
 }
-
-
 
 void htc_monitor_init(void)
 {
