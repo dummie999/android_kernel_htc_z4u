@@ -3071,9 +3071,6 @@ CONFIG_NLS_ISO8859_1=y
 # CONFIG_NLS_KOI8_R is not set
 # CONFIG_NLS_KOI8_U is not set
 CONFIG_NLS_UTF8=y
-CONFIG_EXFAT_FS=m
-CONFIG_EXFAT_PATH="texfat_cp3dcg"
-CONFIG_EXFAT_VERSION="target/htc.d/htc-3013.1.26"
 
 #
 # Kernel hacking
