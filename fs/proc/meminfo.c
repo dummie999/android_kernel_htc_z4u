@@ -20,6 +20,64 @@ void __attribute__((weak)) arch_report_meminfo(struct seq_file *m)
 {
 }
 
+void show_meminfo(void)
+{
+	struct sysinfo i;
+	struct vmalloc_info vmi;
+	long cached;
+	unsigned long pages[NR_LRU_LISTS];
+	int lru;
+	unsigned long kgsl_alloc = kgsl_get_alloc_size(1);
+	unsigned long subtotal;
+
+#define K(x) ((x) << (PAGE_SHIFT - 10))
+	si_meminfo(&i);
+	si_swapinfo(&i);
+	cached = global_page_state(NR_FILE_PAGES) -
+		total_swapcache_pages - i.bufferram;
+
+	if (cached < 0)
+		cached = 0;
+
+	get_vmalloc_info(&vmi);
+
+	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
+		pages[lru] = global_page_state(NR_LRU_BASE + lru);
+
+	subtotal = K(i.freeram) + K(i.bufferram) +
+		K(cached) + K(global_page_state(NR_SHMEM)) + K(global_page_state(NR_MLOCK)) +
+		K(global_page_state(NR_ANON_PAGES)) +
+		K(global_page_state(NR_SLAB_RECLAIMABLE) + global_page_state(NR_SLAB_UNRECLAIMABLE)) +
+		(global_page_state(NR_KERNEL_STACK) * THREAD_SIZE / 1024) +
+		K(global_page_state(NR_PAGETABLE)) +
+		(vmi.alloc >> 10) + (kgsl_alloc >> 10);
+
+	printk("MemFree:        %8lu kB\n"
+			"Buffers:        %8lu kB\n"
+			"Cached:         %8lu kB\n"
+			"Shmem:          %8lu kB\n"
+			"Mlocked:        %8lu kB\n"
+			"AnonPages:      %8lu kB\n"
+			"Slab:           %8lu kB\n"
+			"PageTables:     %8lu kB\n"
+			"KernelStack:    %8lu kB\n"
+			"VmallocAlloc:   %8lu kB\n"
+			"KGSL_Alloc:     %8lu kB\n"
+			"Subtotal:       %8lu kB\n",
+			K(i.freeram),
+			K(i.bufferram),
+			K(cached),
+			K(global_page_state(NR_SHMEM)),
+			K(global_page_state(NR_MLOCK)),
+			K(global_page_state(NR_ANON_PAGES)),
+			K(global_page_state(NR_SLAB_RECLAIMABLE) + global_page_state(NR_SLAB_UNRECLAIMABLE)),
+			K(global_page_state(NR_PAGETABLE)),
+			global_page_state(NR_KERNEL_STACK) * THREAD_SIZE / 1024,
+			(vmi.alloc >> 10),
+			(kgsl_alloc >> 10),
+			subtotal);
+}
+
 static int meminfo_proc_show(struct seq_file *m, void *v)
 {
 	struct sysinfo i;

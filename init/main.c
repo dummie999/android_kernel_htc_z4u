@@ -6,7 +6,7 @@
  *  GK 2/5/95  -  Changed to support mounting root fs via NFS
  *  Added initrd & change_root: Werner Almesberger & Hans Lermen, Feb '96
  *  Moan early if gcc is old, avoiding bogus kernels - Paul Gortmaker, May '96
- *  Simplified starting of init:  Michael A. Griffith <grif@acm.org>
+ *  Simplified starting of init:  Michael A. Griffith <grif@acm.org> 
  */
 
 #include <linux/types.h>
@@ -68,7 +68,6 @@
 #include <linux/shmem_fs.h>
 #include <linux/slab.h>
 #include <linux/perf_event.h>
-#include <linux/random.h>
 
 #include <asm/io.h>
 #include <asm/bugs.h>
@@ -193,7 +192,7 @@ early_param("loglevel", loglevel);
 static int __init repair_env_string(char *param, char *val)
 {
 	if (val) {
-
+		
 		if (val == param+strlen(param)+1)
 			val[-1] = '=';
 		else if (val == param+strlen(param)+2) {
@@ -210,11 +209,11 @@ static int __init unknown_bootoption(char *param, char *val)
 {
 	repair_env_string(param, val);
 
-
+	
 	if (obsolete_checksetup(param))
 		return 0;
 
-
+	
 	if (strchr(param, '.') && (!val || strchr(param, '.') < val))
 		return 0;
 
@@ -222,7 +221,7 @@ static int __init unknown_bootoption(char *param, char *val)
 		return 0;
 
 	if (val) {
-
+		
 		unsigned int i;
 		for (i = 0; envp_init[i]; i++) {
 			if (i == MAX_INIT_ENVS) {
@@ -234,7 +233,7 @@ static int __init unknown_bootoption(char *param, char *val)
 		}
 		envp_init[i] = param;
 	} else {
-
+		
 		unsigned int i;
 		for (i = 0; argv_init[i]; i++) {
 			if (i == MAX_INIT_ARGS) {
@@ -263,7 +262,7 @@ static int __init rdinit_setup(char *str)
 	unsigned int i;
 
 	ramdisk_execute_command = str;
-
+	
 	for (i = 1; i < MAX_INIT_ARGS; i++)
 		argv_init[i] = NULL;
 	return 1;
@@ -294,7 +293,7 @@ static void __init setup_command_line(char *command_line)
 	strcpy (static_command_line, command_line);
 	strcpy(print_command_line, boot_command_line);
 
-
+	
 	do {
 		char *str = 0;
 		int sn_patten_len = strlen("androidboot.serialno=");
@@ -302,7 +301,7 @@ static void __init setup_command_line(char *command_line)
 		int remove_sn = 0;
 
 
-
+		
 		for ( str = print_command_line; str < print_command_line + strlen(print_command_line) - td_sf_len; str++ ) {
 			if ( 0 == strncmp( str, "td.sf=", td_sf_len ) ) {
 				str += td_sf_len;
@@ -315,7 +314,7 @@ static void __init setup_command_line(char *command_line)
 		}
 
 		if (remove_sn) {
-
+			
 			for ( str = print_command_line; str < print_command_line + strlen(print_command_line) - sn_patten_len; str++ ) {
 				if ( 0 == strncmp( str, "androidboot.serialno=", sn_patten_len ) ) {
 					str += sn_patten_len;
@@ -348,7 +347,7 @@ static noinline void __init_refok rest_init(void)
 
 	init_idle_bootup_task(current);
 	schedule_preempt_disabled();
-
+	
 	cpu_idle();
 }
 
@@ -366,7 +365,7 @@ static int __init do_early_param(char *param, char *val)
 				       "Malformed early option '%s'\n", param);
 		}
 	}
-
+	
 	return 0;
 }
 
@@ -383,7 +382,7 @@ void __init parse_early_param(void)
 	if (done)
 		return;
 
-
+	
 	strlcpy(tmp_cmdline, boot_command_line, COMMAND_LINE_SIZE);
 	parse_early_options(tmp_cmdline);
 	done = 1;
@@ -393,7 +392,7 @@ void __init parse_early_param(void)
 static void __init boot_cpu_init(void)
 {
 	int cpu = smp_processor_id();
-
+	
 	set_cpu_online(cpu, true);
 	set_cpu_active(cpu, true);
 	set_cpu_present(cpu, true);
@@ -444,7 +443,7 @@ asmlinkage void __init start_kernel(void)
 	setup_command_line(command_line);
 	setup_nr_cpu_ids();
 	setup_per_cpu_areas();
-	smp_prepare_boot_cpu();
+	smp_prepare_boot_cpu();	
 
 	build_all_zonelists(NULL);
 	page_alloc_init();
@@ -453,7 +452,7 @@ asmlinkage void __init start_kernel(void)
 	parse_early_param();
 	parse_args("Booting kernel", static_command_line, __start___param,
 		   __stop___param - __start___param,
-		   -1, -1, &unknown_bootoption);
+		   0, 0, &unknown_bootoption);
 
 	jump_label_init();
 
@@ -475,7 +474,7 @@ asmlinkage void __init start_kernel(void)
 	perf_event_init();
 	rcu_init();
 	radix_tree_init();
-
+	
 	early_irq_init();
 	init_IRQ();
 	prio_tree_init();
@@ -492,7 +491,7 @@ asmlinkage void __init start_kernel(void)
 	early_boot_irqs_disabled = false;
 	local_irq_enable();
 
-
+	
 	gfp_allowed_mask = __GFP_BITS_MASK;
 
 	kmem_cache_init_late();
@@ -527,12 +526,8 @@ asmlinkage void __init start_kernel(void)
 	pidmap_init();
 	anon_vma_init();
 #ifdef CONFIG_X86
-	if (efi_enabled(EFI_RUNTIME_SERVICES))
+	if (efi_enabled)
 		efi_enter_virtual_mode();
-#endif
-#ifdef CONFIG_X86_ESPFIX64
-	/* Should be run before the first non-init thread is created */
-	init_espfix_bsp();
 #endif
 	thread_info_cache_init();
 	cred_init();
@@ -544,7 +539,7 @@ asmlinkage void __init start_kernel(void)
 	dbg_late_init();
 	vfs_caches_init(totalram_pages);
 	signals_init();
-
+	
 	page_writeback_init();
 #ifdef CONFIG_PROC_FS
 	proc_root_init();
@@ -556,15 +551,12 @@ asmlinkage void __init start_kernel(void)
 
 	check_bugs();
 
-	acpi_early_init();
+	acpi_early_init(); 
 	sfi_init_late();
-
-	if (efi_enabled(EFI_RUNTIME_SERVICES))
-		efi_free_boot_services();
 
 	ftrace_init();
 
-
+	
 	rest_init();
 }
 
@@ -700,7 +692,6 @@ static void __init do_basic_setup(void)
 	do_ctors();
 	usermodehelper_enable();
 	do_initcalls();
-	random_int_secret_init();
 }
 
 static void __init do_pre_smp_initcalls(void)
@@ -719,7 +710,7 @@ static void run_init_process(const char *init_filename)
 
 static noinline int init_post(void)
 {
-
+	
 	async_synchronize_full();
 	free_initmem();
 	mark_rodata_ro();
@@ -752,13 +743,6 @@ static noinline int init_post(void)
 static int __init kernel_init(void * unused)
 {
 	wait_for_completion(&kthreadd_done);
-
-	/* Now the scheduler is fully set up and can do blocking allocations */
-	gfp_allowed_mask = __GFP_BITS_MASK;
-
-	/*
-	 * init can allocate pages on any node
-	 */
 	set_mems_allowed(node_states[N_HIGH_MEMORY]);
 	set_cpus_allowed_ptr(current, cpu_all_mask);
 
@@ -774,7 +758,7 @@ static int __init kernel_init(void * unused)
 
 	do_basic_setup();
 
-
+	
 	if (sys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
 		printk(KERN_WARNING "Warning: unable to open an initial console.\n");
 

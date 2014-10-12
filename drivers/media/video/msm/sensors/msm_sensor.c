@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -33,9 +33,6 @@
 #include "ilp0100_customer_sensor_config.h"
 #endif
 
-#include <linux/kthread.h>
-
-/*=============================================================*/
 uint32_t ois_line;
 
 static struct task_struct *tsk_sensor_init = NULL;
@@ -150,7 +147,7 @@ int32_t msm_sensor_adjust_frame_lines(struct msm_sensor_ctrl_t *s_ctrl,
 				s_ctrl,
 				s_ctrl->prev_gain,
 				s_ctrl->prev_line);
-
+	
 		msm_camera_i2c_read(s_ctrl->sensor_i2c_client,
 			s_ctrl->sensor_exp_gain_info->coarse_int_time_addr,
 			&cur_line,
@@ -171,6 +168,7 @@ int32_t msm_sensor_adjust_frame_lines(struct msm_sensor_ctrl_t *s_ctrl,
 	}
 	return 0;
 }
+ 
 
 int32_t msm_sensor_write_init_settings(struct msm_sensor_ctrl_t *s_ctrl)
 {
@@ -1810,12 +1808,12 @@ int32_t msm_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl)
 {
 	int32_t rc = 0;
 	struct msm_camera_sensor_info *data = s_ctrl->sensordata;
-	CDBG("%s: %d\n", __func__, __LINE__);
+	CDBG("%s: called\n", __func__);
+
 	s_ctrl->reg_ptr = kzalloc(sizeof(struct regulator *)
 			* data->sensor_platform_info->num_vreg, GFP_KERNEL);
 	if (!s_ctrl->reg_ptr) {
-		pr_err("%s: could not allocate mem for regulators\n",
-			__func__);
+		pr_err("%s: failed to could not allocate mem for regulators\n", __func__);
 		return -ENOMEM;
 	}
 
@@ -1868,7 +1866,6 @@ int32_t msm_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl)
 		msm_sensor_enable_i2c_mux(data->sensor_platform_info->i2c_conf);
 
 	return rc;
-
 enable_clk_failed:
 		msm_camera_config_gpio_table(data, 0);
 config_gpio_failed:
@@ -1892,7 +1889,8 @@ request_gpio_failed:
 int32_t msm_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl)
 {
 	struct msm_camera_sensor_info *data = s_ctrl->sensordata;
-	CDBG("%s\n", __func__);
+	CDBG("%s: called %d\n", __func__, __LINE__);
+
 	if (data->sensor_platform_info->i2c_conf &&
 		data->sensor_platform_info->i2c_conf->use_i2c_mux)
 		msm_sensor_disable_i2c_mux(
@@ -2086,7 +2084,8 @@ int32_t msm_sensor_i2c_probe(struct i2c_client *client,
 {
 	int rc = 0;
 	struct msm_sensor_ctrl_t *s_ctrl;
-	CDBG("%s %s_i2c_probe called\n", __func__, client->name);
+	pr_info("%s: sensor_i2c_probe called - name: %s\n", __func__, client->name);
+
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
 		pr_err("%s %s i2c_check_functionality failed\n",
 			__func__, client->name);
@@ -2109,7 +2108,7 @@ int32_t msm_sensor_i2c_probe(struct i2c_client *client,
 
 	s_ctrl->sensordata = client->dev.platform_data;
 	if (s_ctrl->sensordata == NULL) {
-		pr_err("%s %s NULL sensor data\n", __func__, client->name);
+		pr_err("%s: failed to sensor data is NULL\n", __func__);
 		return -EFAULT;
 	}
 

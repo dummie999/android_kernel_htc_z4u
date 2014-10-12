@@ -54,6 +54,10 @@ module_param_named(stats_perms, proc_stats_perms, uint, S_IRUGO | S_IWUSR);
 
 static struct proc_dir_entry *xt_qtaguid_ctrl_file;
 #ifdef CONFIG_ANDROID_PARANOID_NETWORK
+
+/* Everybody can write. But proc_ctrl_write_limited is true by default which
+ * limits what can be controlled. See the can_*() functions.
+ */
 static unsigned int proc_ctrl_perms = S_IRUGO | S_IWUGO;
 #else
 static unsigned int proc_ctrl_perms = S_IRUGO | S_IWUSR;
@@ -65,7 +69,6 @@ module_param_named(ctrl_perms, proc_ctrl_perms, uint, S_IRUGO | S_IWUSR);
 static gid_t proc_stats_readall_gid = AID_NET_BW_STATS;
 static gid_t proc_ctrl_write_gid = AID_NET_BW_ACCT;
 #else
-/* 0 means, don't limit anybody */
 static gid_t proc_stats_readall_gid;
 static gid_t proc_ctrl_write_gid;
 #endif
@@ -1461,6 +1464,8 @@ static void if_tag_stat_update(const char *ifname, uid_t uid,
 		 *  - No {0, uid_tag} stats and no {acc_tag, uid_tag} stats.
 		 */
 		new_tag_stat = create_if_tag_stat(iface_entry, uid_tag);
+		if (!new_tag_stat)
+			goto unlock;
 		uid_tag_counters = &new_tag_stat->counters;
 	} else {
 		uid_tag_counters = &tag_stat_entry->counters;
@@ -1469,6 +1474,8 @@ static void if_tag_stat_update(const char *ifname, uid_t uid,
 	if (acct_tag) {
 		/* Create the child {acct_tag, uid_tag} and hook up parent. */
 		new_tag_stat = create_if_tag_stat(iface_entry, tag);
+		if (!new_tag_stat)
+			goto unlock;
 		new_tag_stat->parent_counters = uid_tag_counters;
 	} else {
 		/*
@@ -1482,6 +1489,7 @@ static void if_tag_stat_update(const char *ifname, uid_t uid,
 		BUG_ON(!new_tag_stat);
 	}
 	tag_stat_update(new_tag_stat, direction, proto, bytes);
+unlock:
 	spin_unlock_bh(&iface_entry->tag_stat_list_lock);
 }
 
@@ -1752,7 +1760,7 @@ static bool qtaguid_mt(const struct sk_buff *skb, struct xt_action_param *par)
 		 par->hooknum, skb, par->in, par->out, par->family);
 
 	atomic64_inc(&qtu_events.match_calls);
-	if (skb == NULL) {
+	if ((IS_ERR(skb)) || (skb == NULL)) {
 		res = (info->match ^ info->invert) == 0;
 		goto ret_res;
 	}
@@ -1773,11 +1781,12 @@ static bool qtaguid_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	}
 
 	sk = skb->sk;
-	if (sk == NULL) {
+	if ((sk == NULL) || (IS_ERR(sk))) {
 		/*
 		 * A missing sk->sk_socket happens when packets are in-flight
 		 * and the matching socket is already closed and gone.
 		 */
+
 		sk = qtaguid_find_sk(skb, par);
 		/*
 		 * If we got the socket from the find_sk(), we will need to put
@@ -1824,6 +1833,11 @@ static bool qtaguid_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	} else if (info->match & info->invert & XT_QTAGUID_SOCKET) {
 		res = false;
 		goto put_sock_ret_res;
+	}
+	if (IS_ERR(sk) || (!sk)) {
+		printk(KERN_ERR "[NET] sk is NULL or out of range in %s!\n", __func__);
+		res = false;
+		goto ret_res;
 	}
 	filp = sk->sk_socket->file;
 	if (filp == NULL) {
@@ -2588,7 +2602,7 @@ static int pp_stats_line(struct proc_print_info *ppi, int cnt_set)
 	} else {
 		tag_t tag = ppi->ts_entry->tn.tag;
 		uid_t stat_uid = get_uid_from_tag(tag);
-
+		/* Detailed tags are not available to everybody */
 		if (!can_read_other_uid_stats(stat_uid)) {
 			CT_DEBUG("qtaguid: stats line: "
 				 "%s 0x%llx %u: insufficient priv "

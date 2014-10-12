@@ -391,14 +391,14 @@ config FB_MSM_MIPI_NT35516_CMD_QHD_PT
         default n
 
 config FB_MSM_MIPI_NT35590_CMD_720P_PT
-        bool
-        select FB_MSM_MIPI_DSI_NT35590
-        default n
+	bool
+	select FB_MSM_MIPI_DSI_NT35590
+	default n
 
 config FB_MSM_MIPI_NT35590_VIDEO_720P_PT
-        bool
-        select FB_MSM_MIPI_DSI_NT35590
-        default n
+	bool
+	select FB_MSM_MIPI_DSI_NT35590
+	default n
 
 config FB_MSM_MIPI_CHIMEI_WXGA
 	bool "LVDS Chimei WXGA Panel using Toshiba MIPI DSI-to-LVDS bridge."
@@ -757,8 +757,8 @@ config FB_MSM_MIPI_NT35590_CMD_720P_PT_PANEL
 	720p (720x1280).
 
 config FB_MSM_MIPI_NT35590_VIDEO_720P_PT_PANEL
-        bool "MIPI NT35590 Video 720p PT Panel"
-        select FB_MSM_MIPI_NT35590_VIDEO_720P_PT
+	bool "MIPI NT35590 Video 720p PT Panel"
+	select FB_MSM_MIPI_NT35590_VIDEO_720P_PT
 	---help---
 	Support for Truly NT35590 panel. This
 	panel supports MIPI DSI interface in

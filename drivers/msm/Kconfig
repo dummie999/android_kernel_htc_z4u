@@ -1,4 +1,0 @@
-config WLAN_AR6000
-	tristate "MSM WLAN AR6000 platform driver"
-	---help---
-	  MSM WLAN AR6000 platform driver

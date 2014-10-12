@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -13,6 +13,7 @@
 
 #ifndef _ARCH_ARM_MACH_MSM_MPM_8625_H_
 #define _ARCH_ARM_MACH_MSM_MPM_8625_H_
+void read_active_irq(void);
 void msm_gic_irq_extn_init(void);
 
 unsigned int msm_gic_spi_ppi_pending(void);

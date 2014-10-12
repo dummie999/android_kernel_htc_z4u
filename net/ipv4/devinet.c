@@ -735,7 +735,7 @@ int devinet_ioctl(struct net *net, unsigned int cmd, void __user *arg)
 	case SIOCSIFBRDADDR:	/* Set the broadcast address */
 	case SIOCSIFDSTADDR:	/* Set the destination address */
 	case SIOCSIFNETMASK: 	/* Set the netmask for the interface */
-	case SIOCKILLADDR:	/* Nuke all sockets on this address */
+	case SIOCKILLADDR:	
 		ret = -EACCES;
 		if (!capable(CAP_NET_ADMIN))
 			goto out;
@@ -768,6 +768,10 @@ int devinet_ioctl(struct net *net, unsigned int cmd, void __user *arg)
 			   This is checked above. */
 			for (ifap = &in_dev->ifa_list; (ifa = *ifap) != NULL;
 			     ifap = &ifa->ifa_next) {
+				 if(IS_ERR(ifa) || (!ifa)) {
+				 	printk(KERN_ERR "[Devinet] ifa is NULL or out of range in %s!\n", __func__);
+					break; 
+				 }
 				if (!strcmp(ifr.ifr_name, ifa->ifa_label) &&
 				    sin_orig.sin_addr.s_addr ==
 							ifa->ifa_local) {
@@ -914,7 +918,7 @@ int devinet_ioctl(struct net *net, unsigned int cmd, void __user *arg)
 			inet_insert_ifa(ifa);
 		}
 		break;
-	case SIOCKILLADDR:	/* Nuke all connections on this address */
+	case SIOCKILLADDR:	
 		ret = tcp_nuke_addr(net, (struct sockaddr *) sin);
 		break;
 	}
@@ -974,8 +978,17 @@ __be32 inet_select_addr(const struct net_device *dev, __be32 dst, int scope)
 	struct net *net = dev_net(dev);
 
 	rcu_read_lock();
+	
+	if (IS_ERR(dev) || (!dev)) {
+		printk(KERN_ERR "[NET] dev is NULL in %s!\n", __func__);
+		return addr;
+	}
+	if (IS_ERR(net) || (!net)) {
+		printk(KERN_ERR "[NET] net is NULL in %s!\n", __func__);
+		return addr;
+	}
 	in_dev = __in_dev_get_rcu(dev);
-	if (!in_dev)
+	if (!in_dev || IS_ERR(in_dev))
 		goto no_in_dev;
 
 	for_primary_ifa(in_dev) {

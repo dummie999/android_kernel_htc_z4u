@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -41,13 +41,13 @@ static struct platform_device msm_bt_power_device = {
 };
 
 static unsigned bt_config_power_on[] = {
-	/*RFR*/
+	
 	GPIO_CFG(43, 2, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	/*CTS*/
+	
 	GPIO_CFG(44, 2, GPIO_CFG_INPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	/*RX*/
+	
 	GPIO_CFG(45, 2, GPIO_CFG_INPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	/*TX*/
+	
 	GPIO_CFG(46, 2, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 };
 static unsigned bt_config_pcm_on[] = {
@@ -89,11 +89,11 @@ static unsigned bt_config_pcm_off[] = {
 #if defined(CONFIG_QCT2243_V21)
 #else
 static unsigned fm_i2s_config_power_on[] = {
-	/*FM_I2S_SD*/
+	
 	GPIO_CFG(68, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	/*FM_I2S_WS*/
+	
 	GPIO_CFG(70, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	/*FM_I2S_SCK*/
+	
 	GPIO_CFG(71, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 };
 
@@ -532,7 +532,7 @@ static int bahama_bt(int on)
 
 	const struct bahama_config_register *p;
 
-	int version;
+	u8 version;
 
 	const struct bahama_config_register v10_bt_on[] = {
 		{ 0xE9, 0x00, 0xFF },
@@ -611,10 +611,10 @@ static int bahama_bt(int on)
 	}
 	};
 
-	u8 offset = 0; /* index into bahama configs */
+	u8 offset = 0; 
 	on = on ? 1 : 0;
 	version = marimba_read_bahama_ver(&config);
-	if (version < 0 || version == BAHAMA_VER_UNSUPPORTED) {
+	if ((int)version < 0 || version == BAHAMA_VER_UNSUPPORTED || version >= BAHAMA_VER_INVALID ) {
 		dev_err(&msm_bt_power_device.dev, "%s : Bahama "
 			"version read Error, version = %d\n",
 			__func__, version);
@@ -649,10 +649,10 @@ static int bahama_bt(int on)
 				__func__, (p+i)->reg,
 				value, (p+i)->mask);
 		value = 0;
-		/* Ignoring the read failure as it is only for check */
-		if (marimba_read_bit_mask(&config,
+		rc = marimba_read_bit_mask(&config,
 				(p+i)->reg, &value,
-				sizeof((p+i)->value), (p+i)->mask) < 0)
+				sizeof((p+i)->value), (p+i)->mask);
+		if (rc < 0)
 			dev_err(&msm_bt_power_device.dev,
 				"%s marimba_read_bit_mask- error",
 				__func__);
@@ -661,7 +661,7 @@ static int bahama_bt(int on)
 				__func__, (p+i)->reg,
 				value, (p+i)->mask);
 	}
-	/* Update BT Status */
+	
 	if (on)
 		marimba_set_bt_status(&config, true);
 	else

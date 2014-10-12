@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -42,13 +42,13 @@
 extern uint32_t ois_line;
 
 enum msm_sensor_reg_update {
-	/* Sensor egisters that need to be updated during initialization */
+	
 	MSM_SENSOR_REG_INIT,
-	/* Sensor egisters that needs periodic I2C writes */
+	
 	MSM_SENSOR_UPDATE_PERIODIC,
-	/* All the sensor Registers will be updated */
+	
 	MSM_SENSOR_UPDATE_ALL,
-	/* Not valid update */
+	
 	MSM_SENSOR_UPDATE_INVALID
 };
 
@@ -162,7 +162,7 @@ struct msm_sensor_fn_t {
 	int (*sensor_power_down)
 		(struct msm_sensor_ctrl_t *);
 	int (*sensor_power_up) (struct msm_sensor_ctrl_t *);
-	int32_t (*sensor_match_id)(struct msm_sensor_ctrl_t *s_ctrl);
+	
 	int (*sensor_i2c_read_fuseid)(struct sensor_cfg_data *cdata, struct msm_sensor_ctrl_t *s_ctrl);
 	
        int (*sensor_i2c_read_vcm_driver_ic)(struct msm_sensor_ctrl_t *s_ctrl);
@@ -175,20 +175,11 @@ struct msm_sensor_fn_t {
 	void (*sensor_ov2722_write_exp_line) (struct msm_sensor_ctrl_t *, uint16_t); 
 
 	int (*sensor_write_output_settings_specific)(struct msm_sensor_ctrl_t *s_ctrl, uint16_t res); 
-	int32_t (*sensor_pip_get_mode) (struct msm_sensor_ctrl_t *,
-		int32_t *);
-	int32_t (*sensor_pip_set_mode)(struct msm_sensor_ctrl_t *,
-		int32_t);
 };
 
 struct msm_sensor_csi_info {
 	uint32_t csid_version;
 	uint8_t is_csic;
-};
-
-enum msm_sensor_state {
-	MSM_SENSOR_POWER_UP,
-	MSM_SENSOR_POWER_DOWN,
 };
 
 struct msm_sensor_ctrl_t {
@@ -233,7 +224,6 @@ struct msm_sensor_ctrl_t {
 	struct regulator **reg_ptr;
 	struct clk *cam_clk;
 	long clk_rate;
-	enum msm_sensor_state sensor_state;
 	int mirror_flip;	
 	struct mutex *sensor_first_mutex;  
 	int hdr_mode;
@@ -264,8 +254,10 @@ int32_t msm_sensor_get_output_info(struct msm_sensor_ctrl_t *,
 		struct sensor_output_info_t *);
 int32_t msm_sensor_config(struct msm_sensor_ctrl_t *s_ctrl,
 			void __user *argp);
+
 int32_t msm_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl);
 int32_t msm_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl);
+#if 1	
 int32_t msm_sensor_set_power_up(struct msm_sensor_ctrl_t *s_ctrl);
 int32_t msm_sensor_set_power_down(struct msm_sensor_ctrl_t *s_ctrl);
 
@@ -282,6 +274,8 @@ int msm_sensor_probe(struct msm_sensor_ctrl_t *s_ctrl,
 int msm_sensor_v4l2_probe(struct msm_sensor_ctrl_t *s_ctrl,
 	const struct msm_camera_sensor_info *info,
 	struct v4l2_subdev *sdev, struct msm_sensor_ctrl *s);
+
+#endif	
 
 int32_t msm_sensor_match_id(struct msm_sensor_ctrl_t *s_ctrl);
 int msm_sensor_i2c_probe(struct i2c_client *client,
@@ -308,9 +302,6 @@ int msm_sensor_write_res_settings
 	(struct msm_sensor_ctrl_t *s_ctrl, uint16_t res);
 
 int32_t msm_sensor_write_output_settings(struct msm_sensor_ctrl_t *s_ctrl,
-	uint16_t res);
-
-int32_t msm_sensor_adjust_frame_lines(struct msm_sensor_ctrl_t *s_ctrl,
 	uint16_t res);
 
 int32_t msm_sensor_setting(struct msm_sensor_ctrl_t *s_ctrl,
@@ -345,13 +336,11 @@ struct msm_sensor_ctrl_t *get_sctrl(struct v4l2_subdev *sd);
 int32_t msm_sensor_adjust_frame_lines(struct msm_sensor_ctrl_t *s_ctrl,
 	uint16_t res);
 
+
 #define VIDIOC_MSM_SENSOR_CFG \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 10, void __user *)
 
 #define VIDIOC_MSM_SENSOR_RELEASE \
 	_IO('V', BASE_VIDIOC_PRIVATE + 11)
-
-#define VIDIOC_MSM_SENSOR_CSID_INFO\
-	_IOWR('V', BASE_VIDIOC_PRIVATE + 12, struct msm_sensor_csi_info *)
 
 #endif

@@ -203,6 +203,14 @@ struct iface_stat {
 	struct net_device *net_dev;
 
 	struct byte_packet_counters totals_via_dev[IFS_MAX_DIRECTIONS];
+	/*
+	 * We keep the last_known, because some devices reset their counters
+	 * just before NETDEV_UP, while some will reset just before
+	 * NETDEV_REGISTER (which is more normal).
+	 * So now, if the device didn't do a NETDEV_UNREGISTER and we see
+	 * its current dev stats smaller that what was previously known, we
+	 * assume an UNREGISTER and just use the last_known.
+	 */
 	struct byte_packet_counters totals_via_skb[IFS_MAX_DIRECTIONS];
 	/*
 	 * We keep the last_known, because some devices reset their counters

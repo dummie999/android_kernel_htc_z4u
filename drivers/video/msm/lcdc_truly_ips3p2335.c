@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -148,13 +148,6 @@ static void truly_disp_reginit(void)
 
 static int lcdc_truly_panel_on(struct platform_device *pdev)
 {
-	struct msm_fb_data_type *mfd = platform_get_drvdata(pdev);
-
-	if (!mfd->cont_splash_done) {
-		mfd->cont_splash_done = 1;
-		return 0;
-	}
-
 	/* Configure reset GPIO that drives DAC */
 	if (lcdc_truly_pdata->panel_config_gpio)
 		lcdc_truly_pdata->panel_config_gpio(1);

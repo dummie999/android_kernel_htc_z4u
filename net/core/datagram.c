@@ -163,10 +163,14 @@ struct sk_buff *__skb_recv_datagram(struct sock *sk, unsigned flags,
 {
 	struct sk_buff *skb;
 	long timeo;
+	int error = 0;
+	
+	if ((!sk) || (IS_ERR(sk)))
+		goto no_packet;
 	/*
 	 * Caller is allowed not to check sk->sk_err before skb_recv_datagram()
 	 */
-	int error = sock_error(sk);
+	error = sock_error(sk);
 
 	if (error)
 		goto no_packet;
@@ -187,7 +191,7 @@ struct sk_buff *__skb_recv_datagram(struct sock *sk, unsigned flags,
 		skb_queue_walk(queue, skb) {
 			*peeked = skb->peeked;
 			if (flags & MSG_PEEK) {
-				if (*off >= skb->len && skb->len) {
+				if (*off >= skb->len) {
 					*off -= skb->len;
 					continue;
 				}
@@ -309,9 +313,22 @@ EXPORT_SYMBOL(skb_kill_datagram);
 int skb_copy_datagram_iovec(const struct sk_buff *skb, int offset,
 			    struct iovec *to, int len)
 {
-	int start = skb_headlen(skb);
-	int i, copy = start - offset;
+	int start = 0;
+	int i, copy = 0;
 	struct sk_buff *frag_iter;
+	
+	if ((!skb) || (IS_ERR(skb))) {
+		printk("[NET] skb is NULL in %s\n", __func__);
+		return 0;
+	}
+	
+	if ((!to) || (IS_ERR(to))) {
+		printk("[NET] to is NULL in %s\n", __func__);
+		return 0;
+	}
+	
+	start = skb_headlen(skb);
+	copy = start - offset;
 
 	trace_skb_copy_datagram_iovec(skb, len);
 

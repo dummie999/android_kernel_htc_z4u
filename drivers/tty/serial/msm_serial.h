@@ -141,4 +141,5 @@
 #define UARTDM_NCF_TX		0x40
 #define UARTDM_RX_TOTAL_SNAP	0x38
 
+extern int board_mfg_mode(void);
 #endif	

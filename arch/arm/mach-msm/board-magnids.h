@@ -14,7 +14,7 @@
 #define __ARCH_ARM_MACH_MSM_BOARD_7627A__
 
 #include "pm.h"
-void __init msm7627a_init_mmc(void);
+void __init magnids_init_mmc(void);
 
 void __init msm_msm7627a_allocate_memory_regions(void);
 void __init msm_fb_add_devices(void);

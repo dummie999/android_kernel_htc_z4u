@@ -1105,6 +1105,8 @@ static bool always_dump_vma(struct vm_area_struct *vma)
 	return false;
 }
 
+static int is_dex(struct vm_area_struct *vma);
+
 /*
  * Decide what to dump of a segment, part, all or none.
  */
@@ -1182,6 +1184,10 @@ static unsigned long vma_dump_size(struct vm_area_struct *vma,
 		if (word == magic.cmp)
 			return PAGE_SIZE;
 	}
+
+    if( is_dex(vma) ){
+        goto whole;
+    }
 
 #undef	FILTER
 
@@ -1698,19 +1704,30 @@ static int elf_note_info_init(struct elf_note_info *info)
 		return 0;
 	info->psinfo = kmalloc(sizeof(*info->psinfo), GFP_KERNEL);
 	if (!info->psinfo)
-		return 0;
+		goto notes_free;
 	info->prstatus = kmalloc(sizeof(*info->prstatus), GFP_KERNEL);
 	if (!info->prstatus)
-		return 0;
+		goto psinfo_free;
 	info->fpu = kmalloc(sizeof(*info->fpu), GFP_KERNEL);
 	if (!info->fpu)
-		return 0;
+		goto prstatus_free;
 #ifdef ELF_CORE_COPY_XFPREGS
 	info->xfpu = kmalloc(sizeof(*info->xfpu), GFP_KERNEL);
 	if (!info->xfpu)
-		return 0;
+		goto fpu_free;
 #endif
 	return 1;
+#ifdef ELF_CORE_COPY_XFPREGS
+ fpu_free:
+	kfree(info->fpu);
+#endif
+ prstatus_free:
+	kfree(info->prstatus);
+ psinfo_free:
+	kfree(info->psinfo);
+ notes_free:
+	kfree(info->notes);
+	return 0;
 }
 
 static int fill_note_info(struct elfhdr *elf, int phdrs,
@@ -1892,6 +1909,121 @@ static size_t elf_core_vma_data_size(struct vm_area_struct *gate_vma,
 	return size;
 }
 
+extern char *mangle_path(char *s, char *p, char *esc);
+static int pad_len_spaces(char *m, int len)
+{
+	len = 25 + sizeof(void*) * 6 - len;
+	if (len < 1)
+		len = 1;
+	return sprintf(m, "%*c", len, ' ');
+}
+static void show_map_vma(struct file *m, struct vm_area_struct *vma)
+{
+	struct mm_struct *mm = vma->vm_mm;
+	struct file *file = vma->vm_file;
+	vm_flags_t flags = vma->vm_flags;
+	unsigned long ino = 0;
+	unsigned long long pgoff = 0;
+	unsigned long start, end;
+	dev_t dev = 0;
+	int len;
+    char b[200];
+    char * buf = b;
+    char * buf_orig = b;
+
+	if (file) {
+		struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
+		dev = inode->i_sb->s_dev;
+		ino = inode->i_ino;
+		pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;
+	}
+
+	
+	start = vma->vm_start;
+	if (stack_guard_page_start(vma, start))
+		start += PAGE_SIZE;
+	end = vma->vm_end;
+	if (stack_guard_page_end(vma, end))
+		end -= PAGE_SIZE;
+
+
+	
+	buf += sprintf(buf, "%08lx-%08lx %08lx %c%c%c%c %08llx %02x:%02x %lu %n",
+			start,
+			end,
+            flags,
+			flags & VM_READ ? 'r' : '-',
+			flags & VM_WRITE ? 'w' : '-',
+			flags & VM_EXEC ? 'x' : '-',
+			flags & VM_MAYSHARE ? 's' : 'p',
+			pgoff,
+			MAJOR(dev), MINOR(dev), ino, &len);
+
+    if (file) {
+        char *p;
+        char pbuf[100];
+        char *pend;
+        buf += pad_len_spaces(buf, len);
+        
+        p = d_path(&file->f_path, pbuf, 100);
+        if (!IS_ERR(p)) {
+            mangle_path(pbuf, p, "\n");
+            pend = mangle_path(pbuf, p, "\n");
+            if (pend)
+                *pend = '\0';
+        }
+        buf += sprintf(buf, "%s", pbuf);
+    } else {
+		const char *name = arch_vma_name(vma);
+		if (!name) {
+			if (mm) {
+				if (vma->vm_start <= mm->brk &&
+						vma->vm_end >= mm->start_brk) {
+					name = "[heap]";
+				} else if (vma->vm_start <= mm->start_stack &&
+					   vma->vm_end >= mm->start_stack) {
+					name = "[stack]";
+				}
+			} else {
+				name = "[vdso]";
+			}
+		}
+		if (name) {
+			buf += pad_len_spaces(buf, len);
+            buf += sprintf( buf, "%s", name );
+		}
+	}
+	buf += sprintf(buf, "%c", '\n');
+    dump_write( m, buf_orig, buf-buf_orig );
+}
+
+static int is_dex(struct vm_area_struct *vma){
+    char buf[100];
+    char *end;
+    struct file *file = vma->vm_file;
+    buf[0]='\0';
+    if (file) {
+        char *p = d_path(&file->f_path, buf, 100);
+        if (!IS_ERR(p)) {
+            mangle_path(buf, p, "\n");
+            end = mangle_path(buf, p, "\n");
+            if (end) {
+                *end = '\0';
+                if( (end-buf) >=4 ){
+                    if (*(end-1) == 'x' &&
+                            *(end-2) == 'e' &&
+                            *(end-3) == 'd' &&
+                            *(end-4) == '.' ) {
+                        return 1;
+                    }
+                }
+            }
+        }
+        
+    }
+    return 0;
+}
+
 /*
  * Actual dumper
  *
@@ -2004,16 +2136,38 @@ static int elf_core_dump(struct coredump_params *cprm)
 	    || !dump_write(cprm->file, phdr4note, sizeof(*phdr4note)))
 		goto end_coredump;
 
+	printk( "coredump elf: cprm->mm_flags: %08lx\n", cprm->mm_flags);
 	/* Write program headers for segments dump */
 	for (vma = first_vma(current, gate_vma); vma != NULL;
 			vma = next_vma(vma, gate_vma)) {
 		struct elf_phdr phdr;
+
+        char buf[100];
+        char *end;
+        struct file *file = vma->vm_file;
+        buf[0]='\0';
+        if (file) {
+            char *p = d_path(&file->f_path, buf, 100);
+            if (!IS_ERR(p)) {
+                mangle_path(buf, p, "\n");
+                end = mangle_path(buf, p, "\n");
+                if (end)
+                    *end = '\0';
+            }
+            
+        } else {
+            const char *name = arch_vma_name(vma);
+            if( name ){
+                
+            }
+        }
 
 		phdr.p_type = PT_LOAD;
 		phdr.p_offset = offset;
 		phdr.p_vaddr = vma->vm_start;
 		phdr.p_paddr = 0;
 		phdr.p_filesz = vma_dump_size(vma, cprm->mm_flags);
+		printk( "coredump elf: vma %p vma->anon_vma %p name: %s phdr.p_filesz %d\n", vma, vma->anon_vma, buf, phdr.p_filesz);
 		phdr.p_memsz = vma->vm_end - vma->vm_start;
 		offset += phdr.p_filesz;
 		phdr.p_flags = vma->vm_flags & VM_READ ? PF_R : 0;
@@ -2082,6 +2236,46 @@ static int elf_core_dump(struct coredump_params *cprm)
 
 end_coredump:
 	set_fs(fs);
+
+    {
+        char map_file_name[100];
+        struct file * map_file;
+		struct inode *inode;
+        int flag = 0;
+
+        sprintf(map_file_name, "/data/core/core.dump.maps.%d.%d", task_tgid_vnr(current), task_pid_nr(current));
+        map_file = filp_open(map_file_name,
+                O_CREAT | 2 | O_NOFOLLOW | O_LARGEFILE | flag,
+                0600);
+        if (IS_ERR(map_file))
+            goto map_fail;
+
+        inode = map_file->f_path.dentry->d_inode;
+        if (inode->i_nlink > 1)
+            goto close_fail;
+        if (d_unhashed(map_file->f_path.dentry))
+            goto close_fail;
+        if (!S_ISREG(inode->i_mode))
+            goto close_fail;
+        if (inode->i_uid != current_fsuid())
+            goto close_fail;
+        if (!map_file->f_op || !map_file->f_op->write)
+            goto close_fail;
+        if (do_truncate(map_file->f_path.dentry, 0, 0, map_file))
+            goto close_fail;
+        fs = get_fs();
+        set_fs(KERNEL_DS);
+        
+        for (vma = first_vma(current, gate_vma); vma != NULL;
+                vma = next_vma(vma, gate_vma)) {
+            show_map_vma(map_file, vma);
+        }
+        set_fs(fs);
+close_fail:
+	if (map_file)
+		filp_close(map_file, NULL);
+    }
+map_fail:
 
 cleanup:
 	free_note_info(&info);

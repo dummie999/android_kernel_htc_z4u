@@ -6,7 +6,6 @@
 #include <linux/bio.h>
 #include <linux/blkdev.h>
 #include <linux/scatterlist.h>
-#include <linux/security.h>
 
 #include "blk.h"
 
@@ -42,9 +41,6 @@ static unsigned int __blk_recalc_rq_segments(struct request_queue *q,
 				if (!BIOVEC_PHYS_MERGEABLE(bvprv, bv))
 					goto new_segment;
 				if (!BIOVEC_SEG_BOUNDARY(q, bvprv, bv))
-					goto new_segment;
-				if ((bvprv->bv_page != bv->bv_page) &&
-				    (bvprv->bv_page + 1) != bv->bv_page)
 					goto new_segment;
 
 				seg_size += bv->bv_len;
@@ -144,9 +140,6 @@ int blk_rq_map_sg(struct request_queue *q, struct request *rq,
 			if (!BIOVEC_PHYS_MERGEABLE(bvprv, bvec))
 				goto new_segment;
 			if (!BIOVEC_SEG_BOUNDARY(q, bvprv, bvec))
-				goto new_segment;
-			if ((bvprv->bv_page != bvec->bv_page) &&
-			    ((bvprv->bv_page + 1) != bvec->bv_page))
 				goto new_segment;
 
 			sg->length += nbytes;
@@ -498,10 +491,6 @@ bool blk_rq_merge_ok(struct request *rq, struct bio *bio)
 	if ((bio->bi_rw & REQ_SECURE) != (rq->bio->bi_rw & REQ_SECURE))
 		return false;
 
-	/* don't merge file system requests and sanitize requests */
-	if ((bio->bi_rw & REQ_SANITIZE) != (rq->bio->bi_rw & REQ_SANITIZE))
-		return false;
-
 	/* different data direction or already started, don't merge */
 	if (bio_data_dir(bio) != rq_data_dir(rq))
 		return false;
@@ -512,10 +501,6 @@ bool blk_rq_merge_ok(struct request *rq, struct bio *bio)
 
 	/* only merge integrity protected bio into ditto rq */
 	if (bio_integrity(bio) != blk_integrity_rq(rq))
-		return false;
-
-	/* Don't merge bios of files with different encryption */
-	if (!security_allow_merge_bio(rq->bio, bio))
 		return false;
 
 	return true;

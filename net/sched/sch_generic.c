@@ -116,6 +116,12 @@ int sch_direct_xmit(struct sk_buff *skb, struct Qdisc *q,
 		    spinlock_t *root_lock)
 {
 	int ret = NETDEV_TX_BUSY;
+	
+	if (IS_ERR(skb) || (!skb))
+		return 0;
+		
+	if (IS_ERR(dev) || (!dev))
+		return 0;
 
 	/* And release qdisc */
 	spin_unlock(root_lock);
@@ -497,7 +503,19 @@ static struct sk_buff *pfifo_fast_peek(struct Qdisc *qdisc)
 static void pfifo_fast_reset(struct Qdisc *qdisc)
 {
 	int prio;
-	struct pfifo_fast_priv *priv = qdisc_priv(qdisc);
+	struct pfifo_fast_priv *priv = NULL;
+	
+	if ((!qdisc) || (IS_ERR(qdisc))) {
+		printk("[NET] qdisc is NULL in %s\n", __func__);
+		return;
+	}
+	
+	priv = qdisc_priv(qdisc);
+	
+	if ((!priv) || (IS_ERR(priv))) {
+		printk("[NET] priv is NULL in %s\n", __func__);
+		return;
+	}
 
 	for (prio = 0; prio < PFIFO_FAST_BANDS; prio++)
 		__qdisc_reset_queue(qdisc, band2list(priv, prio));
@@ -612,7 +630,7 @@ void qdisc_reset(struct Qdisc *qdisc)
 	if (ops->reset)
 		ops->reset(qdisc);
 
-	if (qdisc->gso_skb) {
+	if ((qdisc->gso_skb) && (!IS_ERR(qdisc->gso_skb))) {
 		kfree_skb(qdisc->gso_skb);
 		qdisc->gso_skb = NULL;
 		qdisc->q.qlen = 0;

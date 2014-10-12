@@ -84,7 +84,7 @@
 #include <linux/proc_fs.h>
 #include <linux/cm3629.h>
 #include "board-protou.h"
-#include "board-bcm4330-wifi.h"
+#include "board-protou-wifi.h"
 #ifdef CONFIG_PERFLOCK
 #include <mach/perflock.h>
 #endif
@@ -2424,7 +2424,7 @@ static void __init msm7x2x_init(void)
 			i2c_tps65200_devices, ARRAY_SIZE(i2c_tps65200_devices));
         msm_init_pmic_vibrator(3000);
 	msm8625_init_keypad();
-	bcm4330_wifi_init();
+	protou_wifi_init();
 
 
 		htc_monitor_init();

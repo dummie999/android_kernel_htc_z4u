@@ -1,7 +1,6 @@
 /*
   FUSE: Filesystem in Userspace
   Copyright (C) 2001-2008  Miklos Szeredi <miklos@szeredi.hu>
-  Copyright (c) 2013, The Linux Foundation. All rights reserved.
 
   This program can be distributed under the terms of the GNU GPL.
   See the file COPYING.
@@ -516,8 +515,7 @@ static void fuse_read_update_size(struct inode *inode, loff_t size,
 	struct fuse_inode *fi = get_fuse_inode(inode);
 
 	spin_lock(&fc->lock);
-	if (attr_ver == fi->attr_version && size < inode->i_size &&
-	    !test_bit(FUSE_I_SIZE_UNSTABLE, &fi->state)) {
+	if (attr_ver == fi->attr_version && size < inode->i_size) {
 		fi->attr_version = ++fc->attr_version;
 		i_size_write(inode, size);
 	}
@@ -665,42 +663,6 @@ static int fuse_readpages_fill(void *_data, struct page *page)
 			return PTR_ERR(req);
 		}
 	}
-
-#ifdef CONFIG_CMA
-	if (is_cma_pageblock(page)) {
-		struct page *oldpage = page, *newpage;
-		int err;
-
-		/* make sure that old page is not free in-between the calls */
-		page_cache_get(oldpage);
-
-		newpage = alloc_page(GFP_HIGHUSER);
-		if (!newpage) {
-			page_cache_release(oldpage);
-			return -ENOMEM;
-		}
-
-		err = replace_page_cache_page(oldpage, newpage, GFP_KERNEL);
-		if (err) {
-			__free_page(newpage);
-			page_cache_release(oldpage);
-			return err;
-		}
-
-		/*
-		 * Decrement the count on new page to make page cache the only
-		 * owner of it
-		 */
-		lock_page(newpage);
-		put_page(newpage);
-
-		/* finally release the old page and swap pointers */
-		unlock_page(oldpage);
-		page_cache_release(oldpage);
-		page = newpage;
-	}
-#endif
-
 	page_cache_get(page);
 	req->pages[req->num_pages] = page;
 	req->num_pages++;
@@ -915,15 +877,11 @@ static ssize_t fuse_perform_write(struct file *file,
 {
 	struct inode *inode = mapping->host;
 	struct fuse_conn *fc = get_fuse_conn(inode);
-	struct fuse_inode *fi = get_fuse_inode(inode);
 	int err = 0;
 	ssize_t res = 0;
 
 	if (is_bad_inode(inode))
 		return -EIO;
-
-	if (inode->i_size < pos + iov_iter_count(ii))
-		set_bit(FUSE_I_SIZE_UNSTABLE, &fi->state);
 
 	do {
 		struct fuse_req *req;
@@ -959,7 +917,6 @@ static ssize_t fuse_perform_write(struct file *file,
 	if (res > 0)
 		fuse_write_update_size(inode, pos);
 
-	clear_bit(FUSE_I_SIZE_UNSTABLE, &fi->state);
 	fuse_invalidate_attr(inode);
 
 	return res > 0 ? res : err;
@@ -1337,14 +1294,13 @@ static int fuse_writepage_locked(struct page *page)
 
 	inc_bdi_stat(mapping->backing_dev_info, BDI_WRITEBACK);
 	inc_zone_page_state(tmp_page, NR_WRITEBACK_TEMP);
+	end_page_writeback(page);
 
 	spin_lock(&fc->lock);
 	list_add(&req->writepages_entry, &fi->writepages);
 	list_add_tail(&req->list, &fi->queued_writes);
 	fuse_flush_writepages(inode);
 	spin_unlock(&fc->lock);
-
-	end_page_writeback(page);
 
 	return 0;
 
@@ -1742,7 +1698,7 @@ static int fuse_verify_ioctl_iov(struct iovec *iov, size_t count)
 	size_t n;
 	u32 max = FUSE_MAX_PAGES_PER_REQ << PAGE_SHIFT;
 
-	for (n = 0; n < count; n++, iov++) {
+	for (n = 0; n < count; n++) {
 		if (iov->iov_len > (size_t) max)
 			return -ENOMEM;
 		max -= iov->iov_len;

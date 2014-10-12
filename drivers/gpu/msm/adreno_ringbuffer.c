@@ -29,6 +29,8 @@
 
 #define GSL_RB_NOP_SIZEDWORDS				2
 
+#define CP_DEBUG_DEFAULT ((1 << 27) | (1 << 25))
+
 void adreno_ringbuffer_submit(struct adreno_ringbuffer *rb)
 {
 	BUG_ON(rb->wptr == 0);
@@ -217,7 +219,7 @@ static int adreno_ringbuffer_load_pm4_ucode(struct kgsl_device *device)
 	KGSL_DRV_INFO(device, "loading pm4 ucode version: %d\n",
 		adreno_dev->pm4_fw[0]);
 
-	adreno_regwrite(device, REG_CP_DEBUG, 0x02000000);
+	adreno_regwrite(device, REG_CP_DEBUG, CP_DEBUG_DEFAULT);
 	adreno_regwrite(device, REG_CP_ME_RAM_WADDR, 0);
 	for (i = 1; i < adreno_dev->pm4_fw_size; i++)
 		adreno_regwrite(device, REG_CP_ME_RAM_DATA,
@@ -485,7 +487,7 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 	 * support, we must use the global timestamp since issueibcmds
 	 * will be returning that one.
 	 */
-	if (context->flags & CTXT_FLAGS_PER_CONTEXT_TS)
+	if (context && context->flags & CTXT_FLAGS_PER_CONTEXT_TS)
 		context_id = context->id;
 
 	/* reserve space to temporarily turn off protected mode
@@ -503,7 +505,7 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 		total_sizedwords += 2; /* CP_WAIT_FOR_IDLE */
 
 	total_sizedwords += 2; /* scratchpad ts for recovery */
-	if (context->flags & CTXT_FLAGS_PER_CONTEXT_TS) {
+	if (context && context->flags & CTXT_FLAGS_PER_CONTEXT_TS) {
 		total_sizedwords += 3; /* sop timestamp */
 		total_sizedwords += 4; /* eop timestamp */
 		total_sizedwords += 3; /* global timestamp without cache
@@ -590,7 +592,7 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 		GSL_RB_WRITE(ringcmds, rcmd_gpu, 0x00);
 	}
 
-	if (context->flags & CTXT_FLAGS_PER_CONTEXT_TS) {
+	if (context && context->flags & CTXT_FLAGS_PER_CONTEXT_TS) {
 		/* start-of-pipeline timestamp */
 		GSL_RB_WRITE(ringcmds, rcmd_gpu,
 			cp_type3_packet(CP_MEM_WRITE, 2));

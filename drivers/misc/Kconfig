@@ -656,22 +656,13 @@ config USB_HSIC_SMSC_HUB
 config CABLE_DETECT_8X55
 	tristate "cable detect 8x55"
 	help
-	  cable detect 8x55 Detect usb, ac and other accessories.
-
+	  cable detect 8x55
 
 config CABLE_DETECT_8X55_CPLD
 	tristate "cable detect 8x55_CPLD"
 	depends on CPLD
 	help
 	  cable detect 8x55 cpld
-
-config CABLE_DETECT_ACCESSORY
-	boolean "CABLE ACCESSORY DETECT"
-	default n
-
-config CABLE_DETECT_ACCESSORY_BY_ADC
-	boolean "DETECT ACCESSORY BY PMIC ADC"
-	default n
 
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"

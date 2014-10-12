@@ -122,9 +122,8 @@ static void ath_pci_aspm_init(struct ath_common *common)
 	if (!parent)
 		return;
 
-	if ((ath9k_hw_get_btcoex_scheme(ah) != ATH_BTCOEX_CFG_NONE) &&
-	    (AR_SREV_9285(ah))) {
-		/* Bluetooth coexistance requires disabling ASPM for AR9285. */
+	if (ath9k_hw_get_btcoex_scheme(ah) != ATH_BTCOEX_CFG_NONE) {
+		/* Bluetooth coexistance requires disabling ASPM. */
 		pci_read_config_byte(pdev, pos + PCI_EXP_LNKCTL, &aspm);
 		aspm &= ~(PCIE_LINK_STATE_L0S | PCIE_LINK_STATE_L1);
 		pci_write_config_byte(pdev, pos + PCI_EXP_LNKCTL, aspm);
@@ -147,31 +146,6 @@ static void ath_pci_aspm_init(struct ath_common *common)
 		ah->aspm_enabled = true;
 		/* Initialize PCIe PM and SERDES registers. */
 		ath9k_hw_configpcipowersave(ah, false);
-	}
-}
-
-static void ath_pci_aspm_init(struct ath_common *common)
-{
-	struct ath_softc *sc = (struct ath_softc *) common->priv;
-	struct ath_hw *ah = sc->sc_ah;
-	struct pci_dev *pdev = to_pci_dev(sc->dev);
-	struct pci_dev *parent;
-	int pos;
-	u8 aspm;
-
-	if (!pci_is_pcie(pdev))
-		return;
-
-	parent = pdev->bus->self;
-	if (WARN_ON(!parent))
-		return;
-
-	pos = pci_pcie_cap(parent);
-	pci_read_config_byte(parent, pos +  PCI_EXP_LNKCTL, &aspm);
-	if (aspm & (PCIE_LINK_STATE_L0S | PCIE_LINK_STATE_L1)) {
-		ah->aspm_enabled = true;
-		/* Initialize PCIe PM and SERDES registers. */
-		ath9k_hw_configpcipowersave(ah, 0, 0);
 	}
 }
 

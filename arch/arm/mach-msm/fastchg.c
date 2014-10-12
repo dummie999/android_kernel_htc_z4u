@@ -30,30 +30,30 @@ int force_fast_charge;
 /* sysfs interface for "force_fast_charge" */
 static ssize_t force_fast_charge_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return sprintf(buf, "%d\n", force_fast_charge);
+return sprintf(buf, "%d\n", force_fast_charge);
 }
 
 static ssize_t force_fast_charge_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count)
 {
 
-	int new_force_fast_charge;
+int new_force_fast_charge;
 
-	sscanf(buf, "%du", &new_force_fast_charge);
+sscanf(buf, "%du", &new_force_fast_charge);
 
-	if (new_force_fast_charge >= FAST_CHARGE_DISABLED && new_force_fast_charge <= FAST_CHARGE_FORCE_AC) {
-		/* update only if valid value provided */
-		force_fast_charge = new_force_fast_charge;
-	}
+if (new_force_fast_charge >= FAST_CHARGE_DISABLED && new_force_fast_charge <= FAST_CHARGE_FORCE_AC) {
+	/* update only if valid value provided */
+	force_fast_charge = new_force_fast_charge;
+}
 
-	return count;
+return count;
 }
 
 static struct kobj_attribute force_fast_charge_attribute =
-	__ATTR(force_fast_charge, 0666, force_fast_charge_show, force_fast_charge_store);
+__ATTR(force_fast_charge, 0666, force_fast_charge_show, force_fast_charge_store);
 
 static struct attribute *force_fast_charge_attrs[] = {
-	&force_fast_charge_attribute.attr,
-	NULL,
+&force_fast_charge_attribute.attr,
+NULL,
 };
 
 static struct attribute_group force_fast_charge_attr_group = {

@@ -197,7 +197,7 @@ config SERIAL_SAMSUNG_UARTS_4
 config SERIAL_SAMSUNG_UARTS
 	int
 	depends on ARM && PLAT_SAMSUNG
-	default 6 if CPU_S5P6450
+	default 6 if ARCH_S5P6450
 	default 4 if SERIAL_SAMSUNG_UARTS_4 || CPU_S3C2416
 	default 3
 	help
@@ -1417,11 +1417,3 @@ config SERIAL_EFM32_UART_CONSOLE
 	select SERIAL_CORE_CONSOLE
 
 endmenu
-
-config GPS_1530
-	bool "ENABLE GPS 1530 UART"
-	default n
-
-config GPS_1530_LNA_POWER
-	bool "GPS 2.7V LNA POWER"
-	default n
