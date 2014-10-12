@@ -173,7 +173,7 @@ extern unsigned int get_tamper_sf(void);
 #define S2SL_X_B2 480
 #define S2SL_X_FINAL 110
 
-#define PWRKEY_DUR 20
+#define PWRKEY_DUR 60
 
 #define S2W_DELTA 80
 #define S2W_TIMEOUT_B1 450
