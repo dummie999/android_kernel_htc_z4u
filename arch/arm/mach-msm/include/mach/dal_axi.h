@@ -22,4 +22,4 @@ int axi_free(int mode);
 int axi_halt(int port);
 #define AXI_FLOW_VIEWFINDER_HI	17 
 #define AXI_HALT_PORT_VFE	7
-#endif  /* _DAL_AXI_H */
+#endif  

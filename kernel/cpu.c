@@ -305,6 +305,8 @@ int __ref cpu_down(unsigned int cpu)
 {
 	int err;
 
+	printk("Take CPU%u down - Begin\n", cpu);
+
 	cpu_maps_update_begin();
 
 	if (cpu_hotplug_disabled || wifi_is_powering_onoff) {
@@ -316,6 +318,8 @@ int __ref cpu_down(unsigned int cpu)
 
 out:
 	cpu_maps_update_done();
+	
+	printk("Take CPU%u down - End\n", cpu);
 	return err;
 }
 EXPORT_SYMBOL(cpu_down);
@@ -403,6 +407,7 @@ int __cpuinit cpu_up(unsigned int cpu)
 		mutex_unlock(&zonelists_mutex);
 	}
 #endif
+	printk("Take CPU%u UP - Begin\n", cpu);
 
 	cpu_maps_update_begin();
 
@@ -415,6 +420,7 @@ int __cpuinit cpu_up(unsigned int cpu)
 
 out:
 	cpu_maps_update_done();
+	printk("Take CPU%u UP - End\n", cpu);
 	return err;
 }
 EXPORT_SYMBOL_GPL(cpu_up);

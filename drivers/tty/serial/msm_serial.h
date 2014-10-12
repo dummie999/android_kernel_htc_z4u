@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2007 Google, Inc.
  * Author: Robert Love <rlove@google.com>
- * Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -141,4 +141,4 @@
 #define UARTDM_NCF_TX		0x40
 #define UARTDM_RX_TOTAL_SNAP	0x38
 
-#endif	/* __DRIVERS_SERIAL_MSM_SERIAL_H */
+#endif	

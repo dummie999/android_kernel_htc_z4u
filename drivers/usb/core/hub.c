@@ -43,7 +43,7 @@ int No_Status_Phase;
 EXPORT_SYMBOL(No_Status_Phase);
 unsigned char hub_tier;
 
-#define PDC_HOST_NOTIFY		0x8001	/*completion from core */
+#define PDC_HOST_NOTIFY		0x8001
 #define UNSUPPORTED_DEVICE	0x8099
 #define UNWANTED_SUSPEND	0x8098
 #define PDC_POWERMANAGEMENT	0x8097
@@ -55,7 +55,6 @@ EXPORT_SYMBOL(HostComplianceTest);
 int HostTest;
 EXPORT_SYMBOL(HostTest);
 #endif
-
 
 /* if we are in debug mode, always announce new devices */
 #ifdef DEBUG
@@ -385,9 +384,6 @@ static int get_port_status(struct usb_device *hdev, int port1,
 {
 	int i, status = -ETIMEDOUT;
 
-	/* ISP1763A HUB sometimes returns 2 bytes instead of 4 bytes, retry
-	 * if this happens
-	 */
 	for (i = 0; i < USB_STS_RETRIES &&
 			(status == -ETIMEDOUT || status == -EPIPE || status == 2); i++) {
 		status = usb_control_msg(hdev, usb_rcvctrlpipe(hdev, 0),
@@ -675,7 +671,7 @@ static int hub_hub_status(struct usb_hub *hub,
 			"%s failed (err = %d)\n", __func__, ret);
 	else {
 		*status = le16_to_cpu(hub->status->hub.wHubStatus);
-		*change = le16_to_cpu(hub->status->hub.wHubChange); 
+		*change = le16_to_cpu(hub->status->hub.wHubChange);
 		ret = 0;
 	}
 	mutex_unlock(&hub->status_mutex);
@@ -1892,12 +1888,12 @@ static int usb_enumerate_device_otg(struct usb_device *udev)
 	int err = 0;
 
 #ifdef	CONFIG_USB_OTG
-	bool old_otg = false;
 	/*
 	 * OTG-aware devices on OTG-capable root hubs may be able to use SRP,
 	 * to wake us after we've powered off VBUS; and HNP, switching roles
 	 * "host" to "peripheral".  The OTG descriptor helps figure this out.
 	 */
+	bool old_otg = false;
 	if (!udev->bus->is_b_host
 			&& udev->config
 			&& udev->parent == udev->bus->root_hub) {
@@ -1916,30 +1912,21 @@ static int usb_enumerate_device_otg(struct usb_device *udev)
 					(port1 == bus->otg_port)
 						? "" : "non-");
 
-				/* a_alt_hnp_support is obsoleted */
+				/* enable HNP before suspend, it's simpler */
 				if (port1 != bus->otg_port)
 					goto out;
 
 				bus->hnp_support = 1;
 
-				/* a_hnp_support is not required for devices
-				 * compliant to revision 2.0 or subsequent
-				 * versions.
-				 */
 
 				if ((le16_to_cpu(desc->bLength) ==
 						USB_DT_OTG_SIZE) &&
 					le16_to_cpu(desc->bcdOTG) >= 0x0200)
 					goto out;
 
-				/* Legacy B-device i.e compliant to spec
-				 * revision 1.3 expect A-device to set
-				 * a_hnp_support or b_hnp_enable before
-				 * selecting configuration.
-				 */
 				old_otg = true;
 
-				/* enable HNP before suspend, it's simpler */
+
 				err = usb_control_msg(udev,
 					usb_sndctrlpipe(udev, 0),
 					USB_REQ_SET_FEATURE, 0,
@@ -1969,7 +1956,6 @@ out:
 	if (!is_targeted(udev)) {
 
 		otg_send_event(OTG_EVENT_DEV_NOT_SUPPORTED);
-
 		/* Maybe it can talk to us, though we can't talk to it.
 		 * (Includes HNP test device.)
 		 */
@@ -1981,11 +1967,6 @@ out:
 		err = -ENOTSUPP;
 	} else if (udev->bus->hnp_support &&
 		udev->portnum == udev->bus->otg_port) {
-		/* HNP polling is introduced in OTG supplement Rev 2.0
-		 * and older devices may not support. Work is not
-		 * re-armed if device returns STALL. B-Host also perform
-		 * HNP polling.
-		 */
 		if (udev->bus->quick_hnp)
 			schedule_delayed_work(&udev->bus->hnp_polling,
 				msecs_to_jiffies(OTG_TTST_SUSP));
@@ -3327,15 +3308,10 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
 					buf->bMaxPacketSize0;
 			kfree(buf);
 
-			/*
-			 * If it is a HSET Test device, we don't issue a
-			 * second reset which results in failure due to
-			 * speed change.
-			 */
 			if (le16_to_cpu(buf->idVendor) != 0x1a0a) {
 				retval = hub_port_reset(hub, port1, udev,
 							 delay, false);
-				if (retval < 0)	/* error or disconnect */
+				if (retval < 0) /* error or disconnect */
 					goto fail;
 				if (oldspeed != udev->speed) {
 					dev_dbg(&udev->dev,
@@ -3613,7 +3589,7 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
 		clear_bit(port1, hub->removed_bits);
 
 #if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
-	if (Unwanted_SecondReset == 0)   /*stericsson*/
+	if (Unwanted_SecondReset == 0)
 #endif
 	if (portchange & (USB_PORT_STAT_C_CONNECTION |
 				USB_PORT_STAT_C_ENABLE)) {
@@ -3755,12 +3731,9 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
 			dev_dbg(hub_dev, "%dmA power budget left\n", status);
 #if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
 		if (HostComplianceTest == 1 && udev->devnum > 1) {
-			if (HostTest == 7) {	/*SINGLE_STEP_GET_DEV_DESC */
+			if (HostTest == 7) {
 				dev_info(hub_dev, "Testing "
 						"SINGLE_STEP_GET_DEV_DESC\n");
-				/* Test the Single Step Get Device Descriptor ,
-				 * take care it should not get status phase
-				 */
 				No_Data_Phase = 1;
 				No_Status_Phase = 1;
 
@@ -3772,7 +3745,7 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
 			if (HostTest == 8) {
 				dev_info(hub_dev, "Testing "
 						"SINGLE_STEP_SET_FEATURE\n");
-				/* Test Single Step Set Feature */
+
 				No_Status_Phase = 1;
 				usb_get_device_descriptor(udev, 8);
 				No_Status_Phase = 0;
@@ -3939,9 +3912,6 @@ static void hub_events(void)
 #if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
 			struct usb_port_status portsts;
 
-			/*if we have something to do on
-			 * otg port
-			 * */
 			if ((hdev->otgstate & USB_OTG_SUSPEND) ||
 			    (hdev->otgstate & USB_OTG_ENUMERATE) ||
 			    (hdev->otgstate & USB_OTG_DISCONNECT) ||
@@ -4095,10 +4065,6 @@ static void hub_events(void)
 			}
 
 
-			/*
-			 * reset the state of otg device,
-			 * regardless of otg device
-			 */
 			hdev->otgstate = 0;
 #endif
 			if (test_bit(i, hub->busy_bits))
@@ -4264,10 +4230,10 @@ static void hub_events(void)
 			}
 		}
 #if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
-		/* if we have something on otg */
+
 		if (otgport) {
 			otgport = 0;
-			/* notify otg controller about it */
+
 			if (hdev->parent == hdev->bus->root_hub)
 				if (hdev->otg_notif)
 					hdev->otg_notif(hdev->otgpriv,
@@ -4275,7 +4241,7 @@ static void hub_events(void)
 		}
 
 		if (HostComplianceTest && hdev->devnum > 1) {
-			/* TEST_SE0_NAK */
+
 			if (HostTest == 1) {
 				dev_info(hub_dev, "Testing for TEST_SE0_NAK\n");
 				ret = clear_port_feature(hdev, portno,
@@ -4287,7 +4253,7 @@ static void hub_events(void)
 				ret = get_port_status(hdev, portno,
 						      &port_status);
 			}
-			/*TEST_J*/
+
 			if (HostTest == 2) {
 				dev_info(hub_dev, "Testing TEST_J\n");
 				ret = clear_port_feature(hdev, portno,
