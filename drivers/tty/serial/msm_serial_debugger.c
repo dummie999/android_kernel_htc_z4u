@@ -32,6 +32,8 @@
 
 #include "msm_serial.h"
 
+void (*msm_hw_reset_hook)(void);
+
 static unsigned int debug_port_base;
 static int debug_signal_irq;
 static struct clk *debug_clk;

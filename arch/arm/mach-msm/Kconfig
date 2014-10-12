@@ -431,6 +431,9 @@ config MSM_REMOTE_SPINLOCK_SFPB
 config MSM_ADM3
 	bool
 
+config HTC_PHONE
+	bool "HTC PHONE"
+
 config PERFLOCK
 	 depends on CPU_FREQ
 	 depends on ARCH_MSM
@@ -666,6 +669,7 @@ config MACH_PROTOU
 	depends on !MSM_STACKED_MEMORY
 	default n
 	select FB_MSM_MIPI_VIDEO_ONLY
+	select HTC_PHONE
 	bool "Protou"
 	help
 	  Support for the Protou.
@@ -675,6 +679,7 @@ config MACH_PROTODUG
 	depends on !MSM_STACKED_MEMORY
 	default n
 	select FB_MSM_MIPI_VIDEO_ONLY
+	select HTC_PHONE
 	bool "Protodug"
 	help
 	  Support for the Protodug.
@@ -684,6 +689,7 @@ config MACH_PROTODCG
 	depends on !MSM_STACKED_MEMORY
 	default n
 	select FB_MSM_MIPI_VIDEO_ONLY
+	select HTC_PHONE
 	bool "Protodcg"
 	help
 	  Support for the Protodcg.
@@ -727,6 +733,7 @@ config MACH_MSM8625Q_SKUD
 config MACH_MAGNIDS
 	depends on ARCH_MSM8625
 	depends on !MSM_STACKED_MEMORY
+	select HTC_PHONE
 	default n
 	bool "Magnids"
 	help
@@ -735,6 +742,7 @@ config MACH_MAGNIDS
 config MACH_MAGNIU
 	depends on ARCH_MSM8625
 	depends on !MSM_STACKED_MEMORY
+	select HTC_PHONE
 	default n
 	bool "Magniu"
 	help
@@ -745,6 +753,7 @@ config MACH_CP3DCG
 	depends on !MSM_STACKED_MEMORY
 	default n
 	select FB_MSM_MIPI_VIDEO_ONLY
+	select HTC_PHONE
 	bool "CP3DCG"
 	help
 	  Support for the Cp3dcg.
@@ -754,6 +763,7 @@ config MACH_CP3DUG
 	depends on !MSM_STACKED_MEMORY
 	default n
 	select FB_MSM_MIPI_VIDEO_ONLY
+	select HTC_PHONE
 	bool "CP3DUG"
 	help
 	  Support for the Cp3dug.
@@ -763,6 +773,7 @@ config MACH_CP3DTG
 	depends on !MSM_STACKED_MEMORY
 	default n
 	select FB_MSM_MIPI_VIDEO_ONLY
+	select HTC_PHONE
 	bool "CP3DTG"
 	help
 	  Support for the Cp3dtg.
@@ -770,6 +781,7 @@ config MACH_CP3DTG
 config MACH_CP3U
 	depends on ARCH_MSM8625
 	depends on !MSM_STACKED_MEMORY
+	select HTC_PHONE
 	default n
 	select FB_MSM_MIPI_VIDEO_ONLY
 	bool "CP3U"
@@ -781,6 +793,7 @@ config MACH_Z4DUG
 	depends on !MSM_STACKED_MEMORY
 	default n
 	select FB_MSM_MIPI_VIDEO_ONLY
+	select HTC_PHONE
 	bool "Z4DUG"
 	help
 	  Support for the Z4dug.
@@ -790,6 +803,7 @@ config MACH_Z4DCG
 	depends on !MSM_STACKED_MEMORY
 	default n
 	select FB_MSM_MIPI_VIDEO_ONLY
+	select HTC_PHONE
 	bool "Z4DCG"
 	help
 	  Support for the Z4dcg.
@@ -799,6 +813,7 @@ config MACH_Z4U
 	 depends on !MSM_STACKED_MEMORY
 	 default n
 	 select FB_MSM_MIPI_VIDEO_ONLY
+	 select HTC_PHONE
 	 bool "Z4U"
 	 help
 	   Support for the Z4u.
@@ -3022,7 +3037,7 @@ config HTC_PM2_SYNC
 config SPRD_MODEM
 	bool "SPRD MODEM"
 	default n
-	help 
+	help
 	  Support SPRD MODEM.
 
 config QCT2243_V21

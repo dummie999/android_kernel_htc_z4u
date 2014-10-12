@@ -2519,10 +2519,12 @@ static void __init msm_pm_init(void)
 	}
 }
 
+#if defined(CONFIG_MSM_SERIAL_DEBUGGER)
 static void cp3_reset(void)
 {
 	gpio_set_value(Z4U_GPIO_PS_HOLD, 0);
 }
+#endif
 
 #ifdef CONFIG_GPS_1530
 #define UART3_RX        GPIO_CFG(86, 1, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA)
@@ -2645,8 +2647,9 @@ static void __init msm_z4u_init(void)
 #ifdef CONFIG_MMC_MSM
 	struct proc_dir_entry *entry = NULL;
 #endif
-
+#if defined(CONFIG_MSM_SERIAL_DEBUGGER)
 	msm_hw_reset_hook = cp3_reset;
+#endif
 	gpio_set_value(Z4U_GPIO_PS_HOLD, 1);
 
 	msm7x2x_misc_init();
