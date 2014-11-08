@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2008-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -99,7 +99,7 @@ struct msm_fb_data_type {
 	boolean pan_waiting;
 	struct completion pan_comp;
 
-	
+	/* vsync */
 	boolean use_mdp_vsync;
 	__u32 vsync_gpio;
 	__u32 total_lcd_lines;
@@ -196,7 +196,8 @@ struct msm_fb_data_type {
 	u32 writeback_state;
 	bool writeback_active_cnt;
 	int cont_splash_done;
-
+	void *copy_splash_buf;
+	unsigned char *copy_splash_phys;
 	
 	struct workqueue_struct *dimming_wq;
 	struct work_struct dimming_work;
@@ -233,9 +234,9 @@ extern void htc_mdp_sem_down(struct task_struct *current_task, struct semaphore 
 extern void htc_mdp_sem_up(struct semaphore *mutex);
 
 #ifdef CONFIG_FB_MSM_LOGO
-#define INIT_IMAGE_FILE "/initlogo.rle"
+#define INIT_IMAGE_FILE "/msmlogo.rle"
 int load_565rle_image(char *filename, bool bf_supported);
 #endif
 
 #define DEFAULT_BRIGHTNESS 143
-#endif 
+#endif /* MSM_FB_H */

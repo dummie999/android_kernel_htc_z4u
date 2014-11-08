@@ -36,6 +36,7 @@
 #ifdef CONFIG_MMC_MUST_PREVENT_WP_VIOLATION
 #include <linux/mmc/card.h>
 #include <mach/board.h>
+#include <mach/board_htc.h>
 #endif	
 
 #include "blk.h"

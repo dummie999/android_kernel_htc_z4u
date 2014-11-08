@@ -2256,7 +2256,7 @@ static void __init msm7x2x_init(void)
 		msm7x27a_ts_himax_data.vk_obj = properties_kobj;
 		msm7x27a_ts_himax_data.vk2Use = &msm8625_himax_virtual_keys_attr;
 	}
-	msm_init_pmic_vibrator(3000);
+	msm_init_pmic_vibrator();
 
 	i2c_register_board_info(MSM_GSBI1_QUP_I2C_BUS_ID,
 			i2c_tps65200_devices, ARRAY_SIZE(i2c_tps65200_devices));

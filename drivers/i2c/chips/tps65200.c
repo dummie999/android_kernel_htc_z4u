@@ -27,7 +27,6 @@
 #include <linux/spinlock.h>
 #include <linux/wakelock.h>
 #include <linux/android_alarm.h>
-#include <linux/usb/android_composite.h>
 #include <mach/board_htc.h>
 #include <mach/board.h>
 #if defined(CONFIG_BATTERY_DS2746)

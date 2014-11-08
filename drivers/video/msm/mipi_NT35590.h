@@ -15,6 +15,6 @@
 #define MIPI_NT35590_H
 
 int mipi_nt35590_device_register(struct msm_panel_info *pinfo,
-                                       u32 channel, u32 panel);
+					u32 channel, u32 panel);
 
-#endif  
+#endif  /* MIPI_NT35590_H */

@@ -127,6 +127,8 @@
 #define RT5501_I2C_SLAVE_ADDR	(0xF0 >> 1)
 
 #define Z4U_GPIO_NFC_INT     (114)
+#define MAX_VKEY_LEN		200
+
 extern unsigned htc_get_skuid(void);
 
 int htc_get_usb_accessory_adc_level(uint32_t *buffer);
@@ -320,12 +322,13 @@ static struct platform_device msm_wlan_ar6000_pm_device = {
 static ssize_t syn_vkeys_show(struct kobject *kobj,
 			struct kobj_attribute *attr, char *buf)
 {
-	return snprintf(buf, 200,
-	__stringify(EV_KEY) ":" __stringify(KEY_BACK) ":109:871:86:86"
-
-	":" __stringify(EV_KEY) ":" __stringify(KEY_HOME) ":383:871:86:86"
-
-	"\n");
+	char *virtual_keys = \
+	__stringify(EV_KEY) ":" __stringify(KEY_BACK) ":109:871:86:86" \
+    ":" __stringify(EV_KEY) ":" __stringify(KEY_MENU) ":246:871:86:86" \
+	":" __stringify(EV_KEY) ":" __stringify(KEY_HOME) ":383:871:86:86" \
+	"\n";
+	return snprintf(buf, strnlen(virtual_keys, MAX_VKEY_LEN), "%s",
+			virtual_keys);
 }
 
 static struct kobj_attribute syn_vkeys_attr = {
@@ -2796,7 +2799,7 @@ static void __init msm_z4u_init(void)
 	msm7x25a_kgsl_3d0_init();
 	msm8x25_kgsl_3d0_init();
 #ifdef CONFIG_MSM_RPC_VIBRATOR
-	msm_init_pmic_vibrator(3000);
+	msm_init_pmic_vibrator();
 #endif
 
 

@@ -3256,7 +3256,7 @@ static void __init msm_cp3dug_init(void)
 	msm7x25a_kgsl_3d0_init();
 	msm8x25_kgsl_3d0_init();
 #ifdef CONFIG_MSM_RPC_VIBRATOR
-	msm_init_pmic_vibrator(3000);
+	msm_init_pmic_vibrator();
 #endif
 
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -23,7 +23,9 @@
 #include <linux/fb.h>
 #include <asm/system.h>
 #include <mach/hardware.h>
+#ifdef CONFIG_HTC_PHONE
 #include <mach/panel_id.h>
+#endif
 #include <mach/debug_display.h>
 #include "mdp.h"
 #include "msm_fb.h"
@@ -159,29 +161,32 @@ int mdp_dsi_video_on(struct platform_device *pdev)
 			mfd->panel_info.bpp);
 		return -ENODEV;
 	}
-	
+	/* MDP cmd block enable */
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
 
 
-	
+	/* starting address */
 	MDP_OUTP(MDP_BASE + DMA_P_BASE + 0x8, (uint32) buf);
 
-	
+	/* active window width and height */
 	MDP_OUTP(MDP_BASE + DMA_P_BASE + 0x4, ((fbi->var.yres) << 16) |
 		(fbi->var.xres));
 
-	
+	/* buffer ystride */
 	MDP_OUTP(MDP_BASE + DMA_P_BASE + 0xc, fbi->fix.line_length);
 
-	
+	/* x/y coordinate = always 0 for lcdc */
 	MDP_OUTP(MDP_BASE + DMA_P_BASE + 0x10, 0);
 
-	
+	/* dma config */
 	curr = inpdw(MDP_BASE + DMA_P_BASE);
 	mask = 0x0FFFFFFF;
 	dma2_cfg_reg = (dma2_cfg_reg & mask) | (curr & ~mask);
 	MDP_OUTP(MDP_BASE + DMA_P_BASE, dma2_cfg_reg);
 
+	/*
+	 * DSI timing setting
+	 */
 	h_back_porch = var->left_margin;
 	h_front_porch = var->right_margin;
 	v_back_porch = var->upper_margin;
@@ -215,7 +220,7 @@ int mdp_dsi_video_on(struct platform_device *pdev)
 	active_v_end = active_v_start +	(var->yres) * hsync_period - 1;
 	active_v_start |= ACTIVE_START_Y_EN;
 
-	dsi_underflow_clr |= 0x80000000;	
+	dsi_underflow_clr |= 0x80000000;	/* enable recovery */
 	hsync_polarity = 0;
 	vsync_polarity = 0;
 	data_en_polarity = 0;
@@ -246,13 +251,13 @@ int mdp_dsi_video_on(struct platform_device *pdev)
 
 	ret = panel_next_on(pdev);
 	if (ret == 0) {
-		
+		/* enable DSI block */
 		MDP_OUTP(MDP_BASE + DSI_VIDEO_BASE, 1);
-		
+		/*Turning on DMA_P block*/
 		mdp_pipe_ctrl(MDP_DMA2_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
 	}
 
-	
+	/* MDP cmd block disable */
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_OFF, FALSE);
 
 	if (!vsync_cntrl.sysfs_created) {
@@ -276,10 +281,13 @@ int mdp_dsi_video_on(struct platform_device *pdev)
 int mdp_dsi_video_off(struct platform_device *pdev)
 {
 	int ret = 0;
+#ifdef CONFIG_HTC_PHONE
 	int retry_cnt = 0;
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)platform_get_drvdata(pdev);
+#endif
 	PR_DISP_INFO("%s\n", __func__);
-
+	
+#ifdef CONFIG_HTC_PHONE
 	if (panel_type == PANEL_ID_PROTOU_LG || panel_type == PANEL_ID_PROTODCG_LG) {
 		if(!mfd) {
 			PR_DISP_ERR("mdp_dsi_video_off: mfd is NULL\n");
@@ -311,14 +319,15 @@ int mdp_dsi_video_off(struct platform_device *pdev)
 		PR_DISP_INFO("%s : mipi_lg_lcd_off retry_cnt = %d\n", __func__, retry_cnt);
 		hr_msleep(20);
 	}
+#endif
 
 	mdp_histogram_ctrl_all(FALSE);
-	
+	/* MDP cmd block enable */
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
 	MDP_OUTP(MDP_BASE + DSI_VIDEO_BASE, 0);
-	
+	/* MDP cmd block disable */
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_OFF, FALSE);
-	
+	/*Turning off DMA_P block*/
 	mdp_pipe_ctrl(MDP_DMA2_BLOCK, MDP_BLOCK_POWER_OFF, FALSE);
 
 	ret = panel_next_off(pdev);
@@ -326,7 +335,7 @@ int mdp_dsi_video_off(struct platform_device *pdev)
 	atomic_set(&vsync_cntrl.suspend, 1);
 	atomic_set(&vsync_cntrl.vsync_resume, 0);
 	complete_all(&vsync_cntrl.vsync_wait);
-	
+	/* delay to make sure the last frame finishes */
 	msleep(20);
 
 	return ret;
@@ -383,10 +392,10 @@ void mdp_dsi_video_update(struct msm_fb_data_type *mfd)
 
 	buf += calc_fb_offset(mfd, fbi, bpp);
 
-	
-	
+	/* no need to power on cmd block since it's dsi mode */
+	/* starting address */
 	MDP_OUTP(MDP_BASE + DMA_P_BASE + 0x8, (uint32) buf);
-	
+	/* enable  irq */
 	spin_lock_irqsave(&mdp_spin_lock, flag);
 	mdp_enable_irq(irq_block);
 	INIT_COMPLETION(mfd->dma->comp);
