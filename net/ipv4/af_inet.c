@@ -277,6 +277,7 @@ static inline int inet_netns_ok(struct net *net, int protocol)
 	return ipprot->netns_ok;
 }
 
+
 /*
  *	Create an inet socket.
  */

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -27,7 +27,7 @@ struct diag_dci_tbl {
 
 struct diag_dci_client_tbl {
 	struct task_struct *client;
-	uint16_t list; 
+	uint16_t list; /* bit mask */
 	int signal_type;
 	unsigned char dci_log_mask[DCI_LOG_MASK_SIZE];
 	unsigned char dci_event_mask[DCI_EVENT_MASK_SIZE];
@@ -40,19 +40,19 @@ struct diag_dci_client_tbl {
 	int received_events;
 };
 
-#define DIAG_CON_APSS (0x0001)	
-#define DIAG_CON_MPSS (0x0002)	
-#define DIAG_CON_LPASS (0x0004)	
-#define DIAG_CON_WCNSS (0x0008)	
+#define DIAG_CON_APSS (0x0001)	/* Bit mask for APSS */
+#define DIAG_CON_MPSS (0x0002)	/* Bit mask for MPSS */
+#define DIAG_CON_LPASS (0x0004)	/* Bit mask for LPASS */
+#define DIAG_CON_WCNSS (0x0008)	/* Bit mask for WCNSS */
 
 enum {
-	DIAG_DCI_NO_ERROR = 1001,	
-	DIAG_DCI_NO_REG,		
-	DIAG_DCI_NO_MEM,		
-	DIAG_DCI_NOT_SUPPORTED,	
-	DIAG_DCI_HUGE_PACKET,	
-	DIAG_DCI_SEND_DATA_FAIL,
-	DIAG_DCI_TABLE_ERR	
+	DIAG_DCI_NO_ERROR = 1001,	/* No error */
+	DIAG_DCI_NO_REG,		/* Could not register */
+	DIAG_DCI_NO_MEM,		/* Failed memory allocation */
+	DIAG_DCI_NOT_SUPPORTED,	/* This particular client is not supported */
+	DIAG_DCI_HUGE_PACKET,	/* Request/Response Packet too huge */
+	DIAG_DCI_SEND_DATA_FAIL,/* writing to kernel or peripheral fails */
+	DIAG_DCI_TABLE_ERR	/* Error dealing with registration tables */
 };
 
 int diag_dci_init(void);

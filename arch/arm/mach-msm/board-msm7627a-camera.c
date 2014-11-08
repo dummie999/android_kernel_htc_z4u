@@ -1599,6 +1599,7 @@ int lcd_camera_power_onoff(int on)
 }
 EXPORT_SYMBOL(lcd_camera_power_onoff);
 #endif
+
 void camera_af_software_powerdown(struct i2c_client *client)
 {
 	int rc = 0;

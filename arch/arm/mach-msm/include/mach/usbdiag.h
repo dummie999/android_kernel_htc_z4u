@@ -1,6 +1,6 @@
 /* include/asm-arm/arch-msm/usbdiag.h
  *
- * Copyright (c) 2008-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2008-2010, The Linux Foundation. All rights reserved.
  *
  * All source code in this file is licensed under the following license except
  * where indicated.
@@ -105,4 +105,4 @@ void diag_sdio_mdm_send_req(int context);
 extern int sdio_diag_initialized;
 extern int smd_diag_initialized;
 
-#endif 
+#endif /* _DRIVERS_USB_DIAG_H_ */
