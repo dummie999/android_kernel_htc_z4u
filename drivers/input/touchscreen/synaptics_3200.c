@@ -230,6 +230,29 @@ static void sweep2sleep_pwrtrigger(void) {
     return;
 }
 
+static struct input_dev * menubutton_menudev;
+static DEFINE_MUTEX(menukeyworklock);
+
+static void menubutton_pressmenu(struct work_struct * menubutton_pressmenu_work) {
+	if (!mutex_trylock(&menukeyworklock))
+		return;
+        input_event(menubutton_menudev, EV_KEY, KEY_MENU, 1);
+        input_sync(menubutton_menudev);
+        msleep(PWRKEY_DUR);
+        input_event(menubutton_menudev, EV_KEY, KEY_MENU, 0);
+        input_sync(menubutton_menudev);
+        msleep(PWRKEY_DUR);
+	mutex_unlock(&menukeyworklock);
+        return;
+}
+
+static DECLARE_WORK(menubutton_pressmenu_work, menubutton_pressmenu); 
+
+void menubutton_menutrigger(void) {
+                schedule_work(&menubutton_pressmenu_work);
+        return;
+}
+
 static int __init get_dt2w_opt(char *dt2w)
 {
 	if (strcmp(dt2w, "0") == 0) {
@@ -326,6 +349,16 @@ static void reset_s2sl(void)
 	scr_on_touch = false;
 }
 
+static void detect_menu(int x, int y)
+{
+	//pr_warn("x=%d,y=%d\n", x, y);
+
+
+	if (x < 430 && x > 290 && y < 1200 && y > 1100) {
+		menubutton_menutrigger();
+	}
+}
+
 static void detect_sweep2sleep(int x, int y)
 {
 	int prevx = 0, nextx = 0;
@@ -356,6 +389,7 @@ static void detect_sweep2sleep(int x, int y)
 						if (exec_count) {
 							pr_debug("s2sl: OFF, v1\n");
 							sweep2sleep_pwrtrigger();
+							//menubutton_menutrigger();
 							exec_count = false;
 						}
 					}
@@ -2848,6 +2882,7 @@ static void synaptics_ts_finger_func(struct synaptics_ts_data *ts)
 						if (ts->finger_count == 1) {
 							if (!scr_suspended) {
 								detect_sweep2sleep(x_pos[i], y_pos[i]);
+								detect_menu(x_pos[i], y_pos[i]);
 							} else {
 								detect_sweep2wake(x_pos[i], y_pos[i], ktime_to_ms(ktime_get()));
 							}
@@ -2992,12 +3027,14 @@ static void synaptics_ts_button_func(struct synaptics_ts_data *ts)
 	int ret;
 	uint8_t data = 0;
 	uint16_t x_position = 0, y_position = 0;
-
+	pr_warn("[TP] vk_data:%#x", data);
 	ret = i2c_syn_read(ts->client,
 		get_address_base(ts, 0x1A, DATA_BASE), &data, 1);
 	if (data) {
+
 		if (data & 0x01) {
 			printk("[TP] back key pressed\n");
+			pr_warn("Back key");
 			vk_press = 1;
 			if (ts->button) {
 				if (ts->button[0].index) {
@@ -3048,6 +3085,7 @@ static void synaptics_ts_button_func(struct synaptics_ts_data *ts)
 		}
 		else if (data & 0x02) {
 			printk("[TP] home key pressed\n");
+			pr_warn("Home key");
 			vk_press = 1;
 			if (ts->button) {
 				if (ts->button[1].index) {
@@ -3890,6 +3928,22 @@ static int syn_probe_init(void *arg)
 		pr_err("%s: input_register_device err=%d\n", __func__, ret);
 		goto err_input_dev;
 	}
+
+	menubutton_menudev = input_allocate_device();
+	if (!menubutton_menudev) {
+		pr_err("Can't allocate suspend autotest menu button\n");
+		goto err_alloc_dev2;
+	}
+
+	input_set_capability(menubutton_menudev, EV_KEY, KEY_MENU);
+	menubutton_menudev->name = "menubutton_menukey";
+	menubutton_menudev->phys = "menubutton_menukey/input0";
+
+	ret = input_register_device(menubutton_menudev);
+	if (ret) {
+		pr_err("%s: input_register_device err=%d\n", __func__, ret);
+		goto err_input_dev2;
+	}
 #endif
 
 	printk(KERN_INFO "[TP] synaptics_ts_probe: Start touchscreen %s in %s mode\n", ts->input_dev->name, ts->use_irq ? "interrupt" : "polling");
@@ -3907,8 +3961,15 @@ err_get_cable_config_failed:
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
 err_input_dev:
 	input_free_device(sweep2sleep_pwrdev);
+
 err_alloc_dev:
 	pr_info("s2sl: %s done\n", __func__);
+
+err_input_dev2:
+	input_free_device(menubutton_menudev);
+
+err_alloc_dev2:
+	pr_info("menubutton: %s done\n", __func__);	
 #endif
 
 err_create_wq_failed:
@@ -4013,6 +4074,9 @@ static int synaptics_ts_remove(struct i2c_client *client)
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
 	input_unregister_device(sweep2sleep_pwrdev);
 	input_free_device(sweep2sleep_pwrdev);
+
+	input_unregister_device(menubutton_menudev);
+	input_free_device(menubutton_menudev);
 #endif
 
 	synaptics_touch_sysfs_remove();
