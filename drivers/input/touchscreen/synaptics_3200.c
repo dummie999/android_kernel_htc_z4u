@@ -198,6 +198,7 @@ static int s2sl_switch = 1;
 static int dt2w_switch = 1;
 static int vibrate_switch = 0;
 static int pocket_detection = 1;
+static int menubutton_switch = 0;
 
 static struct input_dev * sweep2sleep_pwrdev;
 static DEFINE_MUTEX(pwrkeyworklock);
@@ -337,7 +338,21 @@ static int __init get_pocket_detection_opt(char *pd)
 	return 1;
 }
 
-__setup("pd=", get_pocket_detection_opt); 
+__setup("pd=", get_pocket_detection_opt);
+
+static int __init get_menu_button_opt(char *mb)
+{
+	if (strcmp(mb, "0") == 0) {
+		pocket_detection = 0;
+	} else if (strcmp(mb, "1") == 0) {
+		pocket_detection = 1;
+	} else {
+		pocket_detection = 0;
+	}
+	return 1;
+}
+
+__setup("mb=", get_menu_button_opt); 
 
 static void reset_s2sl(void)
 {
@@ -2246,6 +2261,25 @@ static ssize_t synaptics_pocket_detection_dump(struct device *dev, struct device
 
 static DEVICE_ATTR(pocket_detection, 0666,
 	synaptics_pocket_detection_show, synaptics_pocket_detection_dump);
+
+static ssize_t synaptics_menu_button_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+	count += sprintf(buf, "%d\n", menubutton_switch);
+	return count;
+}
+
+static ssize_t synaptics_menu_button_dump(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	if (buf[0] >= '0' && buf[0] <= '1' && buf[1] == '\n')
+                if (menubutton_switch != buf[0] - '0')
+		        menubutton_switch = buf[0] - '0';
+
+	return count;
+}
+
+static DEVICE_ATTR(menu_button, 0666,
+	synaptics_menu_button_show, synaptics_menu_button_dump);
 #endif	
 
 enum SR_REG_STATE{
@@ -2397,7 +2431,13 @@ static int synaptics_touch_sysfs_init(void)
 	if (ret) {
 		printk(KERN_ERR "%s: sysfs_create_file failed\n", __func__);
 		return ret;
-	} 
+	}
+
+	ret = sysfs_create_file(android_touch_kobj, &dev_attr_menu_button.attr);
+	if (ret) {
+		printk(KERN_ERR "%s: sysfs_create_file failed\n", __func__);
+		return ret;
+	}
 #endif
 
 #ifdef SYN_WIRELESS_DEBUG
@@ -2455,6 +2495,7 @@ static void synaptics_touch_sysfs_remove(void)
 	sysfs_remove_file(android_touch_kobj, &dev_attr_vibrate_switch.attr);
 	sysfs_remove_file(android_touch_kobj, &dev_attr_sweep2wake.attr);
 	sysfs_remove_file(android_touch_kobj, &dev_attr_pocket_detection.attr);
+	sysfs_remove_file(android_touch_kobj, &dev_attr_menu_button.attr);
 #endif
 	kobject_del(android_touch_kobj);
 }
@@ -2882,7 +2923,8 @@ static void synaptics_ts_finger_func(struct synaptics_ts_data *ts)
 						if (ts->finger_count == 1) {
 							if (!scr_suspended) {
 								detect_sweep2sleep(x_pos[i], y_pos[i]);
-								detect_menu(x_pos[i], y_pos[i]);
+								if (menubutton_switch ==1 )
+									detect_menu(x_pos[i], y_pos[i]);
 							} else {
 								detect_sweep2wake(x_pos[i], y_pos[i], ktime_to_ms(ktime_get()));
 							}
