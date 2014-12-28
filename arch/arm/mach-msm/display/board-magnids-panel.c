@@ -23,6 +23,7 @@
 #include <mach/msm_iomap.h>
 #include <mach/panel_id.h>
 #include <mach/board.h>
+#include <mach/board_htc.h>
 #include <mach/debug_display.h>
 #include <mach/htc_battery_common.h>
 

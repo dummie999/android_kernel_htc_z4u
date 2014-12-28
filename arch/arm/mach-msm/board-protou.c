@@ -84,7 +84,7 @@
 #include <linux/proc_fs.h>
 #include <linux/cm3629.h>
 #include "board-protou.h"
-#include "board-protou-wifi.h"
+#include "board-bcm4330-wifi.h"
 #ifdef CONFIG_PERFLOCK
 #include <mach/perflock.h>
 #endif
@@ -2273,18 +2273,22 @@ static void __init msm7x27a_pm_init(void)
 	msm_pm_register_irqs();
 }
 
+#if defined(CONFIG_MSM_SERIAL_DEBUGGER)
 static void proto_reset(void)
 {
 	gpio_set_value(PROTOU_GPIO_PS_HOLD, 0);
 }
+#endif
+
 static void __init msm7x2x_init(void)
 {
 	struct proc_dir_entry *entry = NULL;
 	int rc = 0;
 	struct kobject *properties_kobj;
 	int status;
+#if defined(CONFIG_MSM_SERIAL_DEBUGGER)
 	msm_hw_reset_hook = proto_reset;
-
+#endif
 	msm7x2x_misc_init();
 
 	/* Initialize regulators first so that other devices can use them */
@@ -2422,9 +2426,9 @@ static void __init msm7x2x_init(void)
 
 	i2c_register_board_info(MSM_GSBI1_QUP_I2C_BUS_ID,
 			i2c_tps65200_devices, ARRAY_SIZE(i2c_tps65200_devices));
-        msm_init_pmic_vibrator(3000);
+        msm_init_pmic_vibrator();
 	msm8625_init_keypad();
-	protou_wifi_init();
+	bcm4330_wifi_init();
 
 
 		htc_monitor_init();

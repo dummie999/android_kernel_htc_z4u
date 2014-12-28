@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -32,17 +32,17 @@ static struct dsi_cmd_desc nt35590_display_off_cmds[] = {
 static char disp_on0[2] = {0xFF, 0xEE};
 static char disp_on1[2] = {0x26, 0x08};
 static char disp_on2[2] = {0x26, 0x00};
-static char disp_on3[2] = {0xFF, 0x00}; 
+static char disp_on3[2] = {0xFF, 0x00}; /* WaitTime(10) */
 
-static char lane[2] = {0xBA, 0x03}; 
+static char lane[2] = {0xBA, 0x03}; /* MIPI 4 lane */
 static char disp_on_rotate[2] = {0x36, 0xd7}; 
 
-static char command_mode[2] = {0xC2, 0x08}; 
+static char command_mode[2] = {0xC2, 0x08}; /* Setting 0x08 for MIPI cmd mode */
 
-static char video_mode[2] = {0xC2, 0x03}; 
+static char video_mode[2] = {0xC2, 0x03}; /* Setting 0x03 for MIPI video mode */
 
-static char disp_on6[2] = {0xFF, 0x01}; 
-static char disp_on7[2] = {0xFB, 0x01}; 
+static char disp_on6[2] = {0xFF, 0x01}; /* CMD page select */
+static char disp_on7[2] = {0xFB, 0x01}; /* RELOAD CMD1 */
 static char disp_on8[2] = {0x00, 0x4A};
 static char disp_on9[2] = {0x01, 0x33};
 static char disp_on10[2] = {0x02, 0x53};
@@ -62,10 +62,10 @@ static char disp_on23[2] = {0x12, 0x03};
 static char disp_on24[2] = {0x71, 0x2C};
 static char disp_on25[2] = {0x6F, 0x03};
 static char disp_on26[2] = {0x0F, 0x0A};
-static char disp_on27[2] = {0xFF, 0x05}; 
-static char disp_on28[2] = {0xFB, 0x01}; 
+static char disp_on27[2] = {0xFF, 0x05}; /* CMD page select */
+static char disp_on28[2] = {0xFB, 0x01}; /* RELOAD CMD1 */
 static char disp_on29[2] = {0x01, 0x00};
-static char disp_on30[2] = {0x02, 0x8B}; 
+static char disp_on30[2] = {0x02, 0x8B}; /* 60 TE signals from panel */
 static char disp_on31[2] = {0x03, 0x82};
 static char disp_on32[2] = {0x04, 0x82};
 static char disp_on33[2] = {0x05, 0x30};
@@ -121,8 +121,9 @@ static char disp_on82[2] = {0x5E, 0x03};
 static char disp_on83[2] = {0x6C, 0x00};
 static char disp_on84[2] = {0x6D, 0x00};
 static char disp_on85[2] = {0xFB, 0x01};
-static char disp_on86[2] = {0xFF, 0x01}; 
+static char disp_on86[2] = {0xFF, 0x01}; /* Enter CMD2,Page0 */
 static char disp_on87[2] = {0xFB, 0x01};
+/* Gamma+ R settings start */
 static char disp_on88[2] = {0x75, 0x00};
 static char disp_on89[2] = {0x76, 0x7D};
 static char disp_on90[2] = {0x77, 0x00};
@@ -183,6 +184,8 @@ static char disp_on144[2] = {0xAF, 0x03};
 static char disp_on145[2] = {0xB0, 0xB4};
 static char disp_on146[2] = {0xB1, 0x03};
 static char disp_on147[2] = {0xB2, 0xCB};
+/* Gamma+ R settings end */
+/* Gamma- R settings start */
 static char disp_on148[2] = {0xB3, 0x00};
 static char disp_on149[2] = {0xB4, 0x7D};
 static char disp_on150[2] = {0xB5, 0x00};
@@ -243,6 +246,8 @@ static char disp_on204[2] = {0xEB, 0x03};
 static char disp_on205[2] = {0xEC, 0xB4};
 static char disp_on206[2] = {0xED, 0x03};
 static char disp_on207[2] = {0xEE, 0xCB};
+/* Gamma- R settings end */
+/* Gamma+ G settings start */
 static char disp_on208[2] = {0xEF, 0x00};
 static char disp_on209[2] = {0xF0, 0xED};
 static char disp_on210[2] = {0xF1, 0x00};
@@ -255,8 +260,10 @@ static char disp_on216[2] = {0xF7, 0x01};
 static char disp_on217[2] = {0xF8, 0x13};
 static char disp_on218[2] = {0xF9, 0x01};
 static char disp_on219[2] = {0xFA, 0x1D};
-static char disp_on220[2] = {0xFF, 0x02}; 
+/* Gamma+ G settings end */
+static char disp_on220[2] = {0xFF, 0x02}; /* Enter CMD */
 static char disp_on221[2] = {0xFB, 0x01};
+/* Gamma+ G settings start */
 static char disp_on222[2] = {0x00, 0x01};
 static char disp_on223[2] = {0x01, 0x26};
 static char disp_on224[2] = {0x02, 0x01};
@@ -305,6 +312,8 @@ static char disp_on266[2] = {0x2D, 0x03};
 static char disp_on267[2] = {0x2F, 0xA0};
 static char disp_on268[2] = {0x30, 0x03};
 static char disp_on269[2] = {0x31, 0xCB};
+/* Gamma+ G settings end */
+/* Gamma- G settings start */
 static char disp_on270[2] = {0x32, 0x00};
 static char disp_on271[2] = {0x33, 0xED};
 static char disp_on272[2] = {0x34, 0x00};
@@ -365,6 +374,8 @@ static char disp_on326[2] = {0x6D, 0x03};
 static char disp_on327[2] = {0x6E, 0xA0};
 static char disp_on328[2] = {0x6F, 0x03};
 static char disp_on329[2] = {0x70, 0xCB};
+/* Gamma- G settings end */
+/* Gamma+ B settings start */
 static char disp_on330[2] = {0x71, 0x00};
 static char disp_on331[2] = {0x72, 0x19};
 static char disp_on332[2] = {0x73, 0x00};
@@ -425,6 +436,8 @@ static char disp_on386[2] = {0xAB, 0x03};
 static char disp_on387[2] = {0xAC, 0x80};
 static char disp_on388[2] = {0xAD, 0x03};
 static char disp_on389[2] = {0xAE, 0xCB};
+/* Gamma+ B settings end */
+/* Gamma- B settings start */
 static char disp_on390[2] = {0xAF, 0x00};
 static char disp_on391[2] = {0xB0, 0x19};
 static char disp_on392[2] = {0xB1, 0x00};
@@ -485,6 +498,7 @@ static char disp_on446[2] = {0xE7, 0x03};
 static char disp_on447[2] = {0xE8, 0x80};
 static char disp_on448[2] = {0xE9, 0x03};
 static char disp_on449[2] = {0xEA, 0xCB};
+/* Gamma- B settings end */
 static char disp_on450[2] = {0xFF, 0x01};
 static char disp_on451[2] = {0xFB, 0x01};
 static char disp_on452[2] = {0xFF, 0x02};
@@ -492,13 +506,13 @@ static char disp_on453[2] = {0xFB, 0x01};
 static char disp_on454[2] = {0xFF, 0x04};
 static char disp_on455[2] = {0xFB, 0x01};
 static char disp_on456[2] = {0xFF, 0x00};
-static char disp_on457[2] = {0x11, 0x00}; 
+static char disp_on457[2] = {0x11, 0x00}; /* Sleep out, WaitTime(100) */
 static char disp_on458[2] = {0xFF, 0xEE};
 static char disp_on459[2] = {0x12, 0x50};
 static char disp_on460[2] = {0x13, 0x02};
 static char disp_on461[2] = {0x6A, 0x60};
 static char disp_on462[2] = {0xFF, 0x00};
-static char disp_on463[2] = {0x29, 0x00}; 
+static char disp_on463[2] = {0x29, 0x00}; /* Display on */
 
 static struct dsi_cmd_desc nt35590_cmd_display_on_cmds[] = {
 	{DTYPE_GEN_LWRITE, 1, 0, 0, 0, sizeof(disp_on0), disp_on0},
@@ -1580,6 +1594,9 @@ static void mipi_nt35590_set_backlight(struct msm_fb_data_type *mfd)
 
 	if (mipi_nt35590_pdata->bl_lock) {
 		if (!mipi_nt35590_bl_ctrl) {
+			/* Level received is of range 1 to bl_max,
+			   We need to convert the levels to 1
+			   to 31 */
 			bl_level = (2 * bl_level * 31 + mfd->panel_info.bl_max)
 					/(2 * mfd->panel_info.bl_max);
 			if (bl_level == old_bl_level)

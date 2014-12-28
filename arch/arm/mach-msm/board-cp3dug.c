@@ -2974,10 +2974,12 @@ static void __init msm_pm_init(void)
 	}
 }
 
+#if defined(CONFIG_MSM_SERIAL_DEBUGGER)
 static void cp3_reset(void)
 {
 	gpio_set_value(CP3DUG_GPIO_PS_HOLD, 0);
 }
+#endif
 
 #ifdef CONFIG_GPS_1530
 #define UART3_RTS       GPIO_CFG(84, 1, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA)
@@ -3107,8 +3109,9 @@ static void __init msm_cp3dug_init(void)
 #ifdef CONFIG_MMC_MSM
 	struct proc_dir_entry *entry = NULL;
 #endif
-
+#if defined(CONFIG_MSM_SERIAL_DEBUGGER)
 	msm_hw_reset_hook = cp3_reset;
+#endif
 	gpio_set_value(CP3DUG_GPIO_PS_HOLD, 1);
 
 	msm7x2x_misc_init();
@@ -3256,7 +3259,7 @@ static void __init msm_cp3dug_init(void)
 	msm7x25a_kgsl_3d0_init();
 	msm8x25_kgsl_3d0_init();
 #ifdef CONFIG_MSM_RPC_VIBRATOR
-	msm_init_pmic_vibrator(3000);
+	msm_init_pmic_vibrator();
 #endif
 
 

@@ -803,7 +803,6 @@ static LIST_HEAD(g_lh_usb_host_detect_notifier_list);
 #endif
 #define ENG_BUILD       2
 
-int board_mfg_mode(void);
 void msm_snddev_init(void);
 void msm_snddev_init_timpani(void);
 void msm_snddev_poweramp_on(void);

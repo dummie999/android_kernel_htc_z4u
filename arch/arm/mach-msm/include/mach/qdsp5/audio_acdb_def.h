@@ -43,11 +43,7 @@
 #define ACDB_ID_HDMI					0x40
 #define ACDB_ID_FM_RX					0x4F
 /*Replace the max device ID,if any new device is added Specific to RTC only*/
-#ifdef CONFIG_MACH_Z4DCG
-#define ACDB_ID_MAX                                 (1300)
-#else
 #define ACDB_ID_MAX                                 ACDB_ID_FM_RX
-#endif
 
 /* ID used for virtual devices */
 #define PSEUDO_ACDB_ID					0xFFFF

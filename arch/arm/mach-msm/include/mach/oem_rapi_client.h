@@ -1,4 +1,4 @@
-/* Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2009, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -14,6 +14,9 @@
 #ifndef __ASM__ARCH_OEM_RAPI_CLIENT_H
 #define __ASM__ARCH_OEM_RAPI_CLIENT_H
 
+/*
+ * OEM RAPI CLIENT Driver header file
+ */
 
 #include <linux/types.h>
 #include <mach/msm_rpcrouter.h>
@@ -25,6 +28,10 @@ enum {
 	OEM_RAPI_CLIENT_EVENT_WIDEVINE_READ_DEVICE_ID,
 	OEM_RAPI_CLIENT_EVENT_SDSERVICE_ENC,
 	OEM_RAPI_CLIENT_EVENT_SDSERVICE_DEC,
+
+	/*
+	 * list of oem rapi client events
+	 */
 
 	OEM_RAPI_CLIENT_EVENT_MAX
 

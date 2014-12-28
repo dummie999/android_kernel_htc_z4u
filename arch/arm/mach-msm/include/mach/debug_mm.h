@@ -1,4 +1,4 @@
-/* Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2009, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -15,6 +15,10 @@
 
 #include <linux/string.h>
 
+/* The below macro removes the directory path name and retains only the
+ * file name to avoid long path names in log messages that comes as
+ * part of __FILE__ to compiler.
+ */
 #define __MM_FILE__ strrchr(__FILE__, '/') ? (strrchr(__FILE__, '/')+1) : \
 	__FILE__
 
@@ -36,4 +40,4 @@
 #define MM_AUD_ERR(fmt, args...) pr_err("[AUD][%s:%s] " fmt,\
 	       __MM_FILE__, __func__, ##args)
 
-#endif 
+#endif /* __ARCH_ARM_MACH_MSM_DEBUG_MM_H_ */ 
