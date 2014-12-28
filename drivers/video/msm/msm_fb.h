@@ -99,7 +99,7 @@ struct msm_fb_data_type {
 	boolean pan_waiting;
 	struct completion pan_comp;
 
-	
+
 	boolean use_mdp_vsync;
 	__u32 vsync_gpio;
 	__u32 total_lcd_lines;
@@ -153,10 +153,10 @@ struct msm_fb_data_type {
 	__u32 var_yres;
 	__u32 var_pixclock;
 	__u32 var_frame_rate;
-#if 1 
+#if 1
 	uint32_t width;
 	uint32_t height;
-#endif 
+#endif
 
 #ifdef MSM_FB_ENABLE_DBGFS
 	struct dentry *sub_dir;
@@ -197,7 +197,7 @@ struct msm_fb_data_type {
 	bool writeback_active_cnt;
 	int cont_splash_done;
 
-	
+
 	struct workqueue_struct *dimming_wq;
 	struct work_struct dimming_work;
 	struct timer_list dimming_update_timer;
@@ -233,9 +233,9 @@ extern void htc_mdp_sem_down(struct task_struct *current_task, struct semaphore 
 extern void htc_mdp_sem_up(struct semaphore *mutex);
 
 #ifdef CONFIG_FB_MSM_LOGO
-#define INIT_IMAGE_FILE "/initlogo.rle"
+#define INIT_IMAGE_FILE "/msmlogo.rle"
 int load_565rle_image(char *filename, bool bf_supported);
 #endif
 
 #define DEFAULT_BRIGHTNESS 143
-#endif 
+#endif /* MSM_FB_H */
