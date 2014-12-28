@@ -2170,43 +2170,6 @@ static struct platform_device msm_adc_device = {
 	},
 };
 
-#define SND(desc, num) { .name = #desc, .id = num }
-static struct snd_endpoint snd_endpoints_list[] = {
-	SND(HANDSET, 0),
-	SND(MONO_HEADSET, 2),
-	SND(HEADSET, 3),
-	SND(SPEAKER, 6),
-	SND(TTY_HEADSET, 8),
-	SND(TTY_VCO, 9),
-	SND(TTY_HCO, 10),
-	SND(BT, 12),
-	SND(IN_S_SADC_OUT_HANDSET, 16),
-	SND(IN_S_SADC_OUT_SPEAKER_PHONE, 25),
-	SND(FM_DIGITAL_STEREO_HEADSET, 26),
-	SND(FM_DIGITAL_SPEAKER_PHONE, 27),
-	SND(FM_DIGITAL_BT_A2DP_HEADSET, 28),
-	SND(STEREO_HEADSET_AND_SPEAKER, 31),
-	SND(CURRENT, 0x7FFFFFFE),
-	SND(FM_ANALOG_STEREO_HEADSET, 35),
-	SND(FM_ANALOG_STEREO_HEADSET_CODEC, 36),
-};
-#undef SND
-
-static struct msm_snd_endpoints msm_device_snd_endpoints = {
-	.endpoints = snd_endpoints_list,
-	.num = sizeof(snd_endpoints_list) / sizeof(struct snd_endpoint)
-};
-
-static struct platform_device msm_device_snd = {
-	.name = "msm_snd",
-	.id = -1,
-	.dev    = {
-	.platform_data = &msm_device_snd_endpoints
-	},
-};
-
-
-
 static struct fmem_platform_data fmem_pdata;
 
 static struct platform_device fmem_device = {
@@ -3184,7 +3147,7 @@ static void __init msm_cp3dug_init(void)
 
 #ifdef CONFIG_MMC_MSM
 	printk(KERN_ERR "%s: start init mmc\n", __func__);
-	cp3_init_mmc();
+	msm7627a_init_mmc();
 	printk(KERN_ERR "%s: msm7627a_init_mmc()\n", __func__);
 	entry = create_proc_read_entry("emmc", 0, NULL, emmc_partition_read_proc, NULL);
 	printk(KERN_ERR "%s: create_proc_read_entry()\n", __func__);
