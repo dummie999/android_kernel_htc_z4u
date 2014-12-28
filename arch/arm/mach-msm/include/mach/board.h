@@ -1,7 +1,7 @@
 /* arch/arm/mach-msm/include/mach/board.h
  *
  * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2008-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2008-2012, The Linux Foundation. All rights reserved.
  * Author: Brian Swetland <swetland@google.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -203,7 +203,7 @@ struct camera_flash_cfg {
 
 struct msm_camera_sensor_strobe_flash_data {
 	uint8_t flash_trigger;
-	uint8_t flash_charge; 
+	uint8_t flash_charge; /* pin for charge */
 	uint8_t flash_charge_done;
 	uint32_t flash_recharge_duration;
 	uint32_t irq;
@@ -459,6 +459,10 @@ struct msm_cad_endpoints {
 };
 
 #define MSM_MAX_DEC_CNT 14
+/* 7k target ADSP information */
+/* Bit 23:0, for codec identification like mp3, wav etc *
+ * Bit 27:24, for mode identification like tunnel, non tunnel*
+ * bit 31:28, for operation support like DM, DMA */
 enum msm_adspdec_concurrency {
 	MSM_ADSP_CODEC_WAV = 0,
 	MSM_ADSP_CODEC_ADPCM = 1,
@@ -485,10 +489,13 @@ enum msm_adspdec_concurrency {
 struct msm_adspdec_info {
 	const char *module_name;
 	unsigned module_queueid;
-	int module_decid; 
+	int module_decid; /* objid */
 	unsigned nr_codec_support;
 };
 
+/* Carries information about number codec
+ * supported if same codec or different codecs
+ */
 struct dec_instance_table {
 	uint8_t max_instances_same_dec;
 	uint8_t max_instances_diff_dec;
@@ -497,7 +504,8 @@ struct dec_instance_table {
 struct msm_adspdec_database {
 	unsigned num_dec;
 	unsigned num_concurrency_support;
-	unsigned int *dec_concurrency_table; 
+	unsigned int *dec_concurrency_table; /* Bit masked entry to *
+					      *	represents codec, mode etc */
 	struct msm_adspdec_info  *dec_info_list;
 	struct dec_instance_table *dec_instance_list;
 };
@@ -533,8 +541,8 @@ struct msm_panel_common_pdata {
 	struct msm_bus_scale_pdata *mdp_bus_scale_table;
 #endif
 	int mdp_rev;
-	u32 ov0_wb_size;  
-	u32 ov1_wb_size;  
+	u32 ov0_wb_size;  /* overlay0 writeback size */
+	u32 ov1_wb_size;  /* overlay1 writeback size */
 	u32 mem_hid;
 	char cont_splash_enabled;
 	char mdp_iommu_split_domain;
@@ -632,13 +640,17 @@ struct msm_hdmi_platform_data {
 
 struct msm_mhl_platform_data {
 	int irq;
-	
+	/* GPIO no. for mhl intr */
 	uint32_t gpio_mhl_int;
-	
+	/* GPIO no. for mhl block reset */
 	uint32_t gpio_mhl_reset;
-	
+	/*
+	 * below gpios are specific to targets
+	 * that have the integrated MHL soln.
+	 */
+	/* GPIO no. for mhl block power */
 	uint32_t gpio_mhl_power;
-	
+	/* GPIO no. for hdmi-mhl mux */
 	uint32_t gpio_hdmi_mhl_mux;
 };
 
@@ -688,6 +700,7 @@ struct isp1763_platform_data {
 	int (*setup_gpio)(int enable);
 };
 #endif
+/* common init routines for use by arch/arm/mach-msm/board-*.c */
 
 #ifdef CONFIG_OF_DEVICE
 void msm_8974_init(struct of_dev_auxdata **);
@@ -713,6 +726,7 @@ void msm_8974_reserve(void);
 void msm_8974_very_early(void);
 void msm_8974_init_gpiomux(void);
 
+/* Dump debug info (states, rate, etc) of clocks */
 #if defined(CONFIG_ARCH_MSM7X27)
 void msm_clk_dump_debug_info(void);
 #else
@@ -799,9 +813,12 @@ void msm_snddev_hsed_voltage_off(void);
 void msm_snddev_tx_route_config(void);
 void msm_snddev_tx_route_deconfig(void);
 
-extern unsigned int msm_shared_ram_phys; 
+extern unsigned int msm_shared_ram_phys; /* defined in arch/arm/mach-msm/io.c */
 
 extern int dying_processors_read_proc(char *page, char **start, off_t off,
 	int count, int *eof, void *data);
+
+extern int get_partition_num_by_name(char *name);
+extern const char *get_partition_name_by_num(int partnum);
 
 #endif

@@ -63,6 +63,7 @@ include/config
 include/linux/version.h
 include/generated
 arch/*/include/generated
+arch/arm/mach-msm/smd_rpc_sym.c
 
 # stgit generated dirs
 patches-*
@@ -84,3 +85,28 @@ GTAGS
 *.orig
 *~
 \#*#
+=======
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+

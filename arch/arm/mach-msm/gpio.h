@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2009, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2008-2009, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -17,6 +17,11 @@
 void msm_gpio_enter_sleep(int from_idle);
 void msm_gpio_exit_sleep(void);
 
+/* Locate the GPIO_OUT register for the given GPIO and return its address
+ * and the bit position of the gpio's bit within the register.
+ *
+ * This function is used by gpiomux-v1 in order to support output transitions.
+ */
 void msm_gpio_find_out(const unsigned gpio, void __iomem **out,
 	unsigned *offset);
 

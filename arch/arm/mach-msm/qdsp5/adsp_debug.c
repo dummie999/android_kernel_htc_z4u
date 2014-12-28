@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -90,7 +90,7 @@ static int __init q5_debug_init(void)
 #ifdef CONFIG_DEBUG_FS
 	adsp_dentry = debugfs_create_file("q5_debug", S_IFREG | S_IRUGO,
 				NULL, (void *) NULL, &q5_debug_fops);
-#endif 
+#endif /* CONFIG_DEBUG_FS */
 	return 0;
 }
 device_initcall(q5_debug_init);

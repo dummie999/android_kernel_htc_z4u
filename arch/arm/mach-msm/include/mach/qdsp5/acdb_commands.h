@@ -1,4 +1,4 @@
-/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -18,6 +18,7 @@
 #define ACDB_READY				1
 
 
+/* 4KB */
 #define ACDB_PAGE_SIZE				0x1000
 
 #define ACDB_CDMA_NB		0x0108b153
@@ -28,25 +29,35 @@
 #define ACDB_WCDMA_WB		0x0108b158
 
 
+/* ACDB commands */
 
 
+/* struct acdb_cmd_install_device */
 #define ACDB_INSTALL_DEVICE		0x0108d245
 
+/* struct acdb_cmd_install_device */
 #define ACDB_UNINSTALL_DEVICE		0x0108d246
 
+/* struct acdb_cmd_device */
 #define ACDB_GET_DEVICE			0x0108bb92
 
+/* struct acdb_cmd_device */
 #define ACDB_SET_DEVICE			0x0108bb93
 
+/* struct acdb_cmd_get_device_table */
 #define ACDB_GET_DEVICE_TABLE		0x0108bb97
 
+/* struct acdb_cmd_get_device_capabilities */
 #define ACDB_GET_DEVICE_CAPABILITIES	0x0108f5ca
 
+/* struct acdb_cmd_get_device_info */
 #define ACDB_GET_DEVICE_INFO		0x0108f5cb
 
+/*command to intitialize ACDB based on codec type*/
 #define ACDB_CMD_INITIALIZE_FOR_ADIE	0x00011283
 
 
+/* ACDB Error codes */
 
 #define ACDB_RES_SUCCESS		0
 #define ACDB_RES_FAILURE		-1
@@ -57,6 +68,7 @@
 
 
 
+/* Algorithm Aspect IDs */
 
 #define IID_ENABLE_FLAG			0x0108b6b9
 
@@ -120,6 +132,7 @@
 #define ABID_AFE_VOL_CTRL				0x00010067
 
 
+/* AUDIO IDs */
 #define ABID_AUDIO_AGC_TX		0x00010068
 #define ABID_AUDIO_NS_TX		0x00010069
 #define ABID_VOICE_NS			0x0001006A
@@ -166,75 +179,77 @@ struct acdb_cmd_install_device {
 	u32	device_id;
 	u32	topology_id;
 	u32	afe_routing_id;
-	u32	cad_routing_id;		
+	u32	cad_routing_id;		/* see "Sample Rate Bit Mask" below */
 	u32	sample_rate_mask;
 
-	
+	/* represents device direction: Tx, Rx (aux pga - loopback) */
 	u8	device_type;
-	u8	channel_config;		
+	u8	channel_config;		/* Mono or Stereo */
 	u32	adie_codec_path_id;
 };
 
 
 struct acdb_cmd_get_device_capabilities {
 	u32	command_id;
-	u32	total_bytes;	
-	u32	*phys_buf;	
+	u32	total_bytes;	/* Length in bytes allocated for buffer */
+	u32	*phys_buf;	/* Physical Address of data */
 };
 
 
 struct acdb_cmd_get_device_info {
 	u32	command_id;
 	u32	device_id;
-	u32	total_bytes;	
-	u32	*phys_buf;	
+	u32	total_bytes;	/* Length in bytes allocated for buffer */
+	u32	*phys_buf;	/* Physical Address of data */
 };
 
 struct acdb_cmd_device {
 	u32	command_id;
 	u32	device_id;
 	u32	network_id;
-	u32	sample_rate_id;		
-	u32	interface_id;		
-	u32	algorithm_block_id;	
-	u32	total_bytes;		
-	u32	*phys_buf;		
+	u32	sample_rate_id;		/* Actual sample rate value */
+	u32	interface_id;		/* See interface id's above */
+	u32	algorithm_block_id;	/* See enumerations above */
+	u32	total_bytes;		/* Length in bytes used by buffer */
+	u32	*phys_buf;		/* Physical Address of data */
 };
 
 struct acdb_cmd_get_device_table {
 	u32	command_id;
 	u32	device_id;
 	u32	network_id;
-	u32	sample_rate_id;		
-	u32	total_bytes;		
-	u32	*phys_buf;		
+	u32	sample_rate_id;		/* Actual sample rate value */
+	u32	total_bytes;		/* Length in bytes used by buffer */
+	u32	*phys_buf;		/* Physical Address of data */
 };
 
 struct acdb_result {
-	
-	
-	
+	/* This field is populated in response to the */
+	/* ACDB_GET_DEVICE_CAPABILITIES command and indicates the total */
+	/* devices whose capabilities are copied to the physical memory. */
 	u32	total_devices;
-	u32	*buf;			
-	u32	used_bytes;		
-	u32	result;			
+	u32	*buf;			/* Physical Address of data */
+	u32	used_bytes;		/* The size in bytes of the data */
+	u32	result;			/* See ACDB Error codes above */
 };
 
 struct acdb_device_capability {
 	u32	device_id;
-	u32	sample_rate_mask;	
+	u32	sample_rate_mask;	/* See "Sample Rate Bit Mask" below */
 };
 
 struct acdb_dev_info {
 	u32	cad_routing_id;
-	u32	sample_rate_mask;	
-	u32	adsp_device_id;		
-	u32	device_type;		
-	u32	channel_config;		
-	s32	min_volume;		
-	s32	max_volume;		
+	u32	sample_rate_mask;	/* See "Sample Rate Bit Mask" below */
+	u32	adsp_device_id;		/* QDSP6 device ID */
+	u32	device_type;		/* Tx, Rx  (aux pga - loopback) */
+	u32	channel_config;		/* Mono or Stereo */
+	s32	min_volume;		/* Min volume (mB) */
+	s32	max_volume;		/* Max volume (mB) */
 };
 
+/*structure is used to intialize ACDB software on modem
+based on adie type detected*/
 struct acdb_cmd_init_adie {
 	u32 command_id;
 	u32 adie_type;
@@ -244,9 +259,21 @@ struct acdb_cmd_init_adie {
 #define ACDB_CURRENT_ADIE_MODE_TIMPANI 1
 #define ACDB_CURRENT_ADIE_MODE_MARIMBA 2
 
+/* Sample Rate Bit Mask */
+
+/* AUX PGA devices will have a sample rate mask of 0xFFFFFFFF */
+/* 8kHz              0x00000001 */
+/* 11.025kHz         0x00000002 */
+/* 12kHz             0x00000004 */
+/* 16kHz             0x00000008 */
+/* 22.5kHz           0x00000010 */
+/* 24kHz             0x00000020 */
+/* 32kHz             0x00000040 */
+/* 44.1kHz           0x00000080 */
+/* 48kHz             0x00000100 */
 
 
-
+/* Device type enumeration */
 enum {
 	RX_DEVICE = 1,
 	TX_DEVICE,
@@ -255,11 +282,13 @@ enum {
 };
 
 #ifdef CONFIG_DEBUG_FS
+/*These are ABID used for RTC*/
 #define ABID_AUDIO_RTC_MBADRC_RX 0x0001118A
 #define ABID_AUDIO_RTC_VOLUME_PAN_RX 0x0001118C
 #define ABID_AUDIO_RTC_SPA 0x0001118E
 #define ABID_AUDIO_RTC_EQUALIZER_PARAMETERS 0x0001119F
 
+/*These are IID used for RTC*/
 #define IID_AUDIO_RTC_MBADRC_PARAMETERS 0x0001118B
 #define IID_AUDIO_RTC_VOLUME_PAN_PARAMETERS 0x0001118D
 #define IID_AUDIO_RTC_SPA_PARAMETERS 0x0001118F

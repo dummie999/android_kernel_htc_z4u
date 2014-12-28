@@ -15,7 +15,7 @@ REFERENCES
 EXTERNALIZED FUNCTIONS
   None
 
-Copyright (c) 1992-2009, Code Aurora Forum. All rights reserved.
+Copyright (c) 1992-2009, The Linux Foundation. All rights reserved.
 
 This software is licensed under the terms of the GNU General Public
 License version 2, as published by the Free Software Foundation, and
@@ -27,8 +27,29 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 *====*====*====*====*====*====*====*====*====*====*====*====*====*====*====*/
+/*===========================================================================
 
+                      EDIT HISTORY FOR FILE
 
+This section contains comments describing changes made to this file.
+Notice that changes are listed in reverse chronological order.
+   
+ 
+$Header: //source/qcom/qct/multimedia2/AdspSvc/7XXX/qdsp5cmd/video/qdsp5jpegcmdi.h#2 $ $DateTime: 2008/07/30 10:50:23 $ $Author: pavanr $                     
+Revision History:                                            
+when       who     what, where, why
+--------   ---     ----------------------------------------------------------
+06/09/08   sv      initial version
+===========================================================================*/
+
+/*
+ * ARM to JPEG configuration commands are passed through the
+ * uPJpegCfgCmdQueue
+ */
+
+/*
+ * Command to configure JPEG Encoder
+ */
 
 #define	JPEG_CMD_ENC_CFG		0x0000
 #define	JPEG_CMD_ENC_CFG_LEN	sizeof(jpeg_cmd_enc_cfg)
@@ -72,6 +93,9 @@ typedef struct {
 	unsigned int	upsamp_pp_filter_coeff[64];
 } __attribute__((packed)) jpeg_cmd_enc_cfg;
 
+/*
+ * Command to configure JPEG Decoder
+ */
 
 #define	JPEG_CMD_DEC_CFG		0x0001
 #define	JPEG_CMD_DEC_CFG_LEN		sizeof(jpeg_cmd_dec_cfg)
@@ -243,7 +267,14 @@ typedef struct {
 } __attribute__((packed)) jpeg_cmd_dec_cfg;
 
 
+/*
+ * ARM to JPEG configuration commands are passed through the
+ * uPJpegActionCmdQueue
+ */
 
+/*
+ * Command to start the encode process
+ */
 
 #define	JPEG_CMD_ENC_ENCODE		0x0001
 #define	JPEG_CMD_ENC_ENCODE_LEN		sizeof(jpeg_cmd_enc_encode)
@@ -254,6 +285,9 @@ typedef struct {
 } __attribute__((packed)) jpeg_cmd_enc_encode;
 
 
+/*
+ * Command to transition from current state of encoder to IDLE state
+ */
 
 #define	JPEG_CMD_ENC_IDLE		0x0006
 #define	JPEG_CMD_ENC_IDLE_LEN		sizeof(jpeg_cmd_enc_idle)
@@ -264,6 +298,9 @@ typedef struct {
 } __attribute__((packed)) jpeg_cmd_enc_idle;
 
 
+/*
+ * Command to inform the encoder that another buffer is ready
+ */
 
 #define	JPEG_CMD_ENC_OP_CONSUMED	0x0002
 #define	JPEG_CMD_ENC_OP_CONSUMED_LEN	sizeof(jpeg_cmd_enc_op_consumed)
@@ -276,6 +313,9 @@ typedef struct {
 } __attribute__((packed)) jpeg_cmd_enc_op_consumed; 
 
 
+/*
+ * Command to start the decoding process
+ */
 
 #define	JPEG_CMD_DEC_DECODE		0x0003
 #define	JPEG_CMD_DEC_DECODE_LEN	sizeof(jpeg_cmd_dec_decode)
@@ -286,6 +326,9 @@ typedef struct {
 } __attribute__((packed)) jpeg_cmd_dec_decode;
 
 
+/*
+ * Command to transition from the current state of decoder to IDLE
+ */
 
 #define	JPEG_CMD_DEC_IDLE	0x0007
 #define	JPEG_CMD_DEC_IDLE_LEN	sizeof(jpeg_cmd_dec_idle)
@@ -296,6 +339,9 @@ typedef struct {
 } __attribute__((packed)) jpeg_cmd_dec_idle;
 
 
+/*
+ * Command to inform that an op buffer is ready for use
+ */
 
 #define	JPEG_CMD_DEC_OP_CONSUMED	0x0004
 #define	JPEG_CMD_DEC_OP_CONSUMED_LEN	sizeof(jpeg_cmd_dec_op_consumed)
@@ -309,6 +355,9 @@ typedef struct {
 } __attribute__((packed)) jpeg_cmd_dec_op_consumed;
 
 
+/*
+ * Command to pass a new ip buffer to the jpeg decoder
+ */
 
 #define	JPEG_CMD_DEC_IP	0x0005
 #define	JPEG_CMD_DEC_IP_LEN	sizeof(jpeg_cmd_dec_ip_len)

@@ -1,4 +1,4 @@
-/* Copyright (c) 2009, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2009, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -15,4 +15,4 @@
 
 #include <mach/remote_spinlock.h>
 
-#endif 
+#endif /* __ASM_REMOTE_SPINLOCK_H */

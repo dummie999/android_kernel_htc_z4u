@@ -1,6 +1,6 @@
 /* arch/arm/mach-msm/adsp_info.c
  *
- * Copyright (c) 2008-2009, 2011-2012 Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2008-2009, 2011-2012 The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -15,6 +15,7 @@
 
 #include "adsp.h"
 
+/* Firmware modules */
 #define QDSP_MODULE_KERNEL                  0x0106dd4e
 #define QDSP_MODULE_AFETASK                 0x0106dd6f
 #define QDSP_MODULE_AUDPLAY0TASK            0x0106dd70
@@ -67,7 +68,7 @@
 #define QDSP_MODULE_RMTASK                  0x01090f8e
 #define QDSP_MODULE_MAX                     0x7fffffff
 
-   
+   /* DO NOT USE: Force this enum to be a 32bit type to improve speed */
 #define QDSP_MODULE_32BIT_DUMMY 0x10000
 
 static uint32_t *qdsp_task_to_module[IMG_MAX];

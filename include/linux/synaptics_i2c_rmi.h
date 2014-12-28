@@ -51,6 +51,10 @@
 
 #define SENSOR_ID_CHECKING_EN	1 << 16
 
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+#include <linux/input.h>
+#endif
+
 enum {
 	SYNAPTICS_FLIP_X = 1UL << 0,
 	SYNAPTICS_FLIP_Y = 1UL << 1,
@@ -171,6 +175,10 @@ enum {
 	INTR_SOURCE,
 	FUNCTION
 };
+
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+extern void sweep2sleep_setdev(struct input_dev * input_device);
+#endif
 
 extern uint8_t getPowerKeyState(void);
 #endif 

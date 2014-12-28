@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2012 The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -31,13 +31,16 @@ enum {
 	ACDB_MBADRC_BLOCK		= 343
 };
 
+/* Structure to query for acdb parameter */
 struct acdb_get_block {
 	u32	acdb_id;
-	u32	sample_rate_id;		
-	u32	interface_id;		
-	u32	algorithm_block_id;	
-	u32	total_bytes;		
-	u32	*buf_ptr;		
+	u32	sample_rate_id;		/* Actual sample rate value */
+	u32	interface_id;		/* Interface id's */
+	u32	algorithm_block_id;	/* Algorithm block id */
+	u32	total_bytes;		/* Length in bytes used by buffer for
+						configuration */
+	u32	*buf_ptr;		/* Address for storing configuration
+						data */
 };
 
 struct acdb_agc_block {

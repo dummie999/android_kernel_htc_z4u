@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -13,7 +13,25 @@
 #ifndef QDSP5RMTMSG_H
 #define QDSP5RMTMSG_H
 
+/*====*====*====*====*====*====*====*====*====*====*====*====*====*====*====*
 
+       R M T A S K   M S G
+
+GENERAL DESCRIPTION
+  Messages sent by RMTASK to APPS PROCESSOR
+
+REFERENCES
+  None
+
+EXTERNALIZED FUNCTIONS
+  None
+*====*====*====*====*====*====*====*====*====*====*====*====*====*====*====*/
+
+/*
+ * RMTASK uses RmtApuRlist to send messages to the APPS PROCESSOR
+ * Location : MEMA
+ * Buffer Size : 3
+ */
 
 #define RMT_CODEC_CONFIG_ACK	0x1
 
@@ -33,5 +51,5 @@ struct rmt_dsp_out_of_mips {
 	unsigned short			rvd_1;
 } __attribute__((packed));
 
-#endif 
+#endif /* QDSP5RMTMSG_H */
 

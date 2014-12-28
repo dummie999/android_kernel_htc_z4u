@@ -32,6 +32,10 @@
 #define CORE_RESET_BASE		0xA8600590
 #define MSM_CORE_STATUS_MSK	0x02800000
 
+/*
+ * control for which core is the next to come out of the secondary
+ * boot "holding pen"
+ */
 volatile int pen_release = -1;
 
 static DEFINE_PER_CPU(bool, cold_boot_done);
@@ -44,8 +48,15 @@ struct per_cpu_data {
 };
 
 static uint32_t *msm8625_boot_vector;
+
+
 static struct per_cpu_data cpu_data[CONFIG_NR_CPUS];
 
+/*
+ * Write pen_release in a way that is guaranteed to be visible to all
+ * observers, irrespective of whether they're taking part in coherency
+ * or not.  This is necessary for the hotplug code to work reliably.
+ */
 static void __cpuinit write_pen_release(int val)
 {
 	pen_release = val;
@@ -61,6 +72,12 @@ static void __iomem *scu_base_addr(void)
 
 static DEFINE_SPINLOCK(boot_lock);
 
+/*
+ * MP_CORE_IPC will be used to generate interrupt and can be used by either
+ * of core.
+ * To bring secondary cores out of GDFS we need to raise the SPI using the
+ * MP_CORE_IPC.
+ */
 static void raise_clear_spi(unsigned int cpu, bool set)
 {
 	int value;
@@ -80,7 +97,7 @@ static void clear_pending_spi(unsigned int irq)
 
 	c->irq_mask(d);
 	local_irq_disable();
-	
+	/* Clear the IRQ from the ENABLE_SET */
 	gic_clear_irq_pending(irq);
 	local_irq_enable();
 }
@@ -103,23 +120,34 @@ void __cpuinit platform_secondary_init(unsigned int cpu)
 		}
 	}
 
-
 	WARN_ON(msm_platform_secondary_init(cpu));
 
+	/*
+	 * if any interrupts are already enabled for the primary
+	 * core (e.g. timer irq), then they will not have been enabled
+	 * for us: do so
+	 */
 	gic_secondary_init(0);
 
+	/*
+	 * let the primary processor know we're out of the
+	 * pen, then head off into the C entry point
+	 */
 	write_pen_release(-1);
 
-	
+	/* clear the IPC pending SPI */
 	if (per_cpu(power_collapsed, cpu)) {
 		raise_clear_spi(cpu, false);
-		clear_pending_spi(cpu_data[cpu].ipc_irq);		
+		clear_pending_spi(cpu_data[cpu].ipc_irq);
 		per_cpu(power_collapsed, cpu) = 0;
 	}
 
 #ifdef CONFIG_MSM_FIQ
 	gic_set_irq_secure(GIC_SECURE_SOFT_IRQ);
 #endif
+	/*
+	 * Synchronise with the boot thread.
+	 */
 	spin_lock(&boot_lock);
 	spin_unlock(&boot_lock);
 }
@@ -130,9 +158,14 @@ static int  __cpuinit msm8625_release_secondary(unsigned int cpu)
 	int value = 0;
 	unsigned long timeout;
 
+	/*
+	 * loop to ensure that the GHS_STATUS_CORE1 bit in the
+	 * MPA5_STATUS_REG(0x3c) is set. The timeout for the while
+	 * loop can be set as 20us as of now
+	 */
 	timeout = jiffies + usecs_to_jiffies(20);
 	while (time_before(jiffies, timeout)) {
-		value = __raw_readl(MSM_CFG_CTL_BASE + cpu_data[cpu].offset);		
+		value = __raw_readl(MSM_CFG_CTL_BASE + cpu_data[cpu].offset);
 		if ((value & MSM_CORE_STATUS_MSK) ==
 				MSM_CORE_STATUS_MSK)
 			break;
@@ -144,10 +177,12 @@ static int  __cpuinit msm8625_release_secondary(unsigned int cpu)
 		return -ENODEV;
 	}
 
-	base_ptr = ioremap_nocache(CORE_RESET_BASE + cpu_data[cpu].reset_off, SZ_4);	
+	base_ptr = ioremap_nocache(CORE_RESET_BASE +
+			cpu_data[cpu].reset_off, SZ_4);
 	if (!base_ptr)
 		return -ENODEV;
-	
+
+	/* Reset core out of reset */
 	__raw_writel(0x0, base_ptr);
 	mb();
 
@@ -158,7 +193,7 @@ static int  __cpuinit msm8625_release_secondary(unsigned int cpu)
 
 void __iomem *core_reset_base(unsigned int cpu)
 {
-	return cpu_data[cpu].reset_core_base;	
+	return cpu_data[cpu].reset_core_base;
 }
 
 int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
@@ -175,10 +210,29 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
 		per_cpu(cold_boot_done, cpu) = true;
 	}
 
+	/*
+	 * Set synchronisation state between this boot processor
+	 * and the secondary one
+	 */
 	spin_lock(&boot_lock);
 
+	/*
+	 * This is really belt and braces; we hold unintended secondary
+	 * CPUs in the holding pen until we're ready for them.  However,
+	 * since we haven't sent them a soft interrupt, they shouldn't
+	 * be there.
+	 */
 	write_pen_release(cpu);
 
+	/*
+	 * Send the secondary CPU a soft interrupt, thereby causing
+	 * the boot monitor to read the system wide flags register,
+	 * and branch to the address found there.
+	 *
+	 * power_collapsed is the flag which will be updated for Powercollapse.
+	 * Once we are out of PC, as secondary cores will be in the state of
+	 * GDFS which needs to be brought out by raising an SPI.
+	 */
 
 	if (per_cpu(power_collapsed, cpu)) {
 		gic_configure_and_raise(cpu_data[cpu].ipc_irq, cpu);
@@ -196,11 +250,19 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
 		udelay(10);
 	}
 
+	/*
+	 * now the secondary core is starting up let it run its
+	 * calibrations, then wait for it to finish
+	 */
 	spin_unlock(&boot_lock);
 
 	return 0;
 }
 
+/*
+ * Initialise the CPU possible map early - this describes the CPUs
+ * which may be present or become present in the system.
+ */
 void __init smp_init_cpus(void)
 {
 	void __iomem *scu_base = scu_base_addr();
@@ -227,7 +289,7 @@ static void enable_boot_remapper(unsigned long bit, unsigned int off)
 {
 	int value;
 
-	
+	/* Enable boot remapper address */
 	value = __raw_readl(MSM_CFG_CTL_BASE + off);
 	__raw_writel(value | bit, MSM_CFG_CTL_BASE + off) ;
 	mb();
@@ -235,6 +297,10 @@ static void enable_boot_remapper(unsigned long bit, unsigned int off)
 
 static void remapper_address(unsigned long phys, unsigned int off)
 {
+	/*
+	 * Write the address of secondary startup into the
+	 * boot remapper register. The secondary CPU branches to this address.
+	 */
 	__raw_writel(phys, (MSM_CFG_CTL_BASE + off));
 	mb();
 }
@@ -246,7 +312,7 @@ static void __init msm8625_boot_vector_init(uint32_t *boot_vector,
 		return;
 	msm8625_boot_vector = boot_vector;
 
-	msm8625_boot_vector[0] = 0xE51FF004; 
+	msm8625_boot_vector[0] = 0xE51FF004; /* ldr pc, 4 */
 	msm8625_boot_vector[1] = entry;
 }
 
@@ -255,6 +321,10 @@ void __init platform_smp_prepare_cpus(unsigned int max_cpus)
 	int i, cpu, value;
 	void __iomem *cpu_ptr;
 
+	/*
+	 * Initialise the present map, which describes the set of CPUs
+	 * actually populated at the present time.
+	 */
 	for (i = 0; i < max_cpus; i++)
 		set_cpu_present(i, true);
 
@@ -266,7 +336,7 @@ void __init platform_smp_prepare_cpus(unsigned int max_cpus)
 		return;
 	}
 
-	msm8625_boot_vector_init(cpu_ptr,	
+	msm8625_boot_vector_init(cpu_ptr,
 			virt_to_phys(msm_secondary_startup));
 
 	iounmap(cpu_ptr);

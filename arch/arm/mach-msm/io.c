@@ -88,6 +88,10 @@ static struct map_desc msm_io_desc[] __initdata = {
 void __init msm_map_common_io(void)
 {
 #ifndef CONFIG_ARCH_MSM_CORTEX_A5
+	/* Make sure the peripheral register window is closed, since
+	 * we will use PTE flags (TEX[1]=1,B=0,C=1) to determine which
+	 * pages are peripheral interface or not.
+	 */
 	asm("mcr p15, 0, %0, c15, c2, 4" : : "r" (0));
 #endif
 	msm_map_io(msm_io_desc, ARRAY_SIZE(msm_io_desc));
@@ -123,7 +127,7 @@ void __init msm_map_qsd8x50_io(void)
 {
 	msm_map_io(qsd8x50_io_desc, ARRAY_SIZE(qsd8x50_io_desc));
 }
-#endif 
+#endif /* CONFIG_ARCH_QSD8X50 */
 
 #ifdef CONFIG_ARCH_MSM8X60
 static struct map_desc msm8x60_io_desc[] __initdata = {
@@ -164,7 +168,7 @@ void __init msm_map_msm8x60_io(void)
 	msm_map_io(msm8x60_io_desc, ARRAY_SIZE(msm8x60_io_desc));
 	init_consistent_dma_size(14*SZ_1M);
 }
-#endif 
+#endif /* CONFIG_ARCH_MSM8X60 */
 
 #ifdef CONFIG_ARCH_MSM8960
 static struct map_desc msm8960_io_desc[] __initdata = {
@@ -203,7 +207,7 @@ void __init msm_map_msm8960_io(void)
 {
 	msm_map_io(msm8960_io_desc, ARRAY_SIZE(msm8960_io_desc));
 }
-#endif 
+#endif /* CONFIG_ARCH_MSM8960 */
 
 #ifdef CONFIG_ARCH_MSM8930
 static struct map_desc msm8930_io_desc[] __initdata = {
@@ -449,7 +453,7 @@ void __init msm_map_msm8625_io(void)
 }
 #else
 void __init msm_map_msm8625_io(void) { return; }
-#endif 
+#endif /* CONFIG_ARCH_MSM7X30 */
 
 void __iomem *
 __msm_ioremap(unsigned long phys_addr, size_t size, unsigned int mtype)

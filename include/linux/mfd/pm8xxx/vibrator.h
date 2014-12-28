@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -36,4 +36,4 @@ struct pm8xxx_vibrator_platform_data {
 
 int pm8xxx_vibrator_config(struct pm8xxx_vib_config *vib_config);
 
-#endif 
+#endif /* __PMIC8XXX_VIBRATOR_H__ */

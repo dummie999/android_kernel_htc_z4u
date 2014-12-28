@@ -449,7 +449,7 @@ static struct mipi_dsi_platform_data mipi_dsi_pdata = {
 	.get_lane_config = msm_fb_get_lane_config,
 };
 
-#define BRI_SETTING_MIN                 30
+#define BRI_SETTING_MIN                 1
 #define BRI_SETTING_DEF                 142
 #define BRI_SETTING_MAX                 255
 

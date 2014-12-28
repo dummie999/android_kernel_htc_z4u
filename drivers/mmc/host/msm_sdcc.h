@@ -408,6 +408,7 @@ struct msmsdcc_host {
 	struct proc_dir_entry *wr_perf_proc;
 	struct proc_dir_entry *burst_proc;
 	struct proc_dir_entry *speed_class;
+	struct proc_dir_entry *cam_control;
 };
 
 #define MSMSDCC_VERSION_MASK	0xFFFF

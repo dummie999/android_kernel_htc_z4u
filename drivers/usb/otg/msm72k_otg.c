@@ -37,6 +37,10 @@
 
 #include <mach/cable_detect.h>
 
+#ifdef CONFIG_FORCE_FAST_CHARGE
+#include <linux/fastchg.h>
+#endif
+
 #define MSM_USB_BASE	(dev->regs)
 #define USB_LINK_RESET_TIMEOUT	(msecs_to_jiffies(10))
 #define DRIVER_NAME	"msm_otg"
@@ -738,6 +742,9 @@ static void msm_otg_notify_charger_attached(int connect_type)
 		}
 		break;
 	case CONNECT_TYPE_USB:
+#ifdef CONFIG_FORCE_FAST_CHARGE
+if(force_fast_charge==0){
+#endif
 		if (atomic_read(&motg->chg_type) != USB_CHG_TYPE__SDP)
 			atomic_set(&motg->chg_type, USB_CHG_TYPE__SDP);
 		motg->ac_detect_count = 0;
@@ -749,6 +756,16 @@ static void msm_otg_notify_charger_attached(int connect_type)
 			
 			return;
 		}
+#ifdef CONFIG_FORCE_FAST_CHARGE
+}
+else if (force_fast_charge==1){
+
+		pr_warn("Fastcharge on!");
+		if (atomic_read(&motg->chg_type) != USB_CHG_TYPE__WALLCHARGER)
+			atomic_set(&motg->chg_type, USB_CHG_TYPE__WALLCHARGER);
+		motg->connect_type = CONNECT_TYPE_AC;
+}
+#endif
 		break;
 	case CONNECT_TYPE_AC:
 		if (atomic_read(&motg->chg_type) != USB_CHG_TYPE__WALLCHARGER)

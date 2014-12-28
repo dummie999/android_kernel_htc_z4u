@@ -554,6 +554,21 @@ config MACH_PROTODCG
 	help
 	  Support for the Protodcg.
 
+config MACH_MAGNIDS
+	depends on ARCH_MSM8625
+	depends on !MSM_STACKED_MEMORY
+	default n
+	bool "Magnids"
+	help
+	  Support for the Magnids.
+
+config MACH_MAGNIU
+	depends on ARCH_MSM8625
+	depends on !MSM_STACKED_MEMORY
+	default n
+	bool "Magniu"
+	help
+	  Support for the Magniu.
 
 config MACH_MSM7625A_SURF
         depends on ARCH_MSM7X27A
@@ -1695,6 +1710,20 @@ config MSM_RPC_WATCHDOG
 	help
 	  The dog_keepalive client module.
 
+config INTELLI_PLUG
+	bool "Enable intelli-plug cpu hotplug driver"
+	default n
+	help
+	  Generic Intelli-plug cpu hotplug driver for ARM SOCs
+
+
+config FORCE_FAST_CHARGE
+	bool "Force AC charge mode at will"
+	default y
+	help
+	  A simple sysfs interface to force adapters that
+	  are detected as USB to charge as AC.
+
 config MSM_RPC_PING
 	depends on MSM_ONCRPCROUTER && DEBUG_FS
 	default m
@@ -1782,6 +1811,12 @@ config MSM_CPU_FREQ_MIN
 	default 245760
 
 endif # CPU_FREQ_MSM
+
+config CPU_VOLTAGE_TABLE
+	bool "Enable CPU Voltage Table via sysfs for adjustements"
+	default n
+	help
+	  Krait User Voltage Control
 
 config MSM_CPU_FREQ_ONDEMAND_MAX
         int "Max"

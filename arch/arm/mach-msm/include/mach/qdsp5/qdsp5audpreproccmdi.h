@@ -15,7 +15,7 @@
 * EXTERNALIZED FUNCTIONS
 *   None
 *
-* Copyright (c) 1992-2009, 2012 Code Aurora Forum. All rights reserved.
+* Copyright (c) 1992-2009, 2012 The Linux Foundation. All rights reserved.
 *
 * This software is licensed under the terms of the GNU General Public
 * License version 2, as published by the Free Software Foundation, and
@@ -27,8 +27,28 @@
 * GNU General Public License for more details.
 *
 *====*====*====*====*====*====*====*====*====*====*====*====*====*====*====*/
+/*===========================================================================
 
+                      EDIT HISTORY FOR FILE
 
+This section contains comments describing changes made to this file.
+Notice that changes are listed in reverse chronological order.
+   
+$Header: //source/qcom/qct/multimedia2/Audio/drivers/QDSP5Driver/QDSP5Interface/main/latest/qdsp5audpreproccmdi.h#2 $ 
+  
+===========================================================================*/
+
+/*
+ * AUDIOPREPROC COMMANDS:
+ * ARM uses uPAudPreProcCmdQueue to communicate with AUDPREPROCTASK
+ * Location : MEMB
+ * Buffer size : 51
+ * Number of buffers in a queue : 3
+ */
+
+/*
+ * Command to configure the parameters of AGC
+ */
 
 #define	AUDPREPROC_CMD_CFG_AGC_PARAMS	0x0000
 #define	AUDPREPROC_CMD_CFG_AGC_PARAMS_LEN	\
@@ -89,6 +109,9 @@ typedef struct {
 } __packed audpreproc_cmd_cfg_agc_params;
 
 
+/*
+ * Command to configure the params of Advanved AGC
+ */
 
 #define	AUDPREPROC_CMD_CFG_AGC_PARAMS_2		0x0001
 #define	AUDPREPROC_CMD_CFG_AGC_PARAMS_2_LEN		\
@@ -116,6 +139,9 @@ typedef struct {
 	unsigned short	comp_makeup_gain;
 } __attribute__((packed)) audpreproc_cmd_cfg_agc_params_2;
 
+/*
+ * Command to configure params for ns
+ */
 
 #define	AUDPREPROC_CMD_CFG_NS_PARAMS		0x0002
 #define	AUDPREPROC_CMD_CFG_NS_PARAMS_LEN	\
@@ -160,6 +186,9 @@ typedef struct {
 	unsigned short	wb_gamma_n;
 } __attribute__((packed)) audpreproc_cmd_cfg_ns_params;
 
+/*
+ * Command to configure parameters for IIR tuning filter
+ */
 
 #define	AUDPREPROC_CMD_CFG_IIR_TUNING_FILTER_PARAMS		0x0003
 #define	AUDPREPROC_CMD_CFG_IIR_TUNING_FILTER_PARAMS_LEN	\

@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2010, 2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2008-2010, 2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -8,6 +8,10 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
+ *
+ */
+/*
+ * Modem Restart Notifier API
  *
  */
 
@@ -28,4 +32,4 @@ extern void modem_queue_end_reset_notify(void);
 extern void modem_queue_smsm_init_notify(void);
 extern int __init msm_init_modem_notifier_list(void);
 
-#endif 
+#endif /* _MODEM_NOTIFIER_H */

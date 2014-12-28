@@ -17,4 +17,4 @@
 int mipi_hx8389b_device_register(struct msm_panel_info *pinfo,
 					u32 channel, u32 panel);
 
-#endif  
+#endif  /* MIPI_HX8389B_H */
