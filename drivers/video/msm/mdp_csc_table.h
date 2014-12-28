@@ -1,4 +1,4 @@
-/* drivers/video/msm_fb/mdp_csc_table.h
+/* drivers/video/msm/mdp_csc_table.h
  *
  * Copyright (C) 2007 QUALCOMM Incorporated
  * Copyright (C) 2007 Google Incorporated
@@ -17,6 +17,7 @@ static struct {
 	uint32_t reg;
 	uint32_t val;
 } csc_table[] = {
+	/* RGB -> YUV primary forward matrix (set1). */
 	{ 0x40400, 0x83 },
 	{ 0x40404, 0x102 },
 	{ 0x40408, 0x32 },
@@ -26,6 +27,8 @@ static struct {
 	{ 0x40418, 0xe1 },
 	{ 0x4041c, 0xffffff45 },
 	{ 0x40420, 0xffffffdc },
+
+	/* YUV -> RGB primary reverse matrix (set2) */
 	{ 0x40440, 0x254 },
 	{ 0x40444, 0x0 },
 	{ 0x40448, 0x331 },

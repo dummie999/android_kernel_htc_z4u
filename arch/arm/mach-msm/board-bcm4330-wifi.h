@@ -11,19 +11,19 @@
  * GNU General Public License for more details.
 */
 
-#ifndef __ARCH_ARM_MACH_MSM_BOARD_MAGNIDS_WIFI_H
-#define __ARCH_ARM_MACH_MSM_BOARD_MAGNIDS_WIFI_H
+#ifndef __ARCH_ARM_MACH_MSM_BOARD_BCM4330_WIFI_H
+#define __ARCH_ARM_MACH_MSM_BOARD_BCM4330_WIFI_H
 
 #include <mach/board.h>
 
 
 /* Macros assume PMIC GPIOs start at 0 */
 
-#define MAGNIDS_GPIO_WIFI_IRQ             29
-#define MAGNIDS_GPIO_WIFI_SHUTDOWN_N       13
+#define BCM4330_GPIO_WIFI_IRQ             29
+#define BCM4330_GPIO_WIFI_SHUTDOWN_N       13
 
 
-int __init magnids_wifi_init(void);
+int __init bcm4330_wifi_init(void);
 
 
-#endif /* __ARCH_ARM_MACH_MSM_BOARD_MAGNIDS_WIFI_H */
+#endif /* __ARCH_ARM_MACH_MSM_BOARD_BCM4330_WIFI_H */

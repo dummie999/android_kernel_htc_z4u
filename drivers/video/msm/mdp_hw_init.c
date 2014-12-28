@@ -11,12 +11,16 @@
  *
  */
 
+#ifdef CONFIG_HTC_PHONE
 #include <mach/panel_id.h>
+#endif
 #include <mach/board.h>
 #include "mdp.h"
 
+/* mdp primary csc limit vector */
 uint32 mdp_plv[] = { 0x10, 0xeb, 0x10, 0xf0 };
 
+/* Color Coefficient matrix for YUV -> RGB */
 struct mdp_ccs mdp_ccs_yuv2rgb = {
 	MDP_CCS_YUV2RGB,
 	{
@@ -43,6 +47,7 @@ struct mdp_ccs mdp_ccs_yuv2rgb = {
 	}
 };
 
+/* Color Coefficient matrix for RGB -> YUV */
 struct mdp_ccs mdp_ccs_rgb2yuv = {
 	MDP_CCS_RGB2YUV,
 	{
@@ -587,10 +592,10 @@ void mdp_hw_init(int cont_splash)
 {
 	int i;
 
-	
+	/* MDP cmd block enable */
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
 
-	
+	/* debug interface write access */
 	outpdw(MDP_BASE + 0x60, 1);
 
 	outp32(MDP_INTR_ENABLE, MDP_ANY_INTR_MASK);
@@ -600,13 +605,16 @@ void mdp_hw_init(int cont_splash)
 	outpdw(MDP_BASE + 0x60, 0x1);
 	mdp_load_lut_param();
 
-	
+	/*
+	 * clear up unused fg/main registers
+	 */
+	/* comp.plane 2&3 ystride */
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x0120, 0x0);
-	
+	/* unpacked pattern */
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x012c, 0x0);
-	
+	/* unpacked pattern */
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x0130, 0x0);
-	
+	/* unpacked pattern */
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x0134, 0x0);
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x0158, 0x0);
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x15c, 0x0);
@@ -615,12 +623,12 @@ void mdp_hw_init(int cont_splash)
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x0174, 0x0);
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x017c, 0x0);
 
-	
+	/* comp.plane 2 */
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x0114, 0x0);
-	
+	/* comp.plane 3 */
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x0118, 0x0);
 
-	
+	/* clear up unused bg registers */
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x01c8, 0);
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x01d0, 0);
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x01dc, 0);
@@ -628,6 +636,12 @@ void mdp_hw_init(int cont_splash)
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x01e4, 0);
 
 #ifndef CONFIG_FB_MSM_MDP22
+	/* Make sure to disable TG if continuous splash screen
+	 * is not enabled on kernel side. This avoids issues
+	 * when multiple panels are supported on same board
+	 * and all the panels do not have splash screen/continuous
+	 * splash support on the boot loader side.
+	 */
 	if (!cont_splash) {
 		MDP_OUTP(MDP_BASE + 0xE0000, 0);
 		msleep(20);
@@ -641,6 +655,11 @@ void mdp_hw_init(int cont_splash)
 	MDP_OUTP(MDP_BASE + 0x90070, 0);
 #endif
 
+	/*
+	 * limit vector
+	 * pre gets applied before color matrix conversion
+	 * post is after ccs
+	 */
 	writel(mdp_plv[0], MDP_CSC_PRE_LV1n(0));
 	writel(mdp_plv[1], MDP_CSC_PRE_LV1n(1));
 	writel(mdp_plv[2], MDP_CSC_PRE_LV1n(2));
@@ -672,7 +691,7 @@ void mdp_hw_init(int cont_splash)
 	writel(mdp_plv[3], MDP_CSC_POST_LV2n(5));
 #endif
 
-	
+	/* primary forward matrix */
 	for (i = 0; i < MDP_CCS_SIZE; i++)
 		writel(mdp_ccs_rgb2yuv.ccs[i], MDP_CSC_PFMVn(i));
 
@@ -684,7 +703,7 @@ void mdp_hw_init(int cont_splash)
 	writel(0, MDP_CSC_PRE_BV2n(1));
 	writel(0, MDP_CSC_PRE_BV2n(2));
 #endif
-	
+	/* primary reverse matrix */
 	for (i = 0; i < MDP_CCS_SIZE; i++)
 		writel(mdp_ccs_yuv2rgb.ccs[i], MDP_CSC_PRMVn(i));
 
@@ -709,8 +728,10 @@ void mdp_hw_init(int cont_splash)
 #endif
 
 	wmb();
-	 if (((panel_type & MIPI_MODE_MASK) != MIPI_VIDEO_ONLY) || (board_mfg_mode() == 4)) {
-		
+#ifdef CONFIG_HTC_PHONE
+    if (((panel_type & MIPI_MODE_MASK) != MIPI_VIDEO_ONLY)) {
+		/* MDP cmd block disable */
 		mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_OFF, FALSE);
-	 }
+	}
+#endif
 }

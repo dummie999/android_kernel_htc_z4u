@@ -3000,9 +3000,6 @@ static int __init msm_otg_probe(struct platform_device *pdev)
 	dev->ac_detect_timer.function = ac_detect_expired;
 	init_timer(&dev->ac_detect_timer);
 
-	if (board_mfg_mode() == 5) 
-		USB_disabled = 1;
-
 	dev->wq = alloc_workqueue("k_otg", WQ_NON_REENTRANT, 0);
 	if (!dev->wq) {
 		ret = -ENOMEM;

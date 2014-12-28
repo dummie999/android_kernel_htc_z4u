@@ -90,7 +90,7 @@
 #include <mach/htc_bdaddress.h>
 #endif
 #include "board-magnids.h"
-#include "board-magnids-wifi.h"
+#include "board-bcm4330-wifi.h"
 #include <mach/htc_util.h>
 #include <mach/TCA6418_ioextender.h>
 #define CPU_FOOT_PRINT (MSM_HTC_DEBUG_INFO_BASE + 0x0)
@@ -2101,10 +2101,12 @@ static void __init msm7x27a_pm_init(void)
 	msm_pm_register_irqs();
 }
 
+#if defined(CONFIG_MSM_SERIAL_DEBUGGER)
 static void magnids_reset(void)
 {
 	gpio_set_value(MAGNIDS_GPIO_PS_HOLD, 0);
 }
+#endif
 
 unsigned int *cpu_foot_print = CPU_FOOT_PRINT;
 
@@ -2116,9 +2118,9 @@ static void __init msm7x2x_init(void)
 	struct proc_dir_entry *entry = NULL;
 	int rc = 0;
 	struct kobject *properties_kobj;
-
+#if defined(CONFIG_MSM_SERIAL_DEBUGGER)
 	msm_hw_reset_hook = magnids_reset;
-
+#endif
 	msm7x2x_misc_init();
 
 #ifdef CONFIG_PERFLOCK
@@ -2164,7 +2166,7 @@ static void __init msm7x2x_init(void)
 
 #ifdef CONFIG_MMC_MSM
 	printk(KERN_ERR "%s: start init mmc\n", __func__);
-	magnids_init_mmc();
+	msm7627a_init_mmc();
 	printk(KERN_ERR "%s: msm7627a_init_mmc()\n", __func__);
 	entry = create_proc_read_entry("emmc", 0, NULL, emmc_partition_read_proc, NULL);
 	printk(KERN_ERR "%s: create_proc_read_entry()\n", __func__);
@@ -2256,13 +2258,13 @@ static void __init msm7x2x_init(void)
 		msm7x27a_ts_himax_data.vk_obj = properties_kobj;
 		msm7x27a_ts_himax_data.vk2Use = &msm8625_himax_virtual_keys_attr;
 	}
-	msm_init_pmic_vibrator(3000);
+	msm_init_pmic_vibrator();
 
 	i2c_register_board_info(MSM_GSBI1_QUP_I2C_BUS_ID,
 			i2c_tps65200_devices, ARRAY_SIZE(i2c_tps65200_devices));
 
 	msm8625_init_keypad();
-	magnids_wifi_init();
+	bcm4330_wifi_init();
 	magnids_audio_init();
 	if (get_kernel_flag() & KERNEL_FLAG_PM_MONITOR) {
 		htc_monitor_init();

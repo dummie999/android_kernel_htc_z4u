@@ -237,7 +237,7 @@ int msm_dmov_exec_cmd(unsigned id, unsigned int cmdptr);
 
 #define DMOV_SDC4_CHAN        8
 #define DMOV_SDC4_CRCI        13
-
+/*DMA channel num 10 is assigned for sd card, because of CONFIG_TSIF is not set on soc MSM8625*/
 #define DMOV_TSIF_CHAN        10
 #define DMOV_TSIF_CRCI        10
 

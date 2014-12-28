@@ -83,7 +83,7 @@ enum {
 
 void __init msm_add_usb_devices(void (*phy_reset) (void));
 void __init msm_add_mem_devices(struct msm_pmem_setting *setting);
-void __init msm_init_pmic_vibrator(int);
+void __init msm_init_pmic_vibrator(void);
 
 struct mmc_platform_data;
 int __init msm_add_sdcc_devices(unsigned int controller, struct mmc_platform_data *plat);
@@ -117,4 +117,5 @@ int __init parse_tag_security(const struct tag *tags);
 unsigned int get_tamper_sf(void);
 int state_helper_register_notifier(void (*func)(void), const char *name);
 int board_build_flag(void);
+int board_mfg_mode(void);
 #endif

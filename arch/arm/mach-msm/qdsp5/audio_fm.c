@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2008 Google, Inc.
  * Copyright (C) 2008 HTC Corporation
- * Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011, The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -29,6 +29,7 @@
 #include <linux/sched.h>
 #include <mach/msm_adsp.h>
 #include "adsp.h"
+
 struct audio {
 	struct mutex lock;
 	int opened;
@@ -177,12 +178,13 @@ static void audio_dsp_event(void *private, unsigned id, uint16_t *msg)
 
 }
 
+/* must be called with audio->lock held */
 static int audio_enable(struct audio *audio)
 {
 	struct audmgr_config cfg;
 	int rc = 0;
 
-	MM_DBG("\n"); 
+	MM_DBG("\n"); /* Macro prints the file name and function */
 
 	if (audio->enabled)
 		return 0;
@@ -206,9 +208,10 @@ static int audio_enable(struct audio *audio)
 	return rc;
 }
 
+/* must be called with audio->lock held */
 static int audio_disable(struct audio *audio)
 {
-	MM_DBG("\n"); 
+	MM_DBG("\n"); /* Macro prints the file name and function */
 	if (audio->enabled) {
 		audio->enabled = 0;
 		audmgr_disable(&audio->audmgr);
@@ -267,7 +270,7 @@ static int audio_open(struct inode *inode, struct file *file)
 	struct audio *audio = &fm_audio;
 	int rc = 0, dec_attrb, dec_id = 0; 
 
-	MM_DBG("\n"); 
+	MM_DBG("\n"); /* Macro prints the file name and function */
 	mutex_lock(&audio->lock);
 
 	if (audio->opened) {
