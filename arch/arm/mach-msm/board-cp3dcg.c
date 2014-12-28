@@ -1431,7 +1431,7 @@ static int msm_hsusb_ldo_init(int init)
 
 		return 0;
 	}
-	
+	/* else fall through */
 reg_free:
 	regulator_put(reg_hsusb);
 out:
@@ -1517,10 +1517,10 @@ FIXME
 	android_usb_pdata.products[0].product_id =
 		android_usb_pdata.product_id;
 
-	
+	/* diag bit set */
 	if (get_radio_flag() & 0x20000)
 		android_usb_pdata.diag_init = 1;
-	
+	/* add cdrom support in normal mode */
 	if (board_mfg_mode() == 0) {
 		android_usb_pdata.nluns = 1;
 		android_usb_pdata.cdrom_lun = 0x1;
@@ -1602,17 +1602,17 @@ static void cp3dcg_poweralg_config_init(struct poweralg_config_type *config)
 	config->full_charging_ma = 180;
 	config->full_pending_ma = 50;
 	config->full_charging_timeout_sec = 60 * 60;
-	config->min_taper_current_mv = 0;	
-	config->min_taper_current_ma = 0;	
+	config->min_taper_current_mv = 0;	/* disabled */
+	config->min_taper_current_ma = 0;	/* disabled */
 	config->wait_votlage_statble_sec = 1 * 60;
 	config->predict_timeout_sec = 10;
 	config->polling_time_in_charging_sec = 30;
 
 	config->enable_full_calibration = TRUE;
 	config->enable_weight_percentage = TRUE;
-	config->software_charger_timeout_sec = 57600; 
-	config->superchg_software_charger_timeout_sec = 0;	
-	config->charger_hw_safety_timer_watchdog_sec =  0;	
+	config->software_charger_timeout_sec = 57600; /* 16hr */
+	config->superchg_software_charger_timeout_sec = 0;	/* disabled */
+	config->charger_hw_safety_timer_watchdog_sec =  0;	/* disabled */
 
 	config->debug_disable_shutdown = FALSE;
 	config->debug_fake_room_temp = FALSE;
@@ -1628,6 +1628,14 @@ static int cp3dcg_update_charging_protect_flag(int ibat_ma, int vbat_mv, int tem
 {
 	static int pState = 0;
 	int old_pState = pState;
+	/* pStates:
+		0: initial (temp detection)
+		1: temp < 0 degree c
+		2: 0 <= temp <= 45 degree c
+		3: 45 < temp <= 48 degree c
+		4: 48 < temp <= 60 degree c
+		5: 60 < temp
+	*/
 	enum {
 		PSTAT_DETECT = 0,
 		PSTAT_LOW_STOP,
@@ -1636,8 +1644,10 @@ static int cp3dcg_update_charging_protect_flag(int ibat_ma, int vbat_mv, int tem
 		PSTAT_LIMITED,
 		PSTAT_HIGH_STOP
 	};
+	/* generally we assumed that pState implies last temp.
+		it won't hold if temp changes faster than sample rate */
 
-	
+	// step 1. check if change state condition is hit
 	pr_debug("[BATT] %s(i=%d, v=%d, t=%d, %d, %d)\n",__func__, ibat_ma, vbat_mv, temp_01c, *chg_allowed, *hchg_allowed);
 	switch(pState) {
 		default:
@@ -1657,14 +1667,14 @@ static int cp3dcg_update_charging_protect_flag(int ibat_ma, int vbat_mv, int tem
 		case PSTAT_LOW_STOP:
 			if (30 <= temp_01c)
 				pState = PSTAT_NORMAL;
-			
+			/* suppose never jump to LIMITED/HIGH_STOP from here */
 			break;
 		case PSTAT_NORMAL:
 			if (temp_01c < 0)
 				pState = PSTAT_LOW_STOP;
 			else if (600 < temp_01c)
 				pState = PSTAT_HIGH_STOP;
-			else if (480 < temp_01c) 
+			else if (480 < temp_01c) /* also implies t <= 550 */
 				pState = PSTAT_LIMITED;
 			else if (450 < temp_01c)
 				pState = PSTAT_SLOW;
@@ -1696,13 +1706,15 @@ static int cp3dcg_update_charging_protect_flag(int ibat_ma, int vbat_mv, int tem
 				pState = PSTAT_SLOW;
 			else if (temp_01c <= 570)
 				pState = PSTAT_LIMITED;
-			
+			/* suppose never jump to LOW_STOP from here */
 			break;
 	}
 	if (old_pState != pState)
 		pr_info("[BATT] Protect pState changed from %d to %d\n", old_pState, pState);
 
-	
+	/* step 2. check state protect condition */
+	/* chg_allowed = TRUE:only means it's allowed no matter it has charger.
+		same as hchg_allowed. */
 	switch(pState) {
 		default:
 		case PSTAT_DETECT:
@@ -1718,7 +1730,7 @@ static int cp3dcg_update_charging_protect_flag(int ibat_ma, int vbat_mv, int tem
 			*hchg_allowed = TRUE;
 			break;
 #if 0 
-		case PSTAT_SLOW:	
+		case PSTAT_SLOW:	/* 4.2V Charge Full, 4.15V recharge */
 			if (4200 < vbat_mv)
 				*chg_allowed = FALSE;
 			else if (vbat_mv <= 4150)
@@ -1726,7 +1738,7 @@ static int cp3dcg_update_charging_protect_flag(int ibat_ma, int vbat_mv, int tem
 			*hchg_allowed = TRUE;
 			break;
 #endif
-		case PSTAT_LIMITED:	
+		case PSTAT_LIMITED:	/* 4.1V Charge Full, 3.8V recharge */
 			if (PSTAT_LIMITED != old_pState)
 				*chg_allowed = TRUE;
 			if (4100 < vbat_mv)
@@ -1741,7 +1753,7 @@ static int cp3dcg_update_charging_protect_flag(int ibat_ma, int vbat_mv, int tem
 			break;
 	}
 
-	
+	/* update temp_fault */
 	if (PSTAT_NORMAL == pState || PSTAT_SLOW == pState)
 		*temp_fault = FALSE;
 	else
@@ -1793,14 +1805,14 @@ static struct platform_device ram_console_device = {
         .resource       = ram_console_resources,
 };
 
-
+/* battery parameters */
 UINT32 m_parameter_TWS_SDI_1650mah[] = {
-	
+	/* capacity (in 0.01%) -> voltage (in mV)*/
 	10000, 4250, 8100, 4101, 5100, 3846,
 	2000, 3711, 900, 3641, 0, 3411,
 };
 UINT32 m_parameter_Formosa_Sanyo_1650mah[] = {
-	
+	/* capacity (in 0.01%) -> voltage (in mV)*/
 	10000, 4250, 8100, 4145, 5100, 3845,
 	2000, 3735, 900, 3625, 0, 3405,
 };
@@ -1887,7 +1899,7 @@ static max17050_platform_data max17050_pdev_data = {
 	.func_get_battery_id = get_battery_id,
 	.func_poweralg_config_init = cp3dcg_poweralg_config_init,
 	.func_update_charging_protect_flag = cp3dcg_update_charging_protect_flag,
-	.r2_kohm = 0,	
+	.r2_kohm = 0,	/* use get_battery_id, doesn't need this */
 	.batt_param = &cp3dcg_battery_parameter,
 #ifdef CONFIG_TPS65200
 	.func_kick_charger_ic = tps65200_kick_charger_ic,
@@ -1985,9 +1997,10 @@ static struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
 	.p_addr = 0,
 };
 
+/* 8625 PM platform data */
 static struct msm_pm_platform_data
 		msm8625_pm_data[MSM_PM_SLEEP_MODE_NR * CONFIG_NR_CPUS] = {
-	
+	/* CORE0 entries */
 	[MSM_PM_MODE(0, MSM_PM_SLEEP_MODE_POWER_COLLAPSE)] = {
 					.idle_supported = 1,
 					.suspend_supported = 1,
@@ -2006,7 +2019,7 @@ static struct msm_pm_platform_data
 					.residency = 20000,
 	},
 
-	
+	/* picked latency & redisdency values from 7x30 */
 	[MSM_PM_MODE(0, MSM_PM_SLEEP_MODE_POWER_COLLAPSE_STANDALONE)] = {
 					.idle_supported = 0,
 					.suspend_supported = 0,
@@ -2025,7 +2038,7 @@ static struct msm_pm_platform_data
 					.residency = 10,
 	},
 
-	
+	/* picked latency & redisdency values from 7x30 */
 	[MSM_PM_MODE(1, MSM_PM_SLEEP_MODE_POWER_COLLAPSE_STANDALONE)] = {
 					.idle_supported = 1,
 					.suspend_supported = 1,
@@ -2275,6 +2288,7 @@ static struct platform_device htc_headset_gpio = {
 	},
 };
 
+/* HTC_HEADSET_PMIC Driver */
 static struct htc_headset_pmic_platform_data htc_headset_pmic_data = {
 	.driver_flag		= DRIVER_HS_PMIC_RPC_KEY,
 	.hpin_gpio		= 0,
@@ -2313,11 +2327,12 @@ static struct platform_device htc_headset_one_wire = {
        },
 };
 
+/* HTC_HEADSET_MGR Driver */
 static struct platform_device *headset_devices[] = {
 	&htc_headset_pmic,
 	&htc_headset_gpio,
 	&htc_headset_one_wire,
-	
+	/* Please put the headset detection driver on the last */
 };
 
 static struct headset_adc_config htc_headset_mgr_config[] = {
@@ -2397,7 +2412,7 @@ static void headset_init(void)
 		ret = gpio_tlmm_config(headset_cpu_gpio[i], GPIO_CFG_ENABLE);
 		pr_info("[HS_BOARD]Config gpio[%d], ret = %d\n", (headset_cpu_gpio[i] & 0x3FF0) >> 4, ret);
 	}
-	gpio_set_value(CP3DCG_AUD_UART_OEz, 1); 
+	gpio_set_value(CP3DCG_AUD_UART_OEz, 1); /*Disable 1-wire level shift by default*/
 	gpio_set_value(CP3DCG_AUD_UART_SEL, 0);
 
 }
@@ -2446,6 +2461,7 @@ static struct platform_device htc_headset_mgr = {
 	},
 };
 
+/* HEADSET DRIVER END */
 
 
 #ifdef CONFIG_LEDS_PM8029
@@ -2821,7 +2837,7 @@ static void __init msm8625_device_i2c_init(void)
 int flashlight_control(int mode)
 {
 	int	rc;
-	
+	/* Andrew_Cheng Turn off backlight when flash on */
 	static int	backlight_off = 0;
 
 	if (mode != FL_MODE_PRE_FLASH && mode != FL_MODE_OFF) {
@@ -3028,6 +3044,8 @@ static void __init msm_cp3dcg_init(void)
 	gpio_set_value(CP3DCG_GPIO_PS_HOLD, 1);
 
 	msm7x2x_misc_init();
+
+	/* Initialize regulators first so that other devices can use them */
 	msm7627a_init_regulators();
 	msmqrd_adsp_add_pdev();
 
@@ -3061,7 +3079,7 @@ static void __init msm_cp3dcg_init(void)
 
 #ifdef CONFIG_MMC_MSM
 	printk(KERN_ERR "%s: start init mmc\n", __func__);
-	cp3dcg_init_mmc();
+	cp3_init_mmc();
 	printk(KERN_ERR "%s: msm7627a_init_mmc()\n", __func__);
 	entry = create_proc_read_entry("emmc", 0, NULL, emmc_partition_read_proc, NULL);
 	printk(KERN_ERR "%s: create_proc_read_entry()\n", __func__);
@@ -3085,6 +3103,7 @@ static void __init msm_cp3dcg_init(void)
 
 	msm_pm_register_irqs();
 	
+	/* display initializations*/
 	cp3dcg_init_panel();
 	#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_3K
 	syn_init_vkeys_cp3();
@@ -3133,7 +3152,7 @@ static void __init msm_cp3dcg_init(void)
 			ARRAY_SIZE(tps61310_i2c_info));
 #endif
 
-	
+	/*register gpio expander here*/
 	printk(KERN_ERR"NFC i2c registration\n");
 	i2c_register_board_info(MSM_GSBI1_QUP_I2C_BUS_ID,
 		pn544_i2c_boardinfo, ARRAY_SIZE(pn544_i2c_boardinfo));
