@@ -198,12 +198,12 @@ void hci_setup_sync(struct hci_conn *conn, __u16 handle)
 	cp.tx_bandwidth   = cpu_to_le32(0x00001f40);
 	cp.rx_bandwidth   = cpu_to_le32(0x00001f40);
 	if (conn->hdev->is_wbs) {
-		
+
 		uint16_t voice_setting = hdev->voice_setting | ACF_TRANS;
 		cp.max_latency    = cpu_to_le16(0x000D);
 		cp.pkt_type = cpu_to_le16(ESCO_WBS);
 		cp.voice_setting  = cpu_to_le16(voice_setting);
-		
+
 		cp.retrans_effort = RE_LINK_QUALITY;
 	} else {
 		cp.max_latency    = cpu_to_le16(0x000A);
@@ -264,7 +264,7 @@ void hci_le_ltk_reply(struct hci_conn *conn, u8 ltk[16])
 	memset(&cp, 0, sizeof(cp));
 
 	cp.handle = cpu_to_le16(conn->handle);
-	memcpy(cp.ltk, ltk, sizeof(ltk));
+	memcpy(cp.ltk, ltk, 16 /*sizeof(ltk)*/);
 
 	hci_send_cmd(hdev, HCI_OP_LE_LTK_REPLY, sizeof(cp), &cp);
 }
@@ -446,7 +446,7 @@ int hci_conn_del(struct hci_conn *conn)
 
 	BT_DBG("%s conn %p handle %d type %d", hdev->name, conn, conn->handle, conn->type);
 
-	
+
 	del_timer(&conn->idle_timer);
 	del_timer(&conn->disc_timer);
 	del_timer(&conn->smp_timer);
@@ -457,7 +457,7 @@ int hci_conn_del(struct hci_conn *conn)
 		if (sco)
 			sco->link = NULL;
 
-		
+
 		hdev->acl_cnt += conn->sent;
 	} else if (conn->type == LE_LINK) {
 		if (hdev->le_pkts)
@@ -488,7 +488,7 @@ int hci_conn_del(struct hci_conn *conn)
 
 	hci_dev_put(hdev);
 
-	
+
 	if (conn->handle == 0)
 		kfree(conn);
 
@@ -730,7 +730,7 @@ struct hci_conn *hci_connect(struct hci_dev *hdev, int type,
 		hci_conn_enter_active_mode(acl, 1);
 
 		if (test_bit(HCI_CONN_MODE_CHANGE_PEND, &acl->pend)) {
-			
+
 			set_bit(HCI_CONN_SCO_SETUP_PEND, &acl->pend);
 			return sco;
 		}

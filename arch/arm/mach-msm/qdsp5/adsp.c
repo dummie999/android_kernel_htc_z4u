@@ -37,7 +37,7 @@ static struct dentry *dentry_adsp;
 static struct dentry *dentry_wdata;
 static struct dentry *dentry_rdata;
 static int wdump, rdump;
-#endif 
+#endif
 static struct wake_lock adsp_wake_lock;
 static inline void prevent_suspend(void)
 {
@@ -203,7 +203,7 @@ static struct msm_adsp_module *find_adsp_module_by_name(
 
 static int adsp_rpc_init(struct msm_adsp_module *adsp_module)
 {
-	
+
 	adsp_module->rpc_client = msm_rpc_connect(
 		rpc_adsp_rtos_atom_prog,
 		rpc_adsp_rtos_atom_vers,
@@ -361,7 +361,7 @@ static int rpc_send_accepted_void_reply(struct msm_rpc_endpoint *client,
 	struct rpc_reply_hdr *reply = (struct rpc_reply_hdr *)reply_buf;
 
 	reply->xid = cpu_to_be32(xid);
-	reply->type = cpu_to_be32(1); 
+	reply->type = cpu_to_be32(1);
 	reply->reply_stat = cpu_to_be32(RPCMSG_REPLYSTAT_ACCEPTED);
 
 	reply->data.acc_hdr.accept_stat = cpu_to_be32(accept_status);
@@ -429,14 +429,14 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 		cnt++;
 	}
 
-	
+
 	ctrl_word &= ~(ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_M);
 	ctrl_word |=  ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_NAVAIL_V;
 
-	
+
 	ctrl_word &= ~(ADSP_RTOS_WRITE_CTRL_WORD_CMD_M);
 
-	
+
 	ctrl_word &= ~(ADSP_RTOS_WRITE_CTRL_WORD_DSP_ADDR_M);
 	ctrl_word |= dsp_q_addr;
 
@@ -457,7 +457,7 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 		cnt++;
 	}
 
-	
+
 	ctrl_word = readl(info->write_ctrl);
 
 	if ((ctrl_word & ADSP_RTOS_WRITE_CTRL_WORD_STATUS_M) !=
@@ -465,8 +465,8 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 		ret_status = -EAGAIN;
 		goto fail;
 	} else {
-		
-		
+
+
 		dsp_addr = (ctrl_word & ADSP_RTOS_WRITE_CTRL_WORD_DSP_ADDR_M) +
 			   (uint32_t)MSM_AD5_BASE;
 
@@ -475,10 +475,10 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 			uint16_t *dsp_addr16 = (uint16_t *)dsp_addr;
 			cmd_size /= sizeof(uint16_t);
 
-			
+
 			cmd_id = (uint32_t) buf_ptr[0];
 
-			
+
 			cmd_size++;
 			while (--cmd_size)
 				*dsp_addr16++ = *buf_ptr++;
@@ -487,7 +487,7 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 			uint32_t *dsp_addr32 = (uint32_t *)dsp_addr;
 			cmd_size /= sizeof(uint32_t);
 
-			
+
 			cmd_id = buf_ptr[0];
 
 			cmd_size++;
@@ -495,15 +495,15 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 				*dsp_addr32++ = *buf_ptr++;
 		}
 
-		
+
 		ctrl_word &= ~(ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_M);
 		ctrl_word |=  ADSP_RTOS_WRITE_CTRL_WORD_MUTEX_NAVAIL_V;
 
-		
+
 		ctrl_word &= ~(ADSP_RTOS_WRITE_CTRL_WORD_CMD_M);
 		ctrl_word |= ADSP_RTOS_WRITE_CTRL_WORD_CMD_WRITE_DONE_V;
 
-		
+
 		ctrl_word &= ~(ADSP_RTOS_WRITE_CTRL_WORD_DSP_ADDR_M);
 		ctrl_word |= dsp_q_addr;
 
@@ -512,7 +512,7 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 		writel(1, info->send_irq);
 
 		module->num_commands++;
-	} 
+	}
 
 fail:
 	spin_unlock_irqrestore(&adsp_write_lock, flags);
@@ -536,7 +536,7 @@ int msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 			pr_info("%x ", ptr[ii]);
 		pr_info("\n");
 	}
-#endif 
+#endif
 	do {
 		rc = __msm_adsp_write(module, dsp_queue_addr, cmd_buf,
 								cmd_size);
@@ -845,7 +845,7 @@ static int adsp_rtos_read_ctrl_word_cmd_tast_to_h_v(
 	uint16_t *ptr16;
 	uint32_t *ptr32;
 	int ii;
-#endif 
+#endif
 	void (*func)(void *, size_t);
 
 	if (dsp_addr >= (void *)(MSM_AD5_BASE + QDSP_RAMC_OFFSET)) {
@@ -907,20 +907,20 @@ static int adsp_rtos_read_ctrl_word_cmd_tast_to_h_v(
 			pr_info("%x ", ptr16[ii]);
 		pr_info("\n");
 	}
-#endif 
+#endif
 
-	
+
 	module_irq_cnt[0]++;
-	if (!strncmp(module->name, "QCAMTASK", sizeof(module->name)))
+	if (!strcmp(module->name, "QCAMTASK"))
 		module_irq_cnt[1]++;
-	else if(!strncmp(module->name, "VFETASK", sizeof(module->name)))
+	else if(!strcmp(module->name, "VFETASK"))
 		module_irq_cnt[2]++;
-	else if(!strncmp(module->name, "VIDEOENCTASK", sizeof(module->name)))
+	else if(!strcmp(module->name, "VIDEOENCTASK"))
 		module_irq_cnt[3]++;
 
 	if((module_irq_cnt[0]%200) == 0)
 		pr_info("adsp: module_irq_cnt %d,%d,%d,%d", module_irq_cnt[0], module_irq_cnt[1], module_irq_cnt[2], module_irq_cnt[3]);
-	
+
 
 	module->ops->event(module->driver_data, msg_id, msg_length, func);
 
@@ -964,17 +964,17 @@ ready:
 		goto done;
 	}
 
-	
 
-	
+
+
 	cmd_type = ctrl_word & ADSP_RTOS_READ_CTRL_WORD_CMD_TYPE_M;
 
-	
+
 	dsp_addr = (void *)((ctrl_word &
 			     ADSP_RTOS_READ_CTRL_WORD_DSP_ADDR_M) +
 			    (uint32_t)MSM_AD5_BASE);
 
-	
+
 	if (cmd_type != ADSP_RTOS_READ_CTRL_WORD_CMD_TASK_TO_H_V) {
 		MM_ERR("adsp: unknown dsp cmd_type %d\n", cmd_type);
 		rc = -EIO;
@@ -986,10 +986,10 @@ ready:
 	ctrl_word = readl(info->read_ctrl);
 	ctrl_word &= ~ADSP_RTOS_READ_CTRL_WORD_READY_M;
 
-	
+
 	writel(ctrl_word, info->read_ctrl);
 
-	
+
 	writel(1, info->send_irq);
 
 done:
@@ -1073,19 +1073,19 @@ int msm_adsp_enable(struct msm_adsp_module *module)
 	MM_INFO("msm_adsp_enable() '%s'state[%d] id[%d]\n",
 				module->name, module->state, module->id);
 
-	
-	if (!strncmp(module->name, "QCAMTASK", sizeof(module->name)))
-		module_irq_cnt[1] = 0;
-	else if(!strncmp(module->name, "VFETASK", sizeof(module->name)))
-		module_irq_cnt[2] = 0;
-	else if(!strncmp(module->name, "VIDEOENCTASK", sizeof(module->name)))
-		module_irq_cnt[3] = 0;
-	
 
-	if (!strncmp(module->name, "JPEGTASK", sizeof(module->name))) {
+	if (!strcmp(module->name, "QCAMTASK"))
+		module_irq_cnt[1] = 0;
+	else if(!strcmp(module->name, "VFETASK"))
+		module_irq_cnt[2] = 0;
+	else if(!strcmp(module->name, "VIDEOENCTASK"))
+		module_irq_cnt[3] = 0;
+
+
+	if (!strcmp(module->name, "JPEGTASK")) {
 		module_en = find_adsp_module_by_name(&adsp_info, "VIDEOTASK");
 		module_en_2 = find_adsp_module_by_name(&adsp_info, "VIDEOENCTASK");
-	} else if (!strncmp(module->name, "VIDEOTASK", sizeof(module->name)))
+	} else if (!strcmp(module->name, "VIDEOTASK"))
 		module_en = find_adsp_module_by_name(&adsp_info, "JPEGTASK");
 	if (module_en) {
 		mutex_lock(&module_en->lock);
@@ -1285,7 +1285,7 @@ static int msm_adsp_probe(struct platform_device *pdev)
 		goto fail_rpc_register;
 	}
 
-	
+
 	queue_work(msm_adsp_probe_work_queue, &msm_adsp_probe_work);
 
 	for (i = 0; i < count; i++) {
@@ -1331,7 +1331,7 @@ fail_request_irq:
 
 static void adsp_probe_work(struct work_struct *work)
 {
-	
+
 	kthread_run(adsp_rpc_thread, NULL, "kadspd");
 }
 
@@ -1485,7 +1485,7 @@ static int __init adsp_init(void)
 	}
 	rdump = 0;
 	wdump = 0;
-#endif 
+#endif
 
 	rpc_adsp_rtos_atom_prog = 0x3000000a;
 	rpc_adsp_rtos_atom_vers = 0x10001;
